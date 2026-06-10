@@ -1,164 +1,136 @@
-# Azure Cost Reduction Checklist — Test Phase
+# Azure Cost Reduction — Test Phase
 
 Resource Group: `loyalty-platform-dev`
-Subscription: `13e630db-8816-46b8-896e-511fab75a53a`
+Subscription: `13e630db-8816-46b8-896e-511fab75a53a` (SNT - David H)
 
-> Verified: The admin portal (loyaltyadminportal.z20.web.core.windows.net) calls
-> App Service URLs directly (*.azurewebsites.net), NOT Container Apps.
-> APIM backends point to Container App URLs but are not receiving real traffic.
-> CI/CD deploys services to App Services only; workers to Container Apps only.
+> Completed 2026-06-10. Verified via browser network inspection that the admin
+> portal calls App Service URLs directly. Container App API copies had 0 replicas
+> and were confirmed idle.
 
 ---
 
-## Phase 1: Remove Duplicate Container App API Services (highest impact)
+## Changes Made
 
-The 6 API services exist as both App Services and Container Apps. The App Services
-are actively used (admin portal calls them, CI/CD deploys to them). The Container
-App copies were created by the Bicep infra template but are idle — no traffic is
-routed to them.
+### 1. Deleted 6 duplicate Container App API services
 
-### Pre-checks
+The 6 API services existed as both App Services and Container Apps. The App Services
+are actively used (admin portal calls `*.azurewebsites.net`, CI/CD deploys to them).
+The Container App copies were created by Bicep but had 0 replicas — no traffic.
 
-- [ ] Verify APIM is not receiving external traffic (check APIM metrics in portal)
-- [ ] If APIM IS receiving traffic, update APIM backend named values to point to App Service URLs before deleting Container Apps:
+- [x] Updated APIM backend named values to point to App Service URLs:
   - `MEMBER_SERVICE_BACKEND_URL` → `https://loyalty-dev-member-service.azurewebsites.net`
   - `LOYALTY_ENGINE_BACKEND_URL` → `https://loyalty-dev-loyalty-engine.azurewebsites.net`
+- [x] Deleted `admin-api` (Container App)
+- [x] Deleted `analytics-service` (Container App)
+- [x] Deleted `loyalty-engine` (Container App)
+- [x] Deleted `member-service` (Container App)
+- [x] Deleted `notification-service` (Container App)
+- [x] Deleted `offer-service` (Container App)
+- [x] Verified admin portal still loads and displays data correctly
 
-### Delete idle Container App API services
+Kept Container Apps:
+- `tier-eval-worker` — background worker (running)
+- `webhook-worker` — background worker (running)
+- `swagger-ui` — API docs (running)
 
-These are duplicates of the active App Services and are not serving traffic:
+### 2. Downgraded App Service Plan P1v3 → B1
 
-- [ ] Delete `admin-api` (Container App)
-- [ ] Delete `analytics-service` (Container App)
-- [ ] Delete `loyalty-engine` (Container App)
-- [ ] Delete `member-service` (Container App)
-- [ ] Delete `notification-service` (Container App)
-- [ ] Delete `offer-service` (Container App)
+- [x] Downgraded `loyalty-dev-asp` from P1v3 (PremiumV3, ~$138/mo) to B1 (Basic, ~$13/mo)
+- [x] Disabled AlwaysOn on all 6 App Services (not supported on Basic tier)
+- [x] Verified all 6 services respond on /health after downgrade
+  - Note: containers take longer to cold-start on B1 — allow ~60-90s after restart
 
-### Keep these Container Apps (actively used)
+### 3. No changes needed (already optimized)
 
-- `tier-eval-worker` — background worker, no App Service equivalent
-- `webhook-worker` — background worker, no App Service equivalent
-- `swagger-ui` — API docs (optional, low cost)
-
-### Verify
-
-- [ ] Admin portal still loads and displays data correctly
-- [ ] Worker Container Apps (tier-eval-worker, webhook-worker) still running
-
----
-
-## Phase 2: Downgrade App Service Plan
-
-The App Service Plan is on **P1v3 (PremiumV3)** — ~$138/mo per instance, overkill for testing.
-
-- [ ] Check current instance count: Portal > `loyalty-dev-asp` > Scale out
-- [ ] Downgrade SKU from P1v3 to **B1 (Basic)** — ~$13/mo
-  - Portal > `loyalty-dev-asp` > Scale up > Dev/Test > B1
-  - Note: Basic tier does not support deployment slots or auto-scale (not needed for test)
-- [ ] Verify all 6 App Services still respond on /health after downgrade
+- [x] **APIM** — already on Consumption tier (pay-per-call)
+- [x] **Redis** — already on Basic C0 (~$16/mo)
+- [x] **SQL** — both databases (`control-plane`, `tenant-daiso-test`) already on Basic tier (5 DTU, ~$5/mo each)
+- [x] **Service Bus** — Standard tier (~$10/mo)
+- [x] **Container Registry** — Basic tier (~$5/mo)
+- [x] **Storage accounts** — all 9 kept (all are part of the active demo suite)
 
 ---
 
-## Phase 3: APIM — Already Optimized
+## Current Resource Inventory
 
-APIM (`loyalty-dev-apim-5rdrqh`) is already on **Consumption tier** (confirmed in Bicep).
-No action needed — pay-per-call, minimal cost when idle.
+### Compute
+| Resource | Type | Tier | Status |
+|----------|------|------|--------|
+| loyalty-dev-asp | App Service Plan | B1 Basic | Active — hosts 6 API services |
+| loyalty-dev-admin-api | App Service | — | Active |
+| loyalty-dev-analytics-service | App Service | — | Active |
+| loyalty-dev-loyalty-engine | App Service | — | Active |
+| loyalty-dev-member-service | App Service | — | Active |
+| loyalty-dev-notification-service | App Service | — | Active |
+| loyalty-dev-offer-service | App Service | — | Active |
+| tier-eval-worker | Container App | — | Active (1 replica) |
+| webhook-worker | Container App | — | Active (1 replica) |
+| swagger-ui | Container App | — | Active (1 replica) |
 
-- [x] APIM is on Consumption tier — no changes required
+### Data & Messaging
+| Resource | Type | Tier |
+|----------|------|------|
+| loyalty-dev-sql-5rdrqhw | SQL Server | — |
+| control-plane | SQL Database | Basic (5 DTU) |
+| tenant-daiso-test | SQL Database | Basic (5 DTU) |
+| loyalty-dev-redis-5rdrqh | Redis Cache | Basic C0 |
+| loyalty-dev-sb-5rdrqh | Service Bus | Standard |
 
----
+### Storage (9 accounts — all in use for demo)
+| Account | Purpose |
+|---------|---------|
+| loyaltyadminportal | Admin portal static site |
+| loyaltydevst5rdrqh | Dev infrastructure storage |
+| loyaltydocs | Documentation site |
+| loyaltyonboardportal | Onboarding portal |
+| loyaltyposdemo | POS demo app |
+| loyaltypresentation | Presentation/demo site |
+| loyaltyselfcheckout | Self-checkout demo |
+| loyaltyenroll | Enrollment portal |
+| loyaltylanding | Landing page |
 
-## Phase 4: Downgrade Redis Cache
-
-- [ ] Check current tier: Portal > `loyalty-dev-redis-5rdrqh` > Pricing tier
-- [ ] Note: Downgrading Redis requires creating a new instance (cannot downgrade in-place)
-  - [ ] Create new Redis instance on **Basic C0 tier** (~$16/mo)
-  - [ ] Update connection string in Key Vault (`loyalty-dev-kv-5rdrqh`) secret `redis-connection-string`
-  - [ ] Restart App Services and Container Apps to pick up new connection
-  - [ ] Verify points balance caching works (test a transaction in admin portal)
-  - [ ] Delete old Redis instance
-- [ ] Alternative: If current tier is already C0/C1, skip this step
-
----
-
-## Phase 5: Downgrade SQL Databases
-
-- [ ] Check current tier of `control-plane` database
-- [ ] Check current tier of `tenant-daiso-test` database
-- [ ] Downgrade `control-plane` to **Basic tier** (5 DTU, ~$5/mo)
-  - Portal > Database > Configure > Basic
-- [ ] Downgrade `tenant-daiso-test` to **Basic tier** (5 DTU, ~$5/mo)
-- [ ] Verify admin portal dashboard still loads data (it queries analytics + transactions)
-
----
-
-## Phase 6: Consolidate Storage Accounts
-
-You have 8 storage accounts. For test phase, many are unnecessary.
-
-### Keep (actively used)
-
-- `loyaltyadminportal` — Admin portal static site (confirmed in use)
-- `loyaltydevst5rdrqh` — Dev infrastructure storage (referenced in Bicep outputs)
-
-### Verify before removing
-
-- [ ] `loyaltydocs` — Documentation site (linked from admin portal sidebar)
-  - Admin portal links to `loyaltydocs.z13.web.core.windows.net` — keep if you use the docs
-- [ ] `loyaltyonboardportal` — Onboarding portal for new tenants
-
-### Candidates to delete (demo/presentation, not needed for testing)
-
-For each: confirm not referenced, backup content if needed, then delete.
-
-- [ ] `loyaltyposdemo` — POS demo app
-- [ ] `loyaltypresentation` — Presentation/demo site
-- [ ] `loyaltyselfcheckout` — Self-checkout demo
-- [ ] `loyaltyenroll` — Enrollment portal (if enrollment can be tested via API)
-- [ ] `loyaltylanding` — Landing page (marketing, not needed for test)
+### Other
+| Resource | Type | Tier |
+|----------|------|------|
+| loyalty-dev-apim-5rdrqh | API Management | Consumption |
+| loyaltydevacr4a8a43 | Container Registry | Basic |
+| loyalty-dev-kv-5rdrqh | Key Vault | Standard |
+| loyalty-dev-appi | Application Insights | — |
+| loyalty-dev-law | Log Analytics | — |
+| loyalty-dev-acs | Communication Service | Pay-per-use |
+| loyalty-dev-cae | Container Apps Environment | — |
+| loyaltyplatformdev.onmicrosoft.com | Azure AD B2C | Free tier |
 
 ---
 
-## Phase 7: Verify Remaining Services (low cost, keep as-is)
+## Actual Savings
 
-- [ ] `loyalty-dev-sb-5rdrqh` (Service Bus) — confirm it is on Basic or Standard tier, not Premium (~$668/mo)
-- [ ] `loyaltydevacr4a8a43` (Container Registry) — confirm Basic tier (~$5/mo)
-- [ ] `loyalty-dev-acs` (Communication Service) — no fixed cost, pay-per-use
-- [ ] `loyalty-dev-kv-5rdrqh` (Key Vault) — pennies, no action
-- [ ] `loyalty-dev-appi` / `loyalty-dev-law` (App Insights / Log Analytics) — consider setting daily ingestion cap to avoid surprise costs
+| Change | Before | After | Monthly Savings |
+|--------|--------|-------|-----------------|
+| Deleted 6 idle Container App APIs | ~$0 (already 0 replicas) | $0 | ~$0 (were not incurring cost) |
+| Downgraded App Service Plan P1v3 → B1 | ~$138/mo | ~$13/mo | **~$125/mo** |
+| **Total** | | | **~$125/mo** |
+
+> Most resources were already on cost-efficient tiers. The main saving was the
+> App Service Plan downgrade. The Container App deletions were cleanup (no cost
+> impact since they had 0 replicas).
 
 ---
 
-## Estimated Savings Summary
+## Future Considerations
 
-| Change | Before (est.) | After (est.) | Monthly Savings |
-|--------|--------------|-------------|-----------------|
-| Remove 6 duplicate Container App APIs | ~$100-200/mo | $0 | ~$100-200 |
-| Downgrade App Service Plan P1v3 → B1 | ~$138/mo | ~$13/mo | ~$125 |
-| Redis downgrade (if C2 → C0) | ~$160/mo | ~$16/mo | ~$145 |
-| SQL downgrade x2 (if S2 → Basic) | ~$150/mo | ~$10/mo | ~$140 |
-| Remove ~5 storage accounts | ~$25/mo | ~$5/mo | ~$20 |
-| **Total** | | | **~$530-630/mo** |
-
-> Actual savings depend on current tier selections. Check each resource in the portal.
+- **Migrate to Container Apps entirely** — set `minReplicas: 0` for scale-to-zero,
+  eliminating App Service Plan cost (~$13/mo). Requires updating CI/CD pipeline
+  (`deploy-services.yml`) and admin portal API URLs.
+- **App Service Plan B1 limitations** — no deployment slots, no auto-scale, no
+  AlwaysOn. Cold starts take ~60-90s. Upgrade to S1 (~$69/mo) if this becomes
+  an issue.
 
 ---
 
 ## Rollback Notes
 
-- Container Apps: Re-run `container-apps/main.bicep` to recreate
-- App Service Plan: Scale up instantly from portal (no redeployment needed)
-- Redis: New instance required; update Key Vault secret + restart services
-- SQL: Scale up instantly from portal
-- Storage: Content is permanently deleted — back up before removing
-- APIM: Already on Consumption, no changes made
-
----
-
-## Also Consider: Future Consolidation
-
-Once test phase is stable, consider migrating from App Services to Container Apps
-entirely (with `minReplicas: 0` for scale-to-zero). This would eliminate the App
-Service Plan cost completely and only charge for actual usage. Requires updating
-CI/CD pipeline and admin portal API URLs.
+- Container Apps: Re-run `infra/container-apps/main.bicep` to recreate
+- App Service Plan: `az appservice plan update --name loyalty-dev-asp --resource-group loyalty-platform-dev --sku P1v3`
+- AlwaysOn: Re-enable after upgrading plan: `az webapp config set --name <app> --always-on true`
+- APIM backends: Revert named values to Container App URLs if Container Apps are recreated
