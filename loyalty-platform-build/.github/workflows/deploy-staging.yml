@@ -1,0 +1,74 @@
+name: Deploy to Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to deploy'
+        required: true
+        default: 'main'
+
+permissions:
+  contents: read
+
+env:
+  RG: loyalty-platform-staging
+  ACR_NAME: loyaltydevacr4a8a43
+
+jobs:
+  deploy:
+    name: Deploy to staging
+    runs-on: ubuntu-latest
+    environment: staging  # Requires approval in GitHub settings
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: ./.github/actions/setup-node-pnpm
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy all services
+        run: |
+          SERVICES="member-service loyalty-engine offer-service notification-service analytics-service admin-api"
+          for SVC in $SERVICES; do
+            APP_NAME="loyalty-staging-${SVC}"
+            IMAGE="${ACR_NAME}.azurecr.io/${SVC}:${GITHUB_SHA}"
+
+            echo "Building ${SVC}..."
+            az acr build --registry $ACR_NAME --image ${SVC}:${GITHUB_SHA} \
+              --platform linux/amd64 -f services/${SVC}/Dockerfile .
+
+            echo "Deploying ${SVC} to staging..."
+            az webapp config container set \
+              --name "$APP_NAME" --resource-group "$RG" \
+              --container-image-name "$IMAGE" \
+              --container-registry-url "https://${ACR_NAME}.azurecr.io" \
+              --container-registry-user "$ACR_NAME" \
+              --container-registry-password "$(az acr credential show -n $ACR_NAME --query passwords[0].value -o tsv)"
+          done
+
+      - name: Smoke test
+        run: |
+          SERVICES="member-service loyalty-engine offer-service notification-service analytics-service admin-api"
+          for SVC in $SERVICES; do
+            URL="https://loyalty-staging-${SVC}.azurewebsites.net/health"
+            echo "Checking ${SVC}..."
+            for i in $(seq 1 12); do
+              if curl -fsS "$URL" > /dev/null 2>&1; then
+                echo "${SVC}: OK"
+                break
+              fi
+              sleep 10
+            done
+          done

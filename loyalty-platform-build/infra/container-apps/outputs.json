@@ -1,0 +1,17 @@
+{
+  "mode": "DEPLOYED",
+  "acrName": "loyaltydevacr4a8a43",
+  "acrLoginServer": "loyaltydevacr4a8a43.azurecr.io",
+  "imageTag": "dev",
+  "environment": "loyalty-dev-cae",
+  "services": [
+    { "name": "member-service",       "fqdn": "member-service.blackgrass-225d994b.eastus.azurecontainerapps.io",       "url": "https://member-service.blackgrass-225d994b.eastus.azurecontainerapps.io",       "port": 3001, "ingress": "external", "deployed": true },
+    { "name": "loyalty-engine",       "fqdn": "loyalty-engine.blackgrass-225d994b.eastus.azurecontainerapps.io",       "url": "https://loyalty-engine.blackgrass-225d994b.eastus.azurecontainerapps.io",       "port": 3002, "ingress": "external", "deployed": true },
+    { "name": "admin-api",            "fqdn": "admin-api.blackgrass-225d994b.eastus.azurecontainerapps.io",            "url": "https://admin-api.blackgrass-225d994b.eastus.azurecontainerapps.io",            "port": 3005, "ingress": "external", "deployed": true },
+    { "name": "notification-service", "fqdn": "notification-service.blackgrass-225d994b.eastus.azurecontainerapps.io", "url": "https://notification-service.blackgrass-225d994b.eastus.azurecontainerapps.io", "port": 3002, "ingress": "external", "deployed": true },
+    { "name": "offer-service",        "fqdn": "offer-service.blackgrass-225d994b.eastus.azurecontainerapps.io",        "url": "https://offer-service.blackgrass-225d994b.eastus.azurecontainerapps.io",        "port": 3004, "ingress": "external", "deployed": true },
+    { "name": "analytics-service",    "fqdn": "analytics-service.blackgrass-225d994b.eastus.azurecontainerapps.io",    "url": "https://analytics-service.blackgrass-225d994b.eastus.azurecontainerapps.io",    "port": 3006, "ingress": "external", "deployed": true },
+    { "name": "tier-eval-worker",     "fqdn": null, "port": 0,    "ingress": "none", "deployed": true },
+    { "name": "webhook-worker",       "fqdn": null, "port": 3009, "ingress": "none", "deployed": true }
+  ]
+}

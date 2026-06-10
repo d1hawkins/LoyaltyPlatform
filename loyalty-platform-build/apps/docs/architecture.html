@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link active">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Architecture
+        </div>
+
+        <h1>Architecture</h1>
+        <p class="subtitle">Multi-tenant, event-driven microservice architecture on Azure with full data isolation per tenant.</p>
+
+        <h2>System Overview</h2>
+        <pre class="language-text"><code>                    Clients
+                       |
+        +--------------+--------------+
+        |              |              |
+    JS SDK        REST API       Webhooks
+        |              |              |
+        +--------------+--------------+
+                       |
+              Azure API Management
+          (auth, rate limiting, routing)
+                       |
+        +--------------+--------------+--------------+
+        |              |              |              |
+   Member         Loyalty         Offer          Admin
+   Service        Engine         Service          API
+   :3001          :3002          :3004           :3005
+        |              |              |              |
+        +--------------+--------------+--------------+
+                       |
+              Azure Service Bus
+             (event fan-out topics)
+                       |
+        +--------------+--------------+--------------+
+        |              |              |              |
+   Webhook        Tier Eval     Notification    Analytics
+   Worker         Worker        Service         Service
+   :3009</code></pre>
+
+        <h2>Multi-Tenancy Model</h2>
+        <p>The platform uses a <strong>database-per-tenant</strong> isolation model. Every tenant gets their own SQL Server database with identical schema, ensuring complete data isolation.</p>
+
+        <h3>Tenant Resolution</h3>
+        <p>Every request must include a tenant identifier. In production, the tenant is extracted from the JWT <code>tenantId</code> claim. In dev mode, it comes from the <code>X-Tenant-ID</code> header.</p>
+
+        <pre class="language-text"><code>Request --> APIM --> JWT validation --> Extract tenantId claim
+                                              |
+                                    Control Plane DB lookup
+                                              |
+                                    Resolve tenant database
+                                              |
+                                    Route to tenant connection pool</code></pre>
+
+        <h3>Data Isolation</h3>
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>Isolation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Database</strong></td><td>Separate SQL Server database per tenant</td></tr>
+            <tr><td><strong>Encryption</strong></td><td>Per-tenant AES-256-GCM encryption keys for PII</td></tr>
+            <tr><td><strong>Hashing</strong></td><td>Per-tenant HMAC pepper for lookup hashes (not comparable across tenants)</td></tr>
+            <tr><td><strong>Cache</strong></td><td>Redis keys prefixed with <code>tenant:{tenantId}:</code></td></tr>
+            <tr><td><strong>Events</strong></td><td>All Service Bus events carry <code>tenantId</code> in the envelope</td></tr>
+            <tr><td><strong>Idempotency</strong></td><td>Keys scoped to <code>(tenantId, idempotencyKey)</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Service Architecture</h2>
+
+        <h3>Member Service (Port 3001)</h3>
+        <p>Handles enrollment, profile management, member lookup, and GDPR operations. PII (email, phone) is encrypted at rest with AES-256-GCM with per-field random IV. Lookups use HMAC-SHA256 hashes with per-tenant peppers.</p>
+        <ul>
+          <li>Hot path: phone lookup at p99 &lt; 100ms @ 500 RPS</li>
+          <li>Balance served from Redis cache (300s TTL)</li>
+          <li>Publishes: <code>member.enrolled</code>, <code>member.updated</code>, <code>member.deleted</code></li>
+        </ul>
+
+        <h3>Loyalty Engine (Port 3002)</h3>
+        <p>Transaction processing with atomic writes. Every transaction creates an immutable ledger entry in the same database transaction. The points calculator is a pure function with configurable base rates, tier multipliers, and category bonuses.</p>
+        <ul>
+          <li>All writes require <code>Idempotency-Key</code> header (24h retention)</li>
+          <li>Immutable ledger -- no UPDATE/DELETE on <code>points_ledger</code> (enforced by DB trigger)</li>
+          <li>Points expiry with configurable TTL and notification reminders</li>
+          <li>Built-in fraud detection (velocity checks, pattern matching, configurable rules)</li>
+          <li>Publishes: <code>points.earned</code>, <code>points.redeemed</code>, <code>transaction.voided</code></li>
+        </ul>
+
+        <h3>Offer Service (Port 3004)</h3>
+        <p>Offer catalog management, personalized eligibility engine, code generation, and redemption workflow.</p>
+        <ul>
+          <li>10-rule eligibility engine evaluating tier, points, status, and limits</li>
+          <li>Bulk code generation with configurable prefixes</li>
+          <li>Coordinates with Loyalty Engine for point deductions on redemption</li>
+        </ul>
+
+        <h3>Admin API (Port 3005)</h3>
+        <p>30 endpoints for program configuration, tier management, webhook CRUD, API key management, feature flags, branding, and audit logging.</p>
+        <ul>
+          <li>Three-role RBAC: owner, manager, analyst</li>
+          <li>Full audit trail with before/after JSON diffs</li>
+          <li>CSV export for members and audit logs</li>
+        </ul>
+
+        <h3>Webhook Worker (Port 3009)</h3>
+        <p>Reliable outbound delivery of platform events to tenant-registered HTTP endpoints.</p>
+        <ul>
+          <li>Durable delivery table with exactly-once DB persistence</li>
+          <li>HMAC-SHA256 signed payloads</li>
+          <li>Exponential backoff retry (30s, 2m, 10m, 1h, 6h)</li>
+          <li>Dead-letter queue with manual replay</li>
+        </ul>
+
+        <h2>Event-Driven Design</h2>
+        <p>Services communicate asynchronously via Azure Service Bus topics. Each event is wrapped in a standard <code>EventEnvelope</code>:</p>
+
+        <pre><code class="language-json">{
+  "eventId": "uuid",
+  "eventType": "points.earned",
+  "tenantId": "uuid",
+  "timestamp": "ISO-8601",
+  "version": "1.0",
+  "payload": { ... }
+}</code></pre>
+
+        <h3>Event Flow</h3>
+        <table>
+          <thead>
+            <tr><th>Event</th><th>Producer</th><th>Consumers</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>member.enrolled</code></td><td>Member Service</td><td>Webhook Worker, Analytics</td></tr>
+            <tr><td><code>member.updated</code></td><td>Member Service</td><td>Webhook Worker</td></tr>
+            <tr><td><code>member.deleted</code></td><td>Member Service</td><td>Webhook Worker</td></tr>
+            <tr><td><code>points.earned</code></td><td>Loyalty Engine</td><td>Tier Eval, Webhook Worker, Notification, Analytics</td></tr>
+            <tr><td><code>points.redeemed</code></td><td>Loyalty Engine / Offer Service</td><td>Webhook Worker, Analytics</td></tr>
+            <tr><td><code>transaction.voided</code></td><td>Loyalty Engine</td><td>Webhook Worker, Analytics</td></tr>
+            <tr><td><code>tier.upgraded</code></td><td>Tier Eval Worker</td><td>Webhook Worker, Notification</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Data Model</h2>
+
+        <h3>Control Plane Database</h3>
+        <p>Shared across all tenants. Stores tenant metadata, API keys, and feature flags.</p>
+        <ul>
+          <li><code>tenants</code> -- tenant registry with database connection info</li>
+          <li><code>tenant_api_keys</code> -- bcrypt-hashed API keys</li>
+          <li><code>feature_flags</code> -- per-tenant feature toggles</li>
+        </ul>
+
+        <h3>Tenant Database (per-tenant)</h3>
+        <p>Each tenant has their own database with these core tables:</p>
+        <ul>
+          <li><code>members</code> -- encrypted PII, status, tier assignment</li>
+          <li><code>tiers</code> -- tier definitions with multipliers and thresholds</li>
+          <li><code>transactions</code> -- purchase records</li>
+          <li><code>points_ledger</code> -- immutable, append-only ledger entries</li>
+          <li><code>program_config</code> -- earn rates, void window, expiry settings</li>
+          <li><code>offers</code> -- offer catalog with targeting rules</li>
+          <li><code>redemptions</code> -- redemption records</li>
+          <li><code>offer_codes</code> -- generated redemption codes</li>
+          <li><code>webhook_configs</code> -- registered webhook endpoints</li>
+          <li><code>webhook_deliveries</code> -- delivery tracking with retry state</li>
+          <li><code>audit_log</code> -- admin action audit trail</li>
+          <li><code>fraud_flags</code> -- suspicious activity records</li>
+          <li><code>fraud_rules</code> -- configurable fraud detection rules</li>
+        </ul>
+
+        <h2>Infrastructure</h2>
+        <table>
+          <thead>
+            <tr><th>Component</th><th>Azure Service</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>API Gateway</td><td>Azure API Management (Consumption tier)</td></tr>
+            <tr><td>Compute</td><td>Azure Container Apps</td></tr>
+            <tr><td>Database</td><td>Azure SQL Server (per-tenant databases)</td></tr>
+            <tr><td>Cache</td><td>Azure Cache for Redis</td></tr>
+            <tr><td>Messaging</td><td>Azure Service Bus (topics + subscriptions)</td></tr>
+            <tr><td>Identity</td><td>Azure AD B2C</td></tr>
+            <tr><td>Secrets</td><td>Azure Key Vault</td></tr>
+            <tr><td>Monitoring</td><td>Application Insights</td></tr>
+            <tr><td>Static Sites</td><td>Azure Storage Static Websites</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Security</h2>
+        <ul>
+          <li><strong>PII Encryption</strong>: AES-256-GCM with per-field random 96-bit IV. Version-tagged for key rotation support.</li>
+          <li><strong>Lookup Hashing</strong>: HMAC-SHA256 with per-tenant pepper derived from base pepper. Not comparable across tenants.</li>
+          <li><strong>Webhook Signing</strong>: HMAC-SHA256 with per-webhook shared secret. Timestamp included to prevent replay attacks.</li>
+          <li><strong>API Keys</strong>: bcrypt-hashed, plaintext returned only once at creation.</li>
+          <li><strong>GDPR</strong>: Soft delete with T+30d hard scrub. Data export endpoint. Audit trail for all deletions.</li>
+          <li><strong>Fraud Detection</strong>: Real-time velocity checks in Redis hot path (&lt;20ms overhead). Configurable rules per tenant.</li>
+        </ul>
+
+        <h2>Performance Targets</h2>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Target</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Phone lookup (POS)</td><td>p99 &lt; 100ms @ 500 RPS</td></tr>
+            <tr><td>Mobile dashboard</td><td>p99 &lt; 200ms @ 300 RPS</td></tr>
+            <tr><td>Fraud check overhead</td><td>&lt; 20ms per transaction</td></tr>
+            <tr><td>Balance cache TTL</td><td>300 seconds (Redis)</td></tr>
+            <tr><td>Dashboard cache TTL</td><td>60 seconds (Redis)</td></tr>
+          </tbody>
+        </table>
+
+        <div class="next-page">
+          <a href="index.html">&larr; Back to Overview</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

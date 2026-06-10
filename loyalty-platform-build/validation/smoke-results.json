@@ -1,0 +1,93 @@
+{
+  "results": [
+    {
+      "step": "health:member-service",
+      "status": "PASS",
+      "detail": "HTTP 200 — {\"status\":\"ok\",\"service\":\"member-service\",\"version\":\"0.1.0\"}",
+      "ts": "2026-04-09T11:46:19.368Z"
+    },
+    {
+      "step": "health:loyalty-engine",
+      "status": "PASS",
+      "detail": "HTTP 200 — {\"status\":\"ok\",\"service\":\"loyalty-engine\",\"version\":\"0.2.0\"}",
+      "ts": "2026-04-09T11:46:19.372Z"
+    },
+    {
+      "step": "health:notification-service",
+      "status": "PASS",
+      "detail": "HTTP 200 — {\"status\":\"ok\",\"service\":\"notification-service\",\"version\":\"0.1.0\"}",
+      "ts": "2026-04-09T11:46:19.375Z"
+    },
+    {
+      "step": "health:admin-api",
+      "status": "PASS",
+      "detail": "HTTP 200 — {\"status\":\"ok\",\"service\":\"admin-api\",\"version\":\"0.1.0\"}",
+      "ts": "2026-04-09T11:46:19.378Z"
+    },
+    {
+      "step": "health:tier-eval-worker",
+      "status": "WARN",
+      "detail": "Worker — no HTTP health endpoint; startup success tracked by process exit code",
+      "ts": "2026-04-09T11:46:19.378Z"
+    },
+    {
+      "step": "health:webhook-worker",
+      "status": "WARN",
+      "detail": "Worker — no HTTP health endpoint; startup success tracked by process exit code",
+      "ts": "2026-04-09T11:46:19.378Z"
+    },
+    {
+      "step": "enroll-member",
+      "status": "PASS",
+      "detail": "Created member 6d4008cf-bb62-4f49-8530-04044ef4fc42 (smoketest+1775735179378@example.com)",
+      "ts": "2026-04-09T11:46:19.389Z"
+    },
+    {
+      "step": "lookup-phone",
+      "status": "WARN",
+      "detail": "HTTP 200 but no results — phone lookup may use hashed lookup",
+      "ts": "2026-04-09T11:46:19.391Z"
+    },
+    {
+      "step": "create-transaction",
+      "status": "WARN",
+      "detail": "Cross-service member lookup failed (expected in isolated in-memory mode): HTTP 404",
+      "ts": "2026-04-09T11:46:19.398Z"
+    },
+    {
+      "step": "check-balance",
+      "status": "PASS",
+      "detail": "Balance: {\"balance\":0,\"lastUpdated\":\"2026-04-09T11:46:19.400Z\"}",
+      "ts": "2026-04-09T11:46:19.400Z"
+    },
+    {
+      "step": "notification-log",
+      "status": "WARN",
+      "detail": "Notification service is running; delivery log check not available via API in in-memory mode",
+      "ts": "2026-04-09T11:46:19.400Z"
+    },
+    {
+      "step": "tier-eval",
+      "status": "WARN",
+      "detail": "Tier eval worker runs as background consumer; in-memory mode does not trigger on HTTP transactions",
+      "ts": "2026-04-09T11:46:19.400Z"
+    },
+    {
+      "step": "admin-get-member",
+      "status": "WARN",
+      "detail": "Member not in admin-api in-memory store (expected in isolated mode)",
+      "ts": "2026-04-09T11:46:19.404Z"
+    },
+    {
+      "step": "gdpr-delete",
+      "status": "PASS",
+      "detail": "HTTP 204 — member deleted",
+      "ts": "2026-04-09T11:46:19.405Z"
+    }
+  ],
+  "passed": 7,
+  "failed": 0,
+  "warned": 7,
+  "skipped": 0,
+  "verdict": "PASSED"
+}

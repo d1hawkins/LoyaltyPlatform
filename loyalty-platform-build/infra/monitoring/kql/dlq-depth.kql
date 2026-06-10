@@ -1,0 +1,22 @@
+// Service Bus dead-letter queue depth
+// Tracks DLQ message counts from custom metrics emitted by services
+// Requires services to publish customMetrics with name "servicebus.dlq.depth"
+
+customMetrics
+| where timestamp > ago(24h)
+| where name == "servicebus.dlq.depth"
+| extend topic = tostring(customDimensions.topic),
+         subscription = tostring(customDimensions.subscription)
+| summarize
+    maxDepth = max(value),
+    avgDepth = avg(value),
+    lastReported = max(timestamp)
+    by topic, subscription
+| order by maxDepth desc
+
+// Alternative: Azure Monitor metrics for Service Bus (if using managed connector)
+// AzureMetrics
+// | where ResourceProvider == "MICROSOFT.SERVICEBUS"
+// | where MetricName == "DeadletteredMessages"
+// | summarize max(Total) by EntityName, bin(TimeGenerated, 5m)
+// | order by TimeGenerated desc

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loyalty Platform — API Docs</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; }
+    .header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 24px 32px; }
+    .header h1 { font-size: 22px; font-weight: 600; }
+    .header p { font-size: 14px; color: #94a3b8; margin-top: 4px; }
+    .nav { display: flex; gap: 12px; padding: 16px 32px; background: white; border-bottom: 1px solid #e2e8f0; }
+    .nav button {
+      padding: 8px 20px; border: 1px solid #cbd5e1; border-radius: 6px;
+      background: white; cursor: pointer; font-size: 14px; font-weight: 500;
+      color: #475569; transition: all 0.15s;
+    }
+    .nav button:hover { background: #f1f5f9; }
+    .nav button.active { background: #1e293b; color: white; border-color: #1e293b; }
+    #swagger-ui { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+    .swagger-ui .topbar { display: none; }
+    .swagger-ui .info { margin: 20px 0 10px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Loyalty Platform API Documentation</h1>
+    <p>Multi-tenant retail loyalty platform — Azure-native</p>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="loadSpec('member-service')">Member Service</button>
+    <button onclick="loadSpec('loyalty-engine')">Loyalty Engine</button>
+    <button onclick="loadSpec('offer-service')">Offer Service</button>
+    <button onclick="loadSpec('admin-api')">Admin API</button>
+    <button onclick="loadSpec('notification-service')">Notification Service</button>
+    <button onclick="loadSpec('analytics-service')">Analytics Service</button>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    let ui;
+    function loadSpec(name) {
+      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      if (ui) ui = null;
+      document.getElementById('swagger-ui').innerHTML = '';
+      ui = SwaggerUIBundle({
+        url: '/specs/' + name + '.yaml',
+        dom_id: '#swagger-ui',
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+        layout: 'BaseLayout',
+        deepLinking: true,
+        defaultModelsExpandDepth: 1,
+        docExpansion: 'list',
+        tryItOutEnabled: true,
+      });
+    }
+    loadSpec('member-service');
+  </script>
+</body>
+</html>

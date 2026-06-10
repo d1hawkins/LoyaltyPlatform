@@ -1,0 +1,17 @@
+<!--
+  Product-scope rate limit.
+
+  NOTE: APIM Consumption tier does NOT support rate-limit-by-key; it only
+  supports the plain rate-limit policy which is gateway-wide per product.
+  In a higher tier we would partition by Ocp-Apim-Subscription-Key or the
+  tenant claim. Decision logged in /infra/apim/HANDOFF.md.
+-->
+<policies>
+  <inbound>
+    <base />
+    <rate-limit calls="1000" renewal-period="60" />
+  </inbound>
+  <backend><base /></backend>
+  <outbound><base /></outbound>
+  <on-error><base /></on-error>
+</policies>

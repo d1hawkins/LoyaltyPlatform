@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daiso Rewards — Developer Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link active">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Main -->
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a>
+        </div>
+
+        <h1>Daiso Rewards API</h1>
+        <p class="subtitle">Build on the Daiso Rewards platform with points, tiers, offers, and rewards. API-first, production-ready. Supports per-dollar and per-visit earn modes, visit-based offers with qualification rules, self-checkout kiosk integration, full transaction enrichment, and comprehensive reporting across finance, marketing, and operations.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Base URL</div>
+          All API requests go through the APIM gateway at <code>https://loyalty-dev-apim-5rdrqh.azure-api.net</code>
+        </div>
+
+        <h2>Explore the Platform</h2>
+
+        <div class="card-grid">
+          <a href="getting-started.html" class="card" style="text-decoration:none;">
+            <h3>Quick Start</h3>
+            <p>Enroll a member and record your first transaction in under 5 minutes.</p>
+          </a>
+          <a href="authentication.html" class="card" style="text-decoration:none;">
+            <h3>Authentication</h3>
+            <p>B2C tokens, API subscription keys, and dev-mode bypass.</p>
+          </a>
+          <a href="api-reference.html" class="card" style="text-decoration:none;">
+            <h3>API Reference</h3>
+            <p>Full endpoint documentation with interactive Swagger UI.</p>
+          </a>
+          <a href="sdk.html" class="card" style="text-decoration:none;">
+            <h3>JavaScript SDK</h3>
+            <p>Typed client for enrollment, transactions, balance, and pre-built widgets.</p>
+          </a>
+          <a href="webhooks.html" class="card" style="text-decoration:none;">
+            <h3>Webhooks</h3>
+            <p>Real-time event notifications with HMAC signatures and retry logic.</p>
+          </a>
+          <a href="integrations.html" class="card" style="text-decoration:none;">
+            <h3>Integrations</h3>
+            <p>Shopify and WooCommerce plugins with step-by-step setup guides.</p>
+          </a>
+          <a href="architecture.html" class="card" style="text-decoration:none;">
+            <h3>Architecture</h3>
+            <p>Multi-tenancy, data isolation, service topology, and event-driven design.</p>
+          </a>
+          <a href="errors.html" class="card" style="text-decoration:none;">
+            <h3>Errors &amp; Rate Limits</h3>
+            <p>RFC 7807 error format, error codes, and rate limiting policies.</p>
+          </a>
+        </div>
+
+        <h2>Core Capabilities</h2>
+
+        <table>
+          <thead>
+            <tr><th>Capability</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Member Management</strong></td><td>Enrollment, lookup by phone/email, profile updates, GDPR delete &amp; export</td></tr>
+            <tr><td><strong>Points &amp; Transactions</strong></td><td>Per-dollar or per-visit earn modes, category/tier multipliers, immutable ledger, transaction enrichment (store, associate, source, order ref)</td></tr>
+            <tr><td><strong>Offers &amp; Redemptions</strong></td><td>6 offer types (percent, fixed, BOGO, threshold, visit-based, free item), qualification rules, code generation, eligibility engine</td></tr>
+            <tr><td><strong>Tier System</strong></td><td>Configurable tiers with multipliers and auto-evaluation on points changes</td></tr>
+            <tr><td><strong>Reporting</strong></td><td>Finance (liability, breakage, redemption reserve), Marketing (funnel, at-risk, tier distribution), Operations (visit analytics, program health)</td></tr>
+            <tr><td><strong>Integrations</strong></td><td>ActiveCampaign and Klaviyo sync, profile properties, event tracking for automation flows</td></tr>
+            <tr><td><strong>Self-Checkout</strong></td><td>Customer-facing <a href="https://loyaltyselfcheckout.z13.web.core.windows.net">kiosk app</a> with phone keypad, item scanning, offer display, and points animation</td></tr>
+            <tr><td><strong>Member Portal</strong></td><td>Customer <a href="https://loyaltyenroll.z13.web.core.windows.net">dashboard</a> with points, tiers, collapsible transaction history, offers with visit progress, and profile management</td></tr>
+            <tr><td><strong>Webhooks</strong></td><td>Real-time HTTP delivery of all platform events with HMAC signing</td></tr>
+            <tr><td><strong>Multi-Tenancy</strong></td><td>Full data isolation per tenant with per-tenant databases and encryption</td></tr>
+            <tr><td><strong>Fraud Detection</strong></td><td>Velocity checks, enrollment patterns, configurable rules with real-time blocking</td></tr>
+            <tr><td><strong>Code-Bound Coupons</strong></td><td>Visit milestone coupon codes are bound to the earning member and single-use &mdash; prevents sharing and reuse fraud</td></tr>
+            <tr><td><strong>Points Expiry</strong></td><td>Configurable expiry windows, notification reminders, admin dry-run tools</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Service Architecture</h2>
+        <pre class="language-text"><code>Client / SDK / Webhook
+     |
+     v
+Azure API Management (gateway, rate limiting, auth)
+     |
+     +-- /member/*   -->  Member Service   (port 3001)
+     +-- /engine/*   -->  Loyalty Engine    (port 3002)
+     +-- /v1/offers  -->  Offer Service     (port 3004)
+     +-- /v1/admin   -->  Admin API         (port 3005)
+     +-- /v1/analytics -> Analytics Service (port 3006)
+     |
+     +-- Service Bus (events) --> Webhook Worker (port 3009)
+                               --> Tier Eval Worker
+                               --> Notification Service</code></pre>
+
+        <div class="next-page">
+          <a href="getting-started.html">Next: Quick Start Guide &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

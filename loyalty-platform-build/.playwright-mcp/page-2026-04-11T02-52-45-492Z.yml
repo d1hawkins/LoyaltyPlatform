@@ -1,0 +1,48 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: Loyalty Admin
+      - button "Toggle sidebar" [ref=e7] [cursor=pointer]:
+        - img [ref=e8]
+    - navigation [ref=e10]:
+      - link "Dashboard" [ref=e11] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e12]: Dashboard
+      - link "Members" [ref=e13] [cursor=pointer]:
+        - /url: /members
+        - generic [ref=e14]: Members
+      - link "Transactions" [ref=e15] [cursor=pointer]:
+        - /url: /transactions
+        - generic [ref=e16]: Transactions
+      - link "Tiers" [ref=e17] [cursor=pointer]:
+        - /url: /tiers
+        - generic [ref=e18]: Tiers
+      - link "Offers" [ref=e19] [cursor=pointer]:
+        - /url: /offers
+        - generic [ref=e20]: Offers
+      - link "Program" [ref=e21] [cursor=pointer]:
+        - /url: /program
+        - generic [ref=e22]: Program
+      - link "Analytics" [ref=e23] [cursor=pointer]:
+        - /url: /analytics
+        - generic [ref=e24]: Analytics
+      - link "Webhooks" [ref=e25] [cursor=pointer]:
+        - /url: /webhooks
+        - generic [ref=e26]: Webhooks
+      - link "API Keys" [ref=e27] [cursor=pointer]:
+        - /url: /apikeys
+        - generic [ref=e28]: API Keys
+      - link "Audit Log" [ref=e29] [cursor=pointer]:
+        - /url: /audit
+        - generic [ref=e30]: Audit Log
+      - link "Settings" [ref=e31] [cursor=pointer]:
+        - /url: /settings
+        - generic [ref=e32]: Settings
+  - banner [ref=e33]:
+    - generic [ref=e35]: DEV MODE
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: Dev Admin
+        - generic [ref=e39]: owner · 273684b8...
+      - button "Logout" [ref=e40] [cursor=pointer]
+  - main [ref=e41]

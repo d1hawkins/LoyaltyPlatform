@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript SDK — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link active">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> JavaScript SDK
+        </div>
+
+        <h1>JavaScript SDK</h1>
+        <p class="subtitle">Typed client for all loyalty operations plus pre-built UI widgets for balance, offers, and tier progress.</p>
+
+        <h2>Installation</h2>
+        <pre><code class="language-bash">npm install @loyalty/loyalty-js-sdk
+# or
+pnpm add @loyalty/loyalty-js-sdk</code></pre>
+
+        <h3>CDN (UMD bundle)</h3>
+        <pre><code class="language-markup">&lt;script src="https://cdn.example.com/loyalty-sdk/latest/loyalty-sdk.umd.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const client = new LoyaltySDK.LoyaltyClient({ ... });
+&lt;/script&gt;</code></pre>
+
+        <h2>Initialization</h2>
+        <pre><code class="language-typescript">import { LoyaltyClient } from '@loyalty/loyalty-js-sdk';
+
+const client = new LoyaltyClient({
+  apiUrl: 'https://loyalty-dev-apim-5rdrqh.azure-api.net',
+  apiKey: 'your-apim-subscription-key',
+  tenantId: 'your-tenant-id',
+  timeout: 10000,   // optional, default 10s
+  maxRetries: 2,    // optional, default 2 retries on 429/5xx
+});</code></pre>
+
+        <h3>Headers Injected Automatically</h3>
+        <table>
+          <thead>
+            <tr><th>Header</th><th>Value</th><th>When</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Authorization</code></td><td><code>Bearer {apiKey}</code></td><td>All requests</td></tr>
+            <tr><td><code>X-Tenant-ID</code></td><td><code>{tenantId}</code></td><td>All requests</td></tr>
+            <tr><td><code>Ocp-Apim-Subscription-Key</code></td><td><code>{apiKey}</code></td><td>All requests</td></tr>
+            <tr><td><code>Idempotency-Key</code></td><td>UUID v4</td><td>POST requests</td></tr>
+            <tr><td><code>Content-Type</code></td><td><code>application/json</code></td><td>POST/PATCH</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Retry Behavior</h3>
+        <ul>
+          <li>Retries on HTTP 429 (rate limit) and 5xx (server error)</li>
+          <li>Exponential backoff: 500ms, 1000ms</li>
+          <li>Configurable via <code>maxRetries</code> (default: 2)</li>
+        </ul>
+
+        <h2>Members</h2>
+        <pre><code class="language-typescript">// Enroll a new member
+const member = await client.enrollMember({
+  phone: '+15555551234',
+  firstName: 'Jane',
+  lastName: 'Doe',
+  email: 'jane@example.com',
+  dateOfBirth: '1990-05-15',
+  enrolledChannel: 'ecommerce',
+});
+
+// Get member by ID
+const member = await client.getMember('member-uuid');
+
+// Lookup by phone (returns null if not found)
+const member = await client.lookupByPhone('+15555551234');
+
+// Lookup by email (returns null if not found)
+const member = await client.lookupByEmail('jane@example.com');</code></pre>
+
+        <h2>Transactions</h2>
+        <pre><code class="language-typescript">// Record a purchase transaction
+const result = await client.recordTransaction({
+  memberId: 'member-uuid',
+  channel: 'ecommerce',
+  amount: 2500,              // in cents (minor currency units)
+  currency: 'USD',
+  skuList: [
+    { sku: 'COFFEE-12', categoryId: 'beverages', amount: 2500 }
+  ],
+  locationId: 'store-42',
+  occurredAt: '2026-04-09T10:00:00Z',
+});
+// result: { transactionId, pointsEarned, newBalance, tierId, appliedMultipliers }
+
+// Void a transaction
+await client.voidTransaction('transaction-uuid', 'customer return');</code></pre>
+
+        <h2>Balance</h2>
+        <pre><code class="language-typescript">const { balance, lastUpdated } = await client.getBalance('member-uuid');</code></pre>
+
+        <h2>Offers</h2>
+        <pre><code class="language-typescript">// Get eligible offers for a member
+const offers = await client.getEligibleOffers('member-uuid');
+
+// Redeem an offer
+const result = await client.redeemOffer({
+  memberId: 'member-uuid',
+  offerId: 'offer-uuid',
+  pointsToBurn: 200,
+  redemptionContext: {},
+});
+// result: { redemptionId, pointsUsed, newBalance }</code></pre>
+
+        <h2>Ledger</h2>
+        <pre><code class="language-typescript">// Get paginated ledger
+const page1 = await client.getLedger('member-uuid', { limit: 20 });
+// page1: { items: LedgerEntry[], nextCursor?: string }
+
+// Get next page
+if (page1.nextCursor) {
+  const page2 = await client.getLedger('member-uuid', {
+    after: page1.nextCursor,
+    limit: 20,
+  });
+}</code></pre>
+
+        <h2>API Route Mapping</h2>
+        <table>
+          <thead>
+            <tr><th>SDK Method</th><th>HTTP</th><th>Path</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>enrollMember</code></td><td>POST</td><td><code>/member/v1/members</code></td></tr>
+            <tr><td><code>getMember</code></td><td>GET</td><td><code>/member/v1/members/:id</code></td></tr>
+            <tr><td><code>lookupByPhone</code></td><td>GET</td><td><code>/member/v1/members?phone=</code></td></tr>
+            <tr><td><code>lookupByEmail</code></td><td>GET</td><td><code>/member/v1/members?email=</code></td></tr>
+            <tr><td><code>recordTransaction</code></td><td>POST</td><td><code>/engine/v1/transactions</code></td></tr>
+            <tr><td><code>voidTransaction</code></td><td>POST</td><td><code>/engine/v1/transactions/:id/void</code></td></tr>
+            <tr><td><code>getBalance</code></td><td>GET</td><td><code>/engine/v1/members/:id/balance</code></td></tr>
+            <tr><td><code>getEligibleOffers</code></td><td>GET</td><td><code>/member/v1/members/:id/offers</code></td></tr>
+            <tr><td><code>redeemOffer</code></td><td>POST</td><td><code>/engine/v1/redemptions</code></td></tr>
+            <tr><td><code>getLedger</code></td><td>GET</td><td><code>/member/v1/members/:id/ledger</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Widgets</h2>
+        <p>Pre-built UI widgets that render into any DOM element. Minimal inline styles, no external CSS required.</p>
+
+        <pre><code class="language-typescript">import {
+  renderBalanceWidget,
+  renderOffersWidget,
+  renderTierProgressWidget,
+} from '@loyalty/loyalty-js-sdk';
+
+// Balance display
+const balanceEl = document.getElementById('balance');
+await renderBalanceWidget(balanceEl, client, 'member-uuid');
+
+// Eligible offers list
+const offersEl = document.getElementById('offers');
+await renderOffersWidget(offersEl, client, 'member-uuid');
+
+// Tier progress bar
+const tierEl = document.getElementById('tier');
+await renderTierProgressWidget(tierEl, client, 'member-uuid');</code></pre>
+
+        <h3>UMD (Script Tag) Usage</h3>
+        <pre><code class="language-markup">&lt;div id="balance"&gt;&lt;/div&gt;
+&lt;div id="offers"&gt;&lt;/div&gt;
+&lt;div id="tier"&gt;&lt;/div&gt;
+
+&lt;script src="https://cdn.example.com/loyalty-sdk/latest/loyalty-sdk.umd.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  var client = new LoyaltySDK.LoyaltyClient({
+    apiUrl: 'https://your-apim.azure-api.net',
+    apiKey: 'your-key',
+    tenantId: 'your-tenant'
+  });
+
+  LoyaltySDK.renderBalanceWidget(document.getElementById('balance'), client, 'member-uuid');
+  LoyaltySDK.renderOffersWidget(document.getElementById('offers'), client, 'member-uuid');
+  LoyaltySDK.renderTierProgressWidget(document.getElementById('tier'), client, 'member-uuid');
+&lt;/script&gt;</code></pre>
+
+        <h2>Error Handling</h2>
+        <p>All errors extend <code>LoyaltyError</code>. See the <a href="errors.html">Errors &amp; Rate Limits</a> page for the full error reference.</p>
+
+        <pre><code class="language-typescript">import { LoyaltyError, NotFoundError, RateLimitError } from '@loyalty/loyalty-js-sdk';
+
+try {
+  await client.getMember('nonexistent');
+} catch (err) {
+  if (err instanceof NotFoundError) {
+    console.log('Member not found');
+  } else if (err instanceof RateLimitError) {
+    console.log(`Rate limited, retry after ${err.retryAfterMs}ms`);
+  } else if (err instanceof LoyaltyError) {
+    console.log(`Error ${err.code}: ${err.message}`);
+  }
+}</code></pre>
+
+        <div class="next-page">
+          <a href="webhooks.html">Next: Webhooks &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Commerce Integrations — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link active">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> E-Commerce Integrations
+        </div>
+
+        <h1>E-Commerce Integrations</h1>
+        <p class="subtitle">Ready-to-use integrations for Shopify and WooCommerce with automatic point awards, balance widgets, and checkout redemptions.</p>
+
+        <!-- SHOPIFY -->
+        <h2>Shopify Integration</h2>
+
+        <h3>Architecture</h3>
+        <pre class="language-text"><code>Shopify Store
+  |
+  |-- orders/create webhook --> Your server (webhook handler)
+  |                                |
+  |                                +--> Loyalty Platform API (recordTransaction)
+  |
+  |-- Storefront theme (Liquid) --> Loads loyalty-sdk.umd.js
+  |                                    |
+  |                                    +--> Loyalty Platform API (getBalance, getOffers)
+  |
+  |-- Checkout Extension --> Applies offer redemption at checkout</code></pre>
+
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>A Loyalty Platform tenant with an active API subscription key</li>
+          <li>Shopify store with admin access</li>
+          <li>Node.js 18+ (for webhook handler)</li>
+        </ul>
+
+        <h3>Step 1: Set Up Webhook Handler</h3>
+        <p>The webhook handler receives Shopify <code>orders/create</code> webhooks and records them as loyalty transactions.</p>
+
+        <ol>
+          <li>Copy <code>shopify-webhook-handler.ts</code> to your server project</li>
+          <li>Install dependencies:
+            <pre><code class="language-bash">npm install @loyalty/loyalty-js-sdk express crypto</code></pre>
+          </li>
+          <li>Configure environment variables:
+            <pre><code class="language-bash">LOYALTY_API_URL=https://loyalty-dev-apim-5rdrqh.azure-api.net
+LOYALTY_API_KEY=your-subscription-key
+LOYALTY_TENANT_ID=your-tenant-id
+SHOPIFY_WEBHOOK_SECRET=your-shopify-webhook-secret</code></pre>
+          </li>
+          <li>Deploy to your server (Azure Functions, AWS Lambda, or Express)</li>
+        </ol>
+
+        <h3>Step 2: Register Webhook in Shopify</h3>
+        <ol>
+          <li>Go to <strong>Settings &gt; Notifications &gt; Webhooks</strong> in Shopify Admin</li>
+          <li>Create webhook:
+            <ul>
+              <li>Event: <code>Order creation</code></li>
+              <li>Format: <code>JSON</code></li>
+              <li>URL: <code>https://your-server.com/webhooks/shopify/orders</code></li>
+            </ul>
+          </li>
+          <li>Copy the signing secret and set it as <code>SHOPIFY_WEBHOOK_SECRET</code></li>
+        </ol>
+
+        <h3>Step 3: Display Points in Storefront</h3>
+        <p>Add the Liquid snippet to your theme:</p>
+        <pre><code class="language-markup">{% include 'loyalty-balance' %}</code></pre>
+        <p>The snippet loads the SDK via CDN and renders a balance widget for the logged-in customer.</p>
+
+        <h3>Step 4: Checkout Extension (Optional)</h3>
+        <p>Use the checkout extension scaffold to apply loyalty offer redemptions during Shopify checkout using Shopify Functions.</p>
+
+        <h3>Data Mapping</h3>
+        <table>
+          <thead>
+            <tr><th>Shopify Field</th><th>Loyalty Platform Field</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>order.email</code></td><td><code>lookupByEmail()</code></td><td>Member identification</td></tr>
+            <tr><td><code>order.total_price</code></td><td><code>amount</code> (in cents)</td><td>Multiply by 100 for minor units</td></tr>
+            <tr><td><code>order.currency</code></td><td><code>currency</code></td><td>ISO 4217 code</td></tr>
+            <tr><td><code>order.line_items[].sku</code></td><td><code>skuList[].sku</code></td><td>Product SKU</td></tr>
+            <tr><td><code>order.line_items[].price</code></td><td><code>skuList[].amount</code></td><td>Per-item price in cents</td></tr>
+            <tr><td><code>order.id</code></td><td>Idempotency key</td><td>Prevents duplicate point awards</td></tr>
+          </tbody>
+        </table>
+
+        <!-- WOOCOMMERCE -->
+        <h2>WooCommerce Integration</h2>
+
+        <h3>Architecture</h3>
+        <pre class="language-text"><code>WooCommerce
+  |
+  |-- woocommerce_payment_complete hook
+  |       |
+  |       +--> PHP REST call to Loyalty Platform API (recordTransaction)
+  |
+  |-- [loyalty_balance] shortcode
+  |       |
+  |       +--> Loads loyalty-sdk.umd.js
+  |       +--> Renders balance widget via JS SDK
+  |
+  |-- My Account tab
+          |
+          +--> PHP REST call to get balance + ledger</code></pre>
+
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>A Loyalty Platform tenant with an active API subscription key</li>
+          <li>WordPress site with WooCommerce installed</li>
+          <li>PHP 7.4+</li>
+        </ul>
+
+        <h3>Installation</h3>
+        <ol>
+          <li>Copy <code>woocommerce-plugin.php</code> and <code>woocommerce-widget.php</code> to <code>wp-content/plugins/loyalty-platform/</code></li>
+          <li>Activate the plugin in <strong>WordPress Admin &gt; Plugins</strong></li>
+          <li>Navigate to <strong>Settings &gt; Loyalty Platform</strong> and configure:
+            <ul>
+              <li><strong>API URL</strong>: Your APIM gateway URL</li>
+              <li><strong>API Key</strong>: Your APIM subscription key</li>
+              <li><strong>Tenant ID</strong>: Your tenant identifier</li>
+            </ul>
+          </li>
+        </ol>
+
+        <h3>Features</h3>
+
+        <h3>Automatic Points on Purchase</h3>
+        <p>When an order is marked as paid (<code>woocommerce_payment_complete</code>), the plugin:</p>
+        <ol>
+          <li>Looks up the customer by email in the Loyalty Platform</li>
+          <li>Records the transaction with the order total and line items</li>
+          <li>Stores the points earned as order meta for reference</li>
+        </ol>
+
+        <h3>Balance Widget Shortcode</h3>
+        <p>Display the points balance anywhere in your theme:</p>
+        <pre><code class="language-markup">[loyalty_balance]
+[loyalty_balance width="300px" show_offers="true"]</code></pre>
+
+        <table>
+          <thead>
+            <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>width</code></td><td><code>100%</code></td><td>Widget container width</td></tr>
+            <tr><td><code>show_offers</code></td><td><code>false</code></td><td>Also display eligible offers</td></tr>
+          </tbody>
+        </table>
+
+        <h3>My Account Tab</h3>
+        <p>The plugin adds a "Loyalty Points" tab to the WooCommerce My Account page showing the customer's current balance and recent ledger entries.</p>
+
+        <h3>Hooks and Filters</h3>
+        <pre><code class="language-typescript">// PHP: Modify transaction data before sending
+add_filter('loyalty_platform_transaction_data', function($data, $order) {
+    $data['locationId'] = 'store-main';
+    return $data;
+}, 10, 2);
+
+// PHP: Action fired after points are awarded
+add_action('loyalty_platform_points_awarded', function($order_id, $points, $balance) {
+    // e.g., send a custom email
+}, 10, 3);</code></pre>
+
+        <h2>Troubleshooting</h2>
+
+        <h3>Shopify</h3>
+        <table>
+          <thead>
+            <tr><th>Issue</th><th>Solution</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Webhook not firing</td><td>Verify the webhook URL is publicly accessible and returns 200</td></tr>
+            <tr><td>Duplicate points</td><td>The handler uses the Shopify order ID as idempotency key</td></tr>
+            <tr><td>Member not found</td><td>Ensure customer email in Shopify matches the enrolled member email</td></tr>
+            <tr><td>Rate limits</td><td>The platform allows 1,000 requests/minute per subscription key</td></tr>
+          </tbody>
+        </table>
+
+        <h3>WooCommerce</h3>
+        <table>
+          <thead>
+            <tr><th>Issue</th><th>Solution</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>No points awarded</td><td>Check that the customer email matches an enrolled loyalty member</td></tr>
+            <tr><td>Plugin settings not saving</td><td>Ensure the user has <code>manage_options</code> capability</td></tr>
+            <tr><td>Widget not loading</td><td>Verify the CDN URL for the JS SDK bundle is correct</td></tr>
+            <tr><td>API errors</td><td>Check the WordPress debug log (<code>wp-content/debug.log</code>)</td></tr>
+          </tbody>
+        </table>
+
+        <div class="next-page">
+          <a href="architecture.html">Next: Architecture &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

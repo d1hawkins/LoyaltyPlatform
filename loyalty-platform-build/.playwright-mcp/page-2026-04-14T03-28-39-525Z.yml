@@ -1,0 +1,79 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e6]:
+      - heading "Daiso Rewards" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Join today and start earning rewards on every purchase!
+  - main [ref=e9]:
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - img [ref=e14]
+        - heading "Earn Points" [level=3] [ref=e16]
+        - paragraph [ref=e17]: Get 1 point for every $1 you spend
+      - generic [ref=e18]:
+        - img [ref=e20]
+        - heading "Unlock Tiers" [level=3] [ref=e22]
+        - paragraph [ref=e23]: Bronze → Silver → Gold → Platinum. Better rewards as you go.
+      - generic [ref=e24]:
+        - img [ref=e26]
+        - heading "Exclusive Offers" [level=3] [ref=e28]
+        - paragraph [ref=e29]: Members-only discounts and early access to sales
+    - generic [ref=e31]:
+      - heading "Sign Up" [level=2] [ref=e32]
+      - paragraph [ref=e33]: It only takes a minute to start earning.
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - generic [ref=e37]: First Name *
+            - textbox "First Name *" [ref=e38]:
+              - /placeholder: Jane
+          - generic [ref=e39]:
+            - generic [ref=e40]: Last Name *
+            - textbox "Last Name *" [ref=e41]:
+              - /placeholder: Doe
+        - generic [ref=e42]:
+          - generic [ref=e43]: Email Address *
+          - textbox "Email Address *" [ref=e44]:
+            - /placeholder: jane@example.com
+        - generic [ref=e45]:
+          - generic [ref=e46]: Phone Number *
+          - generic [ref=e47]:
+            - generic [ref=e48]: "+1"
+            - textbox "Phone Number *" [ref=e49]:
+              - /placeholder: (555) 123-4567
+        - generic [ref=e50]:
+          - generic [ref=e51]: Date of Birth (optional, for birthday rewards)
+          - textbox "Date of Birth (optional, for birthday rewards)" [ref=e52]
+        - group "Communication Preferences" [ref=e53]:
+          - generic [ref=e54]: Communication Preferences
+          - generic [ref=e55]:
+            - generic [ref=e56] [cursor=pointer]:
+              - checkbox "Email me about points and rewards" [checked] [ref=e57]
+              - generic [ref=e58]: Email me about points and rewards
+            - generic [ref=e59] [cursor=pointer]:
+              - checkbox "Text me about exclusive offers" [checked] [ref=e60]
+              - generic [ref=e61]: Text me about exclusive offers
+            - generic [ref=e62] [cursor=pointer]:
+              - checkbox "Send me the weekly deals newsletter" [ref=e63]
+              - generic [ref=e64]: Send me the weekly deals newsletter
+        - generic [ref=e66] [cursor=pointer]:
+          - checkbox "I agree to the Terms & Conditions and Privacy Policy" [ref=e67]
+          - generic [ref=e68]:
+            - text: I agree to the
+            - link "Terms & Conditions" [ref=e69]:
+              - /url: "#"
+            - text: and
+            - link "Privacy Policy" [ref=e70]:
+              - /url: "#"
+        - button "Join Now" [ref=e71] [cursor=pointer]:
+          - generic [ref=e72]: Join Now
+  - contentinfo [ref=e73]:
+    - paragraph [ref=e74]:
+      - text: Powered by
+      - link "Loyalty Platform" [ref=e75] [cursor=pointer]:
+        - /url: "#"
+    - paragraph [ref=e76]:
+      - link "Privacy Policy" [ref=e77] [cursor=pointer]:
+        - /url: "#"
+      - text: ·
+      - link "Terms of Service" [ref=e78] [cursor=pointer]:
+        - /url: "#"

@@ -1,0 +1,30 @@
+{
+  "name": "@loyalty/shared-db-client",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@azure/identity": "4.4.1",
+    "@azure/keyvault-secrets": "4.8.0",
+    "@loyalty/shared-errors": "workspace:*",
+    "@loyalty/shared-logger": "workspace:*",
+    "ioredis": "5.4.1",
+    "lru-cache": "11.0.0",
+    "mssql": "11.0.1"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.12",
+    "@types/mssql": "9.1.5",
+    "@types/node": "20.12.12",
+    "jest": "29.7.0",
+    "ts-jest": "29.2.5",
+    "typescript": "5.5.4"
+  }
+}

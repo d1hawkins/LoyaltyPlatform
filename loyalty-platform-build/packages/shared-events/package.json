@@ -1,0 +1,27 @@
+{
+  "name": "@loyalty/shared-events",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@azure/service-bus": "7.9.5",
+    "@loyalty/shared-logger": "workspace:*",
+    "@loyalty/shared-types": "workspace:*",
+    "uuid": "10.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.12",
+    "@types/node": "20.12.12",
+    "@types/uuid": "10.0.0",
+    "jest": "29.7.0",
+    "ts-jest": "29.2.5",
+    "typescript": "5.5.4"
+  }
+}

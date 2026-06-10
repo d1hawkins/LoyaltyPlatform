@@ -1,0 +1,32 @@
+<!--
+  API-scope inbound policy for loyalty-engine.
+  - Sets backend base URL
+  - Strips hop-by-hop headers
+  - Enforces Idempotency-Key header on POST /v1/transactions (and by extension
+    all POST endpoints on this API: /void, /adjustments, /redemptions).
+-->
+<policies>
+  <inbound>
+    <base />
+    <set-backend-service base-url="{{LOYALTY_ENGINE_BACKEND_URL}}" />
+    <!-- Connection / Keep-Alive / Transfer-Encoding / Upgrade are restricted
+         by APIM and stripped automatically at the gateway. -->
+    <set-header name="Proxy-Authorization" exists-action="delete" />
+    <set-header name="Ocp-Apim-Subscription-Key" exists-action="delete" />
+
+    <choose>
+      <when condition="@(context.Request.Method == &quot;POST&quot; &amp;&amp; string.IsNullOrEmpty(context.Request.Headers.GetValueOrDefault(&quot;Idempotency-Key&quot;, &quot;&quot;)))">
+        <return-response>
+          <set-status code="400" reason="Bad Request" />
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/problem+json</value>
+          </set-header>
+          <set-body>{"type":"about:blank","title":"Idempotency-Key header required","status":400,"code":"VALIDATION_ERROR","detail":"All POST endpoints on loyalty-engine require a client-supplied Idempotency-Key header."}</set-body>
+        </return-response>
+      </when>
+    </choose>
+  </inbound>
+  <backend><base /></backend>
+  <outbound><base /></outbound>
+  <on-error><base /></on-error>
+</policies>

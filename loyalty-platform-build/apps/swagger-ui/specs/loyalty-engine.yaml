@@ -1,0 +1,322 @@
+openapi: 3.0.3
+info:
+  title: Loyalty Platform — Loyalty Engine
+  description: |
+    Transaction processing, points calculation, immutable ledger, idempotent
+    writes, redemptions, and admin adjustments. All write endpoints require an
+    `Idempotency-Key` header. Admin endpoints additionally require the `admin`
+    role claim on the JWT.
+  version: "1.0.0"
+servers:
+  - url: https://loyalty-dev-apim-5rdrqh.azure-api.net/engine
+    description: Dev APIM gateway (loyalty-engine API)
+security:
+  - bearerAuth: []
+tags:
+  - name: Transactions
+  - name: Redemptions
+  - name: Balance
+  - name: Admin
+paths:
+  /v1/transactions:
+    post:
+      tags: [Transactions]
+      summary: Create an earn transaction
+      operationId: createTransaction
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTransactionRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreateTransactionResponse' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/transactions/{id}/void:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [Transactions]
+      summary: Void a committed transaction
+      operationId: voidTransaction
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VoidTransactionResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Outside void window
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/members/{id}/adjustments:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [Admin]
+      summary: Manual ledger adjustment (admin only)
+      operationId: adminAdjustment
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdjustmentRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdjustmentResponse' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/members/{id}/balance:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Balance]
+      summary: Current balance
+      operationId: getBalance
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BalanceDTO' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/redemptions:
+    post:
+      tags: [Redemptions]
+      summary: Burn points for an offer redemption
+      operationId: createRedemption
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RedemptionRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RedemptionResponse' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422':
+          description: Insufficient balance
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, maxLength: 200 }
+      description: Required on all write endpoints. Retention 24h per (tenantId, key).
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Conflict (idempotency reuse)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        instance: { type: string }
+    SkuLine:
+      type: object
+      required: [sku, amount]
+      properties:
+        sku: { type: string }
+        categoryId: { type: string }
+        amount: { type: integer, description: Minor currency units }
+    CreateTransactionRequest:
+      type: object
+      required: [memberId, channel, amount, currency, occurredAt]
+      properties:
+        memberId: { type: string, format: uuid }
+        channel:
+          type: string
+          enum: [pos, ecommerce, mobile, admin]
+        amount: { type: integer, minimum: 0, description: Minor units }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        skuList:
+          type: array
+          items: { $ref: '#/components/schemas/SkuLine' }
+        locationId: { type: string }
+        occurredAt: { type: string, format: date-time }
+        storeId:
+          type: string
+          description: Store/location identifier
+          example: "DAISO-042"
+        storeName:
+          type: string
+          description: Human-readable store name
+          example: "Daiso Carrollton"
+        registerId:
+          type: string
+          description: POS register/terminal identifier
+          example: "REG-01"
+        associateId:
+          type: string
+          description: Employee/associate who processed the sale
+          example: "EMP-1001"
+        associateName:
+          type: string
+          description: Associate display name
+          example: "Jane Smith"
+        sourceChannel:
+          type: string
+          description: "Granular source: in-store, dotcom, mobile-app, kiosk"
+          example: "in-store"
+        sourceSystem:
+          type: string
+          description: "POS/ecom system: shopify, square, lightspeed"
+          example: "square"
+        orderRef:
+          type: string
+          description: External order/receipt reference number
+          example: "ORD-2026-04-16-5523"
+        metadata:
+          type: object
+          description: Flexible key-value metadata
+          additionalProperties: true
+          example: { "campaign": "spring-sale" }
+    AppliedMultiplier:
+      type: object
+      properties:
+        source: { type: string }
+        multiplier: { type: number }
+        points: { type: integer }
+    CreateTransactionResponse:
+      type: object
+      required: [transactionId, pointsEarned, newBalance, tierId]
+      properties:
+        transactionId: { type: string, format: uuid }
+        pointsEarned: { type: integer }
+        newBalance: { type: integer }
+        tierId: { type: string }
+        appliedMultipliers:
+          type: array
+          items: { $ref: '#/components/schemas/AppliedMultiplier' }
+    VoidTransactionResponse:
+      type: object
+      required: [transactionId, pointsReversed, newBalance, negativeBalanceFlag]
+      properties:
+        transactionId: { type: string, format: uuid }
+        pointsReversed: { type: integer }
+        newBalance: { type: integer }
+        negativeBalanceFlag: { type: boolean }
+    AdjustmentRequest:
+      type: object
+      required: [delta, reasonCode]
+      properties:
+        delta: { type: integer, description: Non-zero }
+        reasonCode:
+          type: string
+          enum: [adjust, bonus]
+        notes: { type: string }
+    AdjustmentResponse:
+      type: object
+      required: [ledgerId, delta, newBalance]
+      properties:
+        ledgerId: { type: string, format: uuid }
+        delta: { type: integer }
+        newBalance: { type: integer }
+    BalanceDTO:
+      type: object
+      required: [balance, lastUpdated]
+      properties:
+        balance: { type: integer }
+        lastUpdated: { type: string, format: date-time }
+    RedemptionRequest:
+      type: object
+      required: [memberId, offerId, pointsToBurn]
+      properties:
+        memberId: { type: string, format: uuid }
+        offerId: { type: string }
+        pointsToBurn: { type: integer, minimum: 1 }
+        redemptionContext:
+          type: object
+          additionalProperties: true
+    RedemptionResponse:
+      type: object
+      required: [redemptionId, pointsUsed, newBalance]
+      properties:
+        redemptionId: { type: string, format: uuid }
+        pointsUsed: { type: integer }
+        newBalance: { type: integer }

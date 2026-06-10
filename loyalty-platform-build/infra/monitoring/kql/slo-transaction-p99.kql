@@ -1,0 +1,14 @@
+// SLO: Transaction processing p99 latency (target < 200ms)
+// Measures the 99th percentile response time for POST /v1/transactions
+
+requests
+| where timestamp > ago(24h)
+| where name == "POST /v1/transactions"
+| summarize
+    p50 = percentile(duration, 50),
+    p95 = percentile(duration, 95),
+    p99 = percentile(duration, 99),
+    count = count(),
+    successRate = countif(success == true) * 100.0 / count()
+    by bin(timestamp, 5m)
+| order by timestamp desc

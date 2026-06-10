@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  title: Loyalty Platform — Notification Service
+  description: |
+    Email and transactional notification dispatch, preference management,
+    template listing, and notification log for the Loyalty Platform.
+    Multi-tenant. Supports email channel (SMS and push reserved for future).
+    Transactional templates are always sent regardless of member preferences.
+  version: "1.0.0"
+  contact:
+    name: Loyalty Platform Team
+servers:
+  - url: https://notification-service.blackgrass-225d994b.eastus.azurecontainerapps.io
+    description: Dev Container App
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+tags:
+  - name: Notifications
+    description: Send and query notifications
+  - name: Templates
+    description: Template listing
+  - name: Preferences
+    description: Member notification preferences
+paths:
+  /v1/notifications/send:
+    post:
+      tags: [Notifications]
+      summary: Send a notification to a member
+      operationId: sendNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendNotificationRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendNotificationResponse'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/notifications/log:
+    get:
+      tags: [Notifications]
+      summary: Query notification log
+      operationId: getNotificationLog
+      parameters:
+        - in: query
+          name: memberId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, sent, failed, suppressed]
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50, minimum: 1, maximum: 500 }
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0, minimum: 0 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationLogResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/notifications/templates:
+    get:
+      tags: [Templates]
+      summary: List available template keys
+      operationId: listTemplates
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [templates]
+                properties:
+                  templates:
+                    type: array
+                    items: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/notifications/preferences/{memberId}:
+    parameters:
+      - name: memberId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [Preferences]
+      summary: Upsert notification preference for a member
+      operationId: upsertPreference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertPreferenceRequest'
+      responses:
+        '204':
+          description: Preference saved
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Ocp-Apim-Subscription-Key
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    InternalError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      description: RFC 7807 problem+json
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        instance: { type: string }
+    SendNotificationRequest:
+      type: object
+      required: [memberId, templateKey, channel]
+      properties:
+        memberId: { type: string, format: uuid }
+        templateKey: { type: string, minLength: 1, maxLength: 100 }
+        channel:
+          type: string
+          enum: [email, sms, push]
+        locale: { type: string, description: "e.g. en-US; falls back to member locale then en-US" }
+        variables:
+          type: object
+          additionalProperties: true
+        triggeredByEventId: { type: string, format: uuid }
+    SendNotificationResponse:
+      type: object
+      required: [notificationId, status]
+      properties:
+        notificationId: { type: string }
+        status:
+          type: string
+          enum: [sent, suppressed, failed]
+        providerMessageId: { type: string }
+        error: { type: string }
+    NotificationLogEntry:
+      type: object
+      properties:
+        notificationId: { type: string }
+        memberId: { type: string, format: uuid }
+        templateKey: { type: string }
+        channel: { type: string, enum: [email, sms, push] }
+        status: { type: string, enum: [pending, sent, failed, suppressed] }
+        recipientHash: { type: string, description: "HMAC-SHA256 hex of recipient (plaintext never returned)" }
+        createdAt: { type: string, format: date-time }
+    NotificationLogResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/NotificationLogEntry' }
+    UpsertPreferenceRequest:
+      type: object
+      required: [templateKey, channel, optedIn]
+      properties:
+        templateKey: { type: string }
+        channel: { type: string, enum: [email, sms, push] }
+        optedIn: { type: boolean }

@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loyalty Admin Guide — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    @media print {
+      .sidebar, .sidebar-overlay, .top-bar, .mobile-menu-btn, .no-print { display: none !important; }
+      .main-content { margin-left: 0 !important; }
+      .content-area { max-width: 100% !important; padding: 0 !important; }
+    }
+    .toc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+    .toc h3 { margin-top: 0 !important; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.75rem; }
+    .toc ul { list-style: none; padding-left: 0; margin-bottom: 0; }
+    .toc li { margin-bottom: 0.375rem; }
+    .toc a { font-size: 0.875rem; color: #475569; text-decoration: none; }
+    .toc a:hover { color: var(--accent); }
+    .task-card { background: #fefce8; border: 1px solid #fde68a; border-radius: 0.5rem; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .task-card h4 { margin: 0 0 0.5rem 0; color: #92400e; font-size: 0.9375rem; }
+    .task-card p { margin-bottom: 0.5rem; color: #78350f; font-size: 0.875rem; }
+    .task-card ol { padding-left: 1.25rem; color: #78350f; font-size: 0.875rem; margin-bottom: 0; }
+    .task-card li { margin-bottom: 0.25rem; }
+  </style>
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link active">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="#" onclick="window.print();return false;" class="no-print">Print this guide</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Loyalty Admin Guide
+        </div>
+
+        <h1>Loyalty Admin User Guide</h1>
+        <p class="subtitle">Complete guide for managing the Daiso Rewards loyalty program. For marketing managers, operations leads, and program administrators.</p>
+
+        <div class="toc">
+          <h3>Table of Contents</h3>
+          <ul>
+            <li><a href="#getting-started">1. Getting Started</a></li>
+            <li><a href="#managing-members">2. Managing Members</a></li>
+            <li><a href="#managing-tiers">3. Managing Tiers</a></li>
+            <li><a href="#managing-offers">4. Managing Offers</a></li>
+            <li><a href="#program-config">5. Program Configuration</a></li>
+            <li><a href="#webhooks">6. Webhooks</a></li>
+            <li><a href="#api-keys">7. API Keys</a></li>
+            <li><a href="#audit-log">8. Audit Log</a></li>
+            <li><a href="#earn-mode">9. Earn Mode Configuration</a></li>
+            <li><a href="#visit-offers">10. Visit-Based Offers</a></li>
+            <li><a href="#free-item-offers">11. Free Item Offers</a></li>
+            <li><a href="#transaction-enrichment">12. Transaction Enrichment</a></li>
+            <li><a href="#reports">13. Reports</a></li>
+            <li><a href="#integrations-setup">14. Integrations</a></li>
+            <li><a href="#common-tasks">15. Common Tasks</a></li>
+          </ul>
+        </div>
+
+        <!-- 1. GETTING STARTED -->
+        <h2 id="getting-started">1. Getting Started</h2>
+
+        <h3>Logging In</h3>
+        <p>Open the Admin Portal at <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">https://loyaltyadminportal.z20.web.core.windows.net</a>. Sign in with your administrator credentials. If you do not have credentials, contact your system administrator to provision an account.</p>
+
+        <h3>Dashboard Overview</h3>
+        <p>After logging in, you'll see the Dashboard &mdash; your real-time command center for the loyalty program. The dashboard displays:</p>
+        <ul>
+          <li><strong>Active Members:</strong> Total enrolled members with active status</li>
+          <li><strong>Points Issued Today:</strong> Total points awarded across all transactions today</li>
+          <li><strong>Transactions Today:</strong> Number of loyalty transactions processed</li>
+          <li><strong>Program Health:</strong> Key metrics including redemption rate, engagement rate, and tier distribution</li>
+        </ul>
+
+        <h3>Understanding Your Role</h3>
+        <p>As a Loyalty Admin, you have full access to all program management features:</p>
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Access Level</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>View Dashboard &amp; Reports</td><td>Full access</td></tr>
+            <tr><td>Manage Members</td><td>Search, view, adjust points, change status</td></tr>
+            <tr><td>Manage Tiers</td><td>Create, edit, delete tiers</td></tr>
+            <tr><td>Manage Offers</td><td>Create, edit, activate, deactivate offers</td></tr>
+            <tr><td>Program Configuration</td><td>Earn rate, expiry, multipliers</td></tr>
+            <tr><td>API Keys &amp; Webhooks</td><td>Generate, rotate, configure</td></tr>
+            <tr><td>Audit Log</td><td>View all admin actions</td></tr>
+          </tbody>
+        </table>
+
+        <!-- 2. MANAGING MEMBERS -->
+        <h2 id="managing-members">2. Managing Members</h2>
+
+        <h3>Searching for Members</h3>
+        <p>Navigate to <strong>Members</strong> in the left sidebar. Use the search bar to find members by:</p>
+        <ul>
+          <li><strong>Phone number:</strong> Enter the full number (e.g., <code>9192474109</code>)</li>
+          <li><strong>Email address:</strong> Enter the complete email</li>
+          <li><strong>Name:</strong> Enter first name, last name, or both</li>
+          <li><strong>Member ID:</strong> Enter the UUID if known</li>
+        </ul>
+
+        <h3>Viewing a Member Profile</h3>
+        <p>Click on any member in the search results to open their detail view. The profile shows:</p>
+        <ul>
+          <li><strong>Personal Information:</strong> Name, phone, email, enrollment date, enrollment channel</li>
+          <li><strong>Loyalty Status:</strong> Current tier, points balance, lifetime points earned</li>
+          <li><strong>Transaction History:</strong> All purchases with date, store, items, and points earned</li>
+          <li><strong>Points Ledger:</strong> Every points credit and debit with reasons and timestamps</li>
+          <li><strong>Active Offers:</strong> Offers currently assigned to this member</li>
+        </ul>
+
+        <h3>Adjusting Points</h3>
+        <p>To manually add or deduct points from a member's balance:</p>
+        <ol>
+          <li>Open the member's profile</li>
+          <li>Click <strong>Adjust Points</strong></li>
+          <li>Enter the number of points (positive to add, negative to deduct)</li>
+          <li>Select a reason (goodwill, correction, promotion, other)</li>
+          <li>Add an optional note explaining the adjustment</li>
+          <li>Click <strong>Submit</strong></li>
+        </ol>
+        <div class="callout callout-warning">
+          <div class="callout-title">Important</div>
+          All point adjustments are logged in the audit trail with your admin identity, the reason, and the before/after balance. This cannot be undone &mdash; to reverse an adjustment, create another adjustment in the opposite direction.
+        </div>
+
+        <h3>Overriding a Member's Tier</h3>
+        <p>In some cases, you may need to manually promote or demote a member:</p>
+        <ol>
+          <li>Open the member's profile</li>
+          <li>Click <strong>Override Tier</strong></li>
+          <li>Select the target tier from the dropdown</li>
+          <li>Add a note explaining the override reason</li>
+          <li>Click <strong>Apply</strong></li>
+        </ol>
+        <p>The member will retain the new tier until the next automatic tier evaluation occurs (based on your program configuration).</p>
+
+        <h3>Changing Member Status</h3>
+        <p>Members can have the following statuses:</p>
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>active</code></td><td>Normal, fully functional member account</td></tr>
+            <tr><td><code>suspended</code></td><td>Temporarily disabled &mdash; cannot earn or redeem, but data is preserved</td></tr>
+            <tr><td><code>closed</code></td><td>Permanently closed &mdash; points forfeited, account deactivated</td></tr>
+          </tbody>
+        </table>
+
+        <h3>GDPR Data Deletion</h3>
+        <p>When a member requests data deletion under GDPR or CCPA:</p>
+        <ol>
+          <li>Open the member's profile</li>
+          <li>Click <strong>Actions</strong> &rarr; <strong>Delete Member Data</strong></li>
+          <li>Confirm the deletion &mdash; this action is irreversible</li>
+          <li>The system will anonymize PII (name, email, phone) while retaining anonymized transaction records for financial reporting</li>
+        </ol>
+
+        <!-- 3. MANAGING TIERS -->
+        <h2 id="managing-tiers">3. Managing Tiers</h2>
+
+        <h3>Understanding Tiers</h3>
+        <p>Tiers are configurable levels that members progress through based on their loyalty activity. The default configuration includes:</p>
+        <table>
+          <thead>
+            <tr><th>Tier</th><th>Threshold</th><th>Earn Multiplier</th><th>Example Benefits</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Bronze</td><td>0 points</td><td>1x</td><td>Base earn rate, access to member offers</td></tr>
+            <tr><td>Silver</td><td>500 points</td><td>1.25x</td><td>Early access to sales, birthday bonus</td></tr>
+            <tr><td>Gold</td><td>1,500 points</td><td>1.5x</td><td>Free shipping, exclusive offers</td></tr>
+            <tr><td>Platinum</td><td>5,000 points</td><td>2x</td><td>VIP events, premium support, all Gold benefits</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Creating or Editing a Tier</h3>
+        <ol>
+          <li>Navigate to <strong>Tiers</strong> in the sidebar</li>
+          <li>Click <strong>Add Tier</strong> or click an existing tier to edit</li>
+          <li>Configure:
+            <ul>
+              <li><strong>Name:</strong> Display name shown to members</li>
+              <li><strong>Point Threshold:</strong> Minimum points to qualify</li>
+              <li><strong>Earn Multiplier:</strong> Points multiplier for this tier (e.g., 1.5 = 50% more points)</li>
+              <li><strong>Benefits:</strong> List of benefits shown in the member portal</li>
+            </ul>
+          </li>
+          <li>Click <strong>Save</strong></li>
+        </ol>
+
+        <h3>Auto-Promotion and Demotion</h3>
+        <p>The platform automatically evaluates tier eligibility when a member's points balance changes:</p>
+        <ul>
+          <li><strong>Promotion:</strong> When a member earns enough points to qualify for a higher tier, they are promoted immediately. A <code>tier.upgraded</code> event is emitted for webhook consumers.</li>
+          <li><strong>Demotion:</strong> Tier demotion can be configured to occur at a set evaluation period (e.g., annually). Members are notified before demotion via the configured notification channel.</li>
+        </ul>
+
+        <!-- 4. MANAGING OFFERS -->
+        <h2 id="managing-offers">4. Managing Offers</h2>
+
+        <h3>Offer Types</h3>
+        <table>
+          <thead>
+            <tr><th>Type</th><th>Description</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Percentage Discount</strong></td><td>Percentage off the transaction total</td><td>15% off your next purchase</td></tr>
+            <tr><td><strong>Fixed Amount</strong></td><td>Dollar amount off the transaction</td><td>$5 off when you spend $25+</td></tr>
+            <tr><td><strong>BOGO</strong></td><td>Buy one, get one free or discounted</td><td>Buy 2 storage bins, get 1 free</td></tr>
+            <tr><td><strong>Threshold Reward</strong></td><td>Reward after reaching a spending threshold</td><td>Spend $200 this month, get 500 bonus points</td></tr>
+            <tr><td><strong>Visit-Based</strong></td><td>Reward after a number of qualifying visits</td><td>5 visits of $5+, get $5 off</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Creating an Offer</h3>
+        <ol>
+          <li>Navigate to <strong>Offers</strong> &rarr; <strong>Create Offer</strong></li>
+          <li>Select the offer type</li>
+          <li>Configure the reward:
+            <ul>
+              <li>Discount amount or percentage</li>
+              <li>Minimum purchase amount (if applicable)</li>
+              <li>Maximum discount cap (for percentage offers)</li>
+            </ul>
+          </li>
+          <li>Set qualification rules:
+            <ul>
+              <li><strong>Visit count:</strong> Number of qualifying visits required</li>
+              <li><strong>Minimum spend per visit:</strong> Minimum transaction amount to count as a qualifying visit</li>
+              <li><strong>Minimum items per visit:</strong> Minimum number of items per transaction</li>
+              <li><strong>Qualifying stores:</strong> Specific stores or all stores</li>
+            </ul>
+          </li>
+          <li>Set eligibility:
+            <ul>
+              <li><strong>Tier requirement:</strong> Restrict to specific tiers</li>
+              <li><strong>Channel:</strong> In-store, online, or both</li>
+              <li><strong>Date range:</strong> Start and end dates</li>
+            </ul>
+          </li>
+          <li>Click <strong>Publish</strong> to activate immediately, or <strong>Save as Draft</strong></li>
+        </ol>
+
+        <h3>Code-Bound Coupons (Visit Milestones)</h3>
+        <p>Visit milestone coupons are <strong>code-bound</strong> &mdash; each code is tied to the member who earned it:</p>
+        <ul>
+          <li>When a member reaches a visit milestone, a unique coupon code is generated and assigned exclusively to them</li>
+          <li>Codes are <strong>single-use</strong> and marked as redeemed after checkout</li>
+          <li>If a code is shared publicly (e.g., on social media), it <strong>cannot be used by another member</strong></li>
+          <li>The system returns specific error codes: <code>CODE_MEMBER_MISMATCH</code> (wrong member), <code>CODE_ALREADY_USED</code> (reused), <code>CODE_EXPIRED</code> (expired)</li>
+        </ul>
+
+        <h3>Viewing Redemption Stats</h3>
+        <p>Each offer displays performance metrics:</p>
+        <ul>
+          <li><strong>Total Issued:</strong> Number of members who received the offer</li>
+          <li><strong>Total Redeemed:</strong> Number of successful redemptions</li>
+          <li><strong>Redemption Rate:</strong> Percentage of issued offers that were redeemed</li>
+          <li><strong>Total Discount Value:</strong> Sum of all discounts given</li>
+          <li><strong>Average Basket Size:</strong> Average transaction value when the offer was redeemed</li>
+        </ul>
+
+        <!-- 5. PROGRAM CONFIGURATION -->
+        <h2 id="program-config">5. Program Configuration</h2>
+
+        <h3>Earn Rate</h3>
+        <p>Configure how many points members earn per dollar spent:</p>
+        <ul>
+          <li><strong>Base Earn Rate:</strong> Default points per dollar (e.g., 1 point per $1.00)</li>
+          <li><strong>Currency:</strong> Base currency for calculations (USD)</li>
+          <li><strong>Rounding:</strong> How fractional points are handled (floor, ceiling, or nearest)</li>
+        </ul>
+
+        <h3>Points Expiry</h3>
+        <p>Configure when earned points expire:</p>
+        <ul>
+          <li><strong>Expiry Window:</strong> Number of months after earning before points expire (e.g., 12 months)</li>
+          <li><strong>Notification Schedule:</strong> When to send expiry warnings (e.g., 30 days and 7 days before expiry)</li>
+          <li><strong>Grace Period:</strong> Optional window after expiry during which admin can restore points</li>
+        </ul>
+
+        <h3>Void Window</h3>
+        <p>Configure how long after a transaction it can be voided:</p>
+        <ul>
+          <li><strong>Void Window:</strong> Number of hours after transaction creation (default: 24 hours)</li>
+          <li>Voiding a transaction automatically reverses the points earned</li>
+          <li>Voided transactions are marked in the ledger with a <code>voided</code> status</li>
+        </ul>
+
+        <h3>Promotional Multipliers</h3>
+        <p>Run time-limited promotions that increase the earn rate:</p>
+        <ol>
+          <li>Navigate to <strong>Program Config</strong> &rarr; <strong>Promotional Multipliers</strong></li>
+          <li>Click <strong>Add Multiplier</strong></li>
+          <li>Configure:
+            <ul>
+              <li><strong>Name:</strong> "Double Points Weekend" or "Holiday Bonus"</li>
+              <li><strong>Multiplier:</strong> 2x, 3x, or any decimal value</li>
+              <li><strong>Start Date/Time:</strong> When the promotion begins</li>
+              <li><strong>End Date/Time:</strong> When the promotion ends</li>
+              <li><strong>Applicable Stores:</strong> All stores or specific locations</li>
+            </ul>
+          </li>
+          <li>Click <strong>Save</strong> &mdash; the multiplier activates automatically at the start time</li>
+        </ol>
+
+        <h3>Category Multipliers</h3>
+        <p>Award bonus points for specific product categories:</p>
+        <ul>
+          <li>Navigate to <strong>Program Config</strong> &rarr; <strong>Category Multipliers</strong></li>
+          <li>Set a multiplier for each product category (e.g., Beauty = 3x, Kitchen = 2x)</li>
+          <li>Category multipliers stack with tier multipliers and promotional multipliers</li>
+        </ul>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Multiplier Stacking</div>
+          When multiple multipliers apply, they are multiplied together. For example: a Gold member (1.5x) buying beauty products (3x) during a double points weekend (2x) earns <code>1.5 x 3 x 2 = 9x</code> the base rate. The transaction response shows all applied multipliers in the <code>appliedMultipliers</code> array.
+        </div>
+
+        <!-- 6. WEBHOOKS -->
+        <h2 id="webhooks">6. Webhooks</h2>
+
+        <h3>Registering a Webhook Endpoint</h3>
+        <ol>
+          <li>Navigate to <strong>Webhooks</strong> in the sidebar</li>
+          <li>Click <strong>Add Endpoint</strong></li>
+          <li>Enter the target URL (must be HTTPS)</li>
+          <li>Select the events you want to receive:
+            <ul>
+              <li><code>member.enrolled</code> &mdash; New member registration</li>
+              <li><code>transaction.completed</code> &mdash; Points earned from a purchase</li>
+              <li><code>transaction.voided</code> &mdash; Transaction reversed</li>
+              <li><code>points.redeemed</code> &mdash; Points used for a reward</li>
+              <li><code>tier.upgraded</code> &mdash; Member promoted to a higher tier</li>
+              <li><code>tier.downgraded</code> &mdash; Member demoted to a lower tier</li>
+              <li><code>offer.redeemed</code> &mdash; Offer applied to a transaction</li>
+              <li><code>points.expiring</code> &mdash; Points approaching expiry</li>
+            </ul>
+          </li>
+          <li>Click <strong>Save</strong></li>
+        </ol>
+
+        <h3>Testing Delivery</h3>
+        <p>After registering an endpoint, click <strong>Send Test</strong> to deliver a sample event. Check that your endpoint returns a <code>2xx</code> response.</p>
+
+        <h3>Delivery History</h3>
+        <p>Each endpoint shows a delivery log with:</p>
+        <ul>
+          <li>Timestamp of each delivery attempt</li>
+          <li>HTTP status code returned</li>
+          <li>Response time</li>
+          <li>Request and response bodies (for debugging)</li>
+        </ul>
+
+        <h3>Retry Policy</h3>
+        <p>Failed deliveries are retried with exponential backoff:</p>
+        <ul>
+          <li>1st retry: 1 minute after failure</li>
+          <li>2nd retry: 5 minutes</li>
+          <li>3rd retry: 30 minutes</li>
+          <li>4th retry: 2 hours</li>
+          <li>5th retry: 12 hours</li>
+        </ul>
+        <p>After 5 failed attempts, the delivery is marked as failed and the endpoint is flagged for review. See the <a href="webhooks.html">Webhooks technical documentation</a> for HMAC signature details.</p>
+
+        <!-- 7. API KEYS -->
+        <h2 id="api-keys">7. API Keys</h2>
+
+        <h3>Generating a Key</h3>
+        <ol>
+          <li>Navigate to <strong>API Keys</strong></li>
+          <li>Click <strong>Generate New Key</strong></li>
+          <li>Enter a descriptive name (e.g., "POS Integration - Production")</li>
+          <li>Select the scope:
+            <ul>
+              <li><strong>Full Access:</strong> All API endpoints</li>
+              <li><strong>Transaction Only:</strong> Limited to member lookup, transactions, and balance</li>
+              <li><strong>Read Only:</strong> GET endpoints only</li>
+            </ul>
+          </li>
+          <li>Click <strong>Create</strong></li>
+          <li>Copy the key immediately &mdash; it is only shown once</li>
+        </ol>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">Security</div>
+          API keys provide full programmatic access to your loyalty program data. Store them securely (e.g., Azure Key Vault, environment variables). Never commit keys to source control or share them in emails.
+        </div>
+
+        <h3>Rotating a Key</h3>
+        <p>To rotate an API key without downtime:</p>
+        <ol>
+          <li>Generate a new key with the same scope</li>
+          <li>Update your POS/integration to use the new key</li>
+          <li>Verify the integration works with the new key</li>
+          <li>Revoke the old key</li>
+        </ol>
+
+        <h3>Revoking a Key</h3>
+        <p>Click the <strong>Revoke</strong> button next to any key. Revoked keys stop working immediately. This action cannot be undone.</p>
+
+        <!-- 8. AUDIT LOG -->
+        <h2 id="audit-log">8. Audit Log</h2>
+
+        <p>Every administrative action is recorded in the audit log. Navigate to <strong>Audit Log</strong> to view all logged events.</p>
+
+        <h3>What Is Logged</h3>
+        <ul>
+          <li>Point adjustments (who, amount, reason, before/after balance)</li>
+          <li>Tier overrides (who, from tier, to tier)</li>
+          <li>Member status changes (who, old status, new status)</li>
+          <li>Offer creation, updates, and deactivation</li>
+          <li>Program configuration changes (earn rate, multipliers, expiry)</li>
+          <li>API key generation and revocation</li>
+          <li>Webhook endpoint changes</li>
+          <li>GDPR data deletion requests</li>
+        </ul>
+
+        <h3>Filtering the Log</h3>
+        <p>Filter audit entries by:</p>
+        <ul>
+          <li><strong>Admin User:</strong> Which administrator performed the action</li>
+          <li><strong>Entity Type:</strong> Member, Offer, Tier, Config, API Key, etc.</li>
+          <li><strong>Date Range:</strong> Start and end dates</li>
+          <li><strong>Action Type:</strong> Create, Update, Delete</li>
+        </ul>
+
+        <h3>Exporting Audit Data</h3>
+        <p>Click <strong>Export</strong> to download the filtered audit log as a CSV file. This is useful for compliance reviews and internal audits.</p>
+
+        <!-- 9. EARN MODE CONFIGURATION -->
+        <h2 id="earn-mode">9. Earn Mode Configuration</h2>
+
+        <h3>Per-Dollar vs Per-Visit</h3>
+        <p>The platform supports two earn modes. You can switch between them at any time in <strong>Program Config</strong>.</p>
+        <table>
+          <thead>
+            <tr><th>Mode</th><th>How It Works</th><th>Best For</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Per-Dollar</strong></td>
+              <td>Members earn a configurable number of points for every dollar spent (e.g., 1 point per $1). Points scale with transaction amount.</td>
+              <td>Higher-ticket retail where spend varies significantly between visits</td>
+            </tr>
+            <tr>
+              <td><strong>Per-Visit</strong></td>
+              <td>Members earn a flat number of points for every qualifying visit (e.g., 10 points per visit). The transaction must meet a minimum spend threshold to qualify.</td>
+              <td>High-frequency, low-ticket retailers like Daiso where most transactions are similar in value</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Switching Earn Modes</h3>
+        <ol>
+          <li>Navigate to <strong>Program Config</strong></li>
+          <li>Find the <strong>Earn Mode</strong> toggle at the top of the Earn Rate section</li>
+          <li>Select <strong>Per-Dollar</strong> or <strong>Per-Visit</strong></li>
+          <li>If Per-Visit is selected, configure:
+            <ul>
+              <li><strong>Points Per Visit:</strong> The flat number of points awarded per qualifying visit (e.g., 10)</li>
+              <li><strong>Minimum Spend Threshold:</strong> The minimum transaction amount in dollars to count as a qualifying visit (e.g., $5.00)</li>
+              <li><strong>Max Visits Per Day:</strong> Maximum number of qualifying visits per member per day (prevents gaming; e.g., 3)</li>
+            </ul>
+          </li>
+          <li>Click <strong>Save</strong></li>
+        </ol>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">Impact on Existing Points</div>
+          Switching earn modes does not affect points already in members' accounts. Existing points balances, tiers, and offers remain unchanged. Only future transactions will use the new earn mode. Tier multipliers still apply to per-visit points (e.g., a Gold member with 1.5x multiplier earns 15 points per visit instead of 10).
+        </div>
+
+        <!-- 10. VISIT-BASED OFFERS -->
+        <h2 id="visit-offers">10. Visit-Based Offers</h2>
+
+        <h3>How Visit-Based Offers Work</h3>
+        <p>Visit-based offers act as digital punch cards. Members must complete a set number of qualifying visits to unlock the reward. Each qualifying transaction increments the member's visit counter for that offer.</p>
+
+        <h3>Creating a Visit-Based Offer</h3>
+        <ol>
+          <li>Navigate to <strong>Offers</strong> &rarr; <strong>Create Offer</strong></li>
+          <li>Select type: <strong>Visit-Based</strong></li>
+          <li>Set the reward: fixed amount off, percentage off, bonus points, or free item</li>
+          <li>Set the <strong>visits required</strong> (e.g., 5)</li>
+          <li>Configure <strong>qualification rules</strong>:
+            <ul>
+              <li><strong>Minimum Spend:</strong> Minimum transaction amount to count as a qualifying visit (e.g., $5.00)</li>
+              <li><strong>Minimum Items:</strong> Minimum number of line items per transaction (optional)</li>
+              <li><strong>Qualifying Channels:</strong> In-store, online, self-checkout, or all</li>
+              <li><strong>Qualifying Stores:</strong> All stores, or restrict to specific locations</li>
+              <li><strong>Counting Mode:</strong> <strong>Per-Transaction</strong> (every qualifying transaction counts) or <strong>Per-Day</strong> (only the first qualifying transaction per day counts)</li>
+            </ul>
+          </li>
+          <li>Set eligibility: tier requirements, date range</li>
+          <li>Click <strong>Publish</strong> or <strong>Save as Draft</strong></li>
+        </ol>
+
+        <h3>Visit Progress Tracking</h3>
+        <p>Members see their visit progress in three places:</p>
+        <ul>
+          <li><strong>Member Portal:</strong> Offers tab shows "3 of 5 visits &mdash; 2 more to unlock!"</li>
+          <li><strong>POS Terminal:</strong> Member panel shows progress bars for active visit-based offers</li>
+          <li><strong>Self-Checkout Kiosk:</strong> Visit progress is displayed after member identification</li>
+        </ul>
+
+        <!-- 11. FREE ITEM OFFERS -->
+        <h2 id="free-item-offers">11. Free Item Offers</h2>
+
+        <p>Free Item offers allow you to give a specific product or any product up to a maximum value as a reward.</p>
+        <ol>
+          <li>Navigate to <strong>Offers</strong> &rarr; <strong>Create Offer</strong></li>
+          <li>Select type: <strong>Free Item</strong></li>
+          <li>Configure the reward:
+            <ul>
+              <li><strong>SKU (optional):</strong> If specified, only this product is free. If left blank, any single item up to the max value is free.</li>
+              <li><strong>Max Value (optional):</strong> Maximum dollar value of the free item. If the item costs more, the member pays the difference.</li>
+            </ul>
+          </li>
+          <li>Set qualification rules (visits required, minimum spend, etc.) just like any other offer</li>
+          <li>Click <strong>Publish</strong></li>
+        </ol>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Example</div>
+          Create a "Free storage bin after 5 visits" offer: type = Free Item, SKU = <code>STORAGE-BIN-M</code>, visits required = 5, min spend per visit = $5.00. Or leave SKU blank and set max value = $5.00 for "any free item up to $5."
+        </div>
+
+        <!-- 12. TRANSACTION ENRICHMENT -->
+        <h2 id="transaction-enrichment">12. Transaction Enrichment</h2>
+
+        <p>Every transaction can include enrichment fields that provide full context for reporting, reconciliation, and audit. These fields are set by the POS or integration at the time of transaction.</p>
+
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Description</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>storeId</code></td><td>Unique identifier for the store location</td><td><code>DAISO-042</code></td></tr>
+            <tr><td><code>storeName</code></td><td>Human-readable store name</td><td><code>Daiso Carrollton</code></td></tr>
+            <tr><td><code>registerId</code></td><td>Register or terminal identifier</td><td><code>REG-01</code></td></tr>
+            <tr><td><code>associateId</code></td><td>Employee identifier who processed the transaction</td><td><code>EMP-1001</code></td></tr>
+            <tr><td><code>associateName</code></td><td>Employee display name</td><td><code>Jane Smith</code></td></tr>
+            <tr><td><code>sourceChannel</code></td><td>How the transaction originated</td><td><code>in-store</code>, <code>online</code>, <code>self-checkout</code></td></tr>
+            <tr><td><code>sourceSystem</code></td><td>Which POS or system submitted the transaction</td><td><code>square</code>, <code>shopify</code>, <code>kiosk</code></td></tr>
+            <tr><td><code>orderRef</code></td><td>External order reference for cross-system reconciliation</td><td><code>ORD-2026-04-16-5523</code></td></tr>
+            <tr><td><code>metadata</code></td><td>Arbitrary key-value pairs for custom tracking</td><td><code>{"campaign": "spring-sale"}</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Viewing Enrichment Data</h3>
+        <p>In the <strong>Transactions</strong> list, enrichment fields appear as filterable columns. Click any transaction to see the full detail view including all enrichment fields, line items, points earned, and any applied offers.</p>
+
+        <h3>Filtering by Enrichment Fields</h3>
+        <p>Use the filters at the top of the Transactions page to narrow by store, associate, source channel, or date range. This is useful for investigating store-level performance or auditing associate activity.</p>
+
+        <!-- 13. REPORTS -->
+        <h2 id="reports">13. Reports</h2>
+
+        <p>Navigate to <strong>Reports</strong> in the sidebar. Reports are organized into three tabs:</p>
+
+        <h3>Finance Tab</h3>
+        <ul>
+          <li><strong>Points Liability:</strong> Outstanding points, gross liability, breakage estimate, and net liability (ASC 606 / IFRS 15 compliant)</li>
+          <li><strong>Points Flow:</strong> Points issued, redeemed, expired, and voided over a selected period</li>
+          <li><strong>Redemption Reserve:</strong> Monthly cash flow impact from redemptions with rolling averages and projections</li>
+          <li><strong>Revenue Attribution:</strong> Member vs non-member revenue, average basket comparison, and spend lift percentage</li>
+        </ul>
+
+        <h3>Marketing Tab</h3>
+        <ul>
+          <li><strong>Engagement Funnel:</strong> Conversion rates from enrollment through first purchase, repeat, tier upgrade, and redemption</li>
+          <li><strong>At-Risk Members:</strong> Members with positive balance who haven't transacted in 60+ days, filterable by tier</li>
+          <li><strong>Tier Distribution:</strong> Bar chart of member counts per tier</li>
+          <li><strong>Offer Performance:</strong> Per-offer metrics including redemption rate, revenue attributed, and ROI</li>
+        </ul>
+
+        <h3>Operations Tab</h3>
+        <ul>
+          <li><strong>Qualified Visits:</strong> Number of transactions that met the qualifying visit threshold</li>
+          <li><strong>Visit Conversion Rate:</strong> Percentage of total transactions that qualify as visits (helps you tune the minimum spend threshold)</li>
+          <li><strong>Daily Visit Trends:</strong> Chart of qualified visits over time</li>
+          <li><strong>Program Health:</strong> Composite score based on enrollment rate, engagement, redemption rate, and visit frequency</li>
+        </ul>
+
+        <h3>Exporting Reports</h3>
+        <p>Every report card includes an <strong>Export</strong> button to download data as CSV. See the <a href="guide-finance.html">Finance Guide</a> for detailed reporting instructions and the <a href="guide-marketing-admin.html">Marketing Admin Guide</a> for campaign analytics.</p>
+
+        <!-- 14. INTEGRATIONS -->
+        <h2 id="integrations-setup">14. Integrations</h2>
+
+        <p>Navigate to <strong>Integrations</strong> in the sidebar to connect external marketing platforms.</p>
+
+        <h3>ActiveCampaign</h3>
+        <ol>
+          <li>Click <strong>Connect</strong> next to ActiveCampaign</li>
+          <li>Enter your API URL (e.g., <code>https://yourcompany.api-us1.com</code>) and API key</li>
+          <li>Click <strong>Test Connection</strong> to verify</li>
+          <li>Select which fields to sync (member ID, email, phone, tier, points balance, etc.)</li>
+          <li>Click <strong>Enable Sync</strong></li>
+        </ol>
+
+        <h3>Klaviyo</h3>
+        <ol>
+          <li>Click <strong>Connect</strong> next to Klaviyo</li>
+          <li>Enter your Klaviyo Private API Key (found in Account &rarr; Settings &rarr; API Keys)</li>
+          <li>Click <strong>Test Connection</strong></li>
+          <li>Map loyalty fields to Klaviyo profile properties</li>
+          <li>Click <strong>Enable Sync</strong></li>
+        </ol>
+
+        <p>Once connected, member profiles sync automatically. Loyalty events (enrollment, tier change, points earned, points expiring) are sent as trackable events for use in automation flows. See the <a href="guide-marketing-admin.html">Marketing Admin Guide</a> for automation trigger setup.</p>
+
+        <!-- 15. COMMON TASKS -->
+        <h2 id="common-tasks">15. Common Tasks</h2>
+
+        <div class="task-card">
+          <h4>"A customer says they didn't get points for their purchase"</h4>
+          <ol>
+            <li>Navigate to <strong>Members</strong> and search for the customer</li>
+            <li>Open their profile and check <strong>Transaction History</strong></li>
+            <li>If the transaction is listed but points are missing, check the <strong>Points Ledger</strong> for errors</li>
+            <li>If the transaction is not listed, check with the store to confirm the POS was connected</li>
+            <li>If confirmed as a missed transaction, use <strong>Adjust Points</strong> with reason "correction" to award the points manually</li>
+          </ol>
+        </div>
+
+        <div class="task-card">
+          <h4>"We want to run a double points weekend"</h4>
+          <ol>
+            <li>Navigate to <strong>Program Config</strong> &rarr; <strong>Promotional Multipliers</strong></li>
+            <li>Click <strong>Add Multiplier</strong></li>
+            <li>Set Name = "Double Points Weekend", Multiplier = 2</li>
+            <li>Set start to Friday 12:00 AM and end to Sunday 11:59 PM</li>
+            <li>Select "All Stores" for applicable stores</li>
+            <li>Click <strong>Save</strong> &mdash; it activates automatically at the scheduled time</li>
+          </ol>
+          <p>See the <a href="guide-marketing-admin.html">Marketing Admin Guide</a> for more promotion strategies.</p>
+        </div>
+
+        <div class="task-card">
+          <h4>"A member wants to merge two accounts"</h4>
+          <p>The platform does not support automatic account merging. Handle manually:</p>
+          <ol>
+            <li>Identify the primary account (the one the member wants to keep)</li>
+            <li>Open the secondary account and note the points balance</li>
+            <li>Use <strong>Adjust Points</strong> on the primary account with reason "account merge" to add the secondary account's balance</li>
+            <li>Change the secondary account's status to <strong>closed</strong> with a note referencing the primary account ID</li>
+          </ol>
+        </div>
+
+        <div class="task-card">
+          <h4>"We need to void a transaction from earlier today"</h4>
+          <ol>
+            <li>Navigate to <strong>Transactions</strong></li>
+            <li>Find the transaction by member, store, or order reference</li>
+            <li>Click the transaction to open its detail view</li>
+            <li>Click <strong>Void Transaction</strong> (available within the configured void window)</li>
+            <li>Confirm &mdash; the points earned from this transaction will be automatically reversed</li>
+          </ol>
+          <p>If the void window has expired, use <strong>Adjust Points</strong> on the member's profile to manually deduct the points.</p>
+        </div>
+
+        <div class="task-card">
+          <h4>"Finance needs the monthly liability report"</h4>
+          <ol>
+            <li>Navigate to <strong>Reports</strong> &rarr; <strong>Finance</strong></li>
+            <li>The <strong>Points Liability</strong> card shows outstanding points, breakage estimate, and net liability</li>
+            <li>Click <strong>Export</strong> to download as CSV for your finance team</li>
+            <li>See the <a href="guide-finance.html">Finance Guide</a> for detailed reporting instructions</li>
+          </ol>
+        </div>
+
+        <div class="callout callout-success">
+          <div class="callout-title">Related Guides</div>
+          <ul>
+            <li><a href="guide-marketing-admin.html">Marketing Admin Guide</a> &mdash; Campaigns, offers, and engagement analytics</li>
+            <li><a href="guide-finance.html">Finance Guide</a> &mdash; Liability reporting, reconciliation, and compliance</li>
+            <li><a href="guide-member.html">Member Guide</a> &mdash; Share with customers who need help with the member portal</li>
+          </ul>
+        </div>
+
+        <div class="next-page">
+          <a href="guide-marketing-admin.html">Next: Marketing Admin Guide &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

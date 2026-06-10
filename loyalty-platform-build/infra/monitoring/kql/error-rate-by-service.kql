@@ -1,0 +1,12 @@
+// Error rate per service over the last 24 hours
+// Groups by cloud_RoleName (service name in Container Apps)
+
+requests
+| where timestamp > ago(24h)
+| summarize
+    totalRequests = count(),
+    failedRequests = countif(resultCode >= 400 and resultCode < 600),
+    serverErrors = countif(resultCode >= 500),
+    errorRate = round(countif(resultCode >= 500) * 100.0 / count(), 2)
+    by cloud_RoleName
+| order by errorRate desc

@@ -1,0 +1,108 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - img [ref=e4]
+      - heading "Loyalty Platform — POS Terminal Demo" [level=1] [ref=e6]
+    - generic [ref=e7]: "Tenant: 273684b8..."
+  - main [ref=e8]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - heading "Product Catalog" [level=2] [ref=e11]
+        - generic [ref=e12]:
+          - button "☕ Coffee Beans $14.99 COF-001" [ref=e13] [cursor=pointer]:
+            - generic [ref=e14]: ☕
+            - generic [ref=e15]: Coffee Beans
+            - generic [ref=e16]:
+              - generic [ref=e17]: $14.99
+              - generic [ref=e18]: COF-001
+          - button "🍵 Green Tea $8.99 TEA-001" [ref=e19] [cursor=pointer]:
+            - generic [ref=e20]: 🍵
+            - generic [ref=e21]: Green Tea
+            - generic [ref=e22]:
+              - generic [ref=e23]: $8.99
+              - generic [ref=e24]: TEA-001
+          - button "💊 Vitamins $24.99 VIT-001" [ref=e25] [cursor=pointer]:
+            - generic [ref=e26]: 💊
+            - generic [ref=e27]: Vitamins
+            - generic [ref=e28]:
+              - generic [ref=e29]: $24.99
+              - generic [ref=e30]: VIT-001
+          - button "🍫 Protein Bar $3.99 BAR-001" [ref=e31] [cursor=pointer]:
+            - generic [ref=e32]: 🍫
+            - generic [ref=e33]: Protein Bar
+            - generic [ref=e34]:
+              - generic [ref=e35]: $3.99
+              - generic [ref=e36]: BAR-001
+          - button "🧘 Yoga Mat $29.99 YOG-001" [ref=e37] [cursor=pointer]:
+            - generic [ref=e38]: 🧘
+            - generic [ref=e39]: Yoga Mat
+            - generic [ref=e40]:
+              - generic [ref=e41]: $29.99
+              - generic [ref=e42]: YOG-001
+          - button "🧴 Water Bottle $12.99 BOT-001" [ref=e43] [cursor=pointer]:
+            - generic [ref=e44]: 🧴
+            - generic [ref=e45]: Water Bottle
+            - generic [ref=e46]:
+              - generic [ref=e47]: $12.99
+              - generic [ref=e48]: BOT-001
+          - button "👟 Running Shoes $89.99 SHO-001" [ref=e49] [cursor=pointer]:
+            - generic [ref=e50]: 👟
+            - generic [ref=e51]: Running Shoes
+            - generic [ref=e52]:
+              - generic [ref=e53]: $89.99
+              - generic [ref=e54]: SHO-001
+          - button "🎁 Gift Card $25.00 GFT-001" [ref=e55] [cursor=pointer]:
+            - generic [ref=e56]: 🎁
+            - generic [ref=e57]: Gift Card
+            - generic [ref=e58]:
+              - generic [ref=e59]: $25.00
+              - generic [ref=e60]: GFT-001
+      - generic [ref=e61]:
+        - heading "Shopping Cart" [level=2] [ref=e62]
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - paragraph [ref=e66]: Tap products to add items
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - generic [ref=e70]: Subtotal
+            - generic [ref=e71]: $0.00
+          - generic [ref=e72]:
+            - generic [ref=e73]: Tax (8.5%)
+            - generic [ref=e74]: $0.00
+          - generic [ref=e75]:
+            - generic [ref=e76]: Total
+            - generic [ref=e77]: $0.00
+        - generic [ref=e78]:
+          - button "Clear" [ref=e79] [cursor=pointer]
+          - button "Complete Sale" [disabled] [ref=e80]
+    - generic [ref=e82]:
+      - heading "Member Lookup" [level=2] [ref=e83]
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - img [ref=e86]
+          - textbox "+1 (555) 123-4567" [ref=e88]
+        - button "Look Up" [ref=e89] [cursor=pointer]:
+          - img [ref=e90]
+          - text: Look Up
+        - button "+ New" [ref=e92] [cursor=pointer]
+  - contentinfo [ref=e93]:
+    - generic [ref=e94]:
+      - generic [ref=e95]: Member Service
+      - generic [ref=e97]: Loyalty Engine
+      - generic [ref=e99]: Offer Service
+    - generic [ref=e101]: "POS Terminal #1 | 22:36:42"
+  - generic [ref=e102]:
+    - button "Activity Log" [ref=e103] [cursor=pointer]:
+      - generic [ref=e104]:
+        - img [ref=e105]
+        - text: Activity Log
+      - img [ref=e107]
+    - generic [ref=e109]:
+      - generic [ref=e110]: "[22:36:42] POS Terminal initialized"
+      - generic [ref=e111]: "[22:36:42] Member Service: https://loyalty-dev-member-service.azurewebsites.net"
+      - generic [ref=e112]: "[22:36:42] Loyalty Engine: https://loyalty-dev-loyalty-engine.azurewebsites.net"
+      - generic [ref=e113]: "[22:36:42] Offer Service: https://loyalty-dev-offer-service.azurewebsites.net"
+  - 'button "Debug: Raw API Responses" [ref=e115] [cursor=pointer]':
+    - generic [ref=e116]: "Debug: Raw API Responses"
+    - img [ref=e117]

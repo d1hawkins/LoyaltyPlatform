@@ -1,0 +1,128 @@
+name: Deploy Services
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/**'
+      - 'packages/**'
+      - '.github/workflows/deploy-services.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RG: loyalty-platform-dev
+  ACR_NAME: loyaltydevacr4a8a43
+
+jobs:
+  build-test:
+    name: Build & Test monorepo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-node-pnpm
+      - run: pnpm build
+      - run: pnpm test
+
+  deploy-app-service:
+    name: Deploy ${{ matrix.service.name }} (App Service)
+    needs: build-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - { name: member-service,       app: loyalty-dev-member-service }
+          - { name: loyalty-engine,       app: loyalty-dev-loyalty-engine }
+          - { name: offer-service,        app: loyalty-dev-offer-service }
+          - { name: notification-service, app: loyalty-dev-notification-service }
+          - { name: analytics-service,    app: loyalty-dev-analytics-service }
+          - { name: admin-api,            app: loyalty-dev-admin-api }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR login
+        run: az acr login -n "$ACR_NAME"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & push image
+        run: |
+          IMAGE="${ACR_NAME}.azurecr.io/${{ matrix.service.name }}"
+          docker buildx build \
+            --platform linux/amd64 \
+            -t "${IMAGE}:${GITHUB_SHA}" \
+            -t "${IMAGE}:latest" \
+            --push \
+            -f services/${{ matrix.service.name }}/Dockerfile \
+            .
+
+      - name: Deploy to App Service
+        run: |
+          az webapp config container set \
+            --name "${{ matrix.service.app }}" \
+            --resource-group "$RG" \
+            --container-image-name "${ACR_NAME}.azurecr.io/${{ matrix.service.name }}:${GITHUB_SHA}" \
+            --container-registry-url "https://${ACR_NAME}.azurecr.io" \
+            --container-registry-user "$ACR_NAME" \
+            --container-registry-password "$(az acr credential show -n $ACR_NAME --query passwords[0].value -o tsv)"
+
+      - name: Smoke-test /health
+        run: |
+          URL="https://${{ matrix.service.app }}.azurewebsites.net/health"
+          echo "Checking $URL"
+          for i in $(seq 1 12); do
+            if curl -fsS "$URL" ; then
+              echo " OK"; exit 0
+            fi
+            sleep 10
+          done
+          echo "Health check failed"; exit 1
+
+  deploy-workers:
+    name: Deploy ${{ matrix.worker.name }} (Container Apps)
+    needs: build-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        worker:
+          - { name: tier-eval-worker }
+          - { name: webhook-worker }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR login
+        run: az acr login -n "$ACR_NAME"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & push image
+        run: |
+          IMAGE="${ACR_NAME}.azurecr.io/${{ matrix.worker.name }}"
+          docker buildx build \
+            --platform linux/amd64 \
+            -t "${IMAGE}:${GITHUB_SHA}" \
+            -t "${IMAGE}:latest" \
+            --push \
+            -f services/${{ matrix.worker.name }}/Dockerfile \
+            .
+
+      - name: Deploy to Container Apps
+        run: |
+          az containerapp update \
+            --name "${{ matrix.worker.name }}" \
+            --resource-group "$RG" \
+            --image "${ACR_NAME}.azurecr.io/${{ matrix.worker.name }}:${GITHUB_SHA}"

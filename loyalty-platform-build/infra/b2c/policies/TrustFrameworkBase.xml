@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Loyalty Platform — TrustFrameworkBase
+  Adapted from Microsoft Identity Experience Framework starter pack (SocialAndLocalAccounts).
+  Placeholders are substituted by policies/render.sh:
+    {B2C_TENANT_NAME}
+    {IDENTITY_EXPERIENCE_FRAMEWORK_APP_ID}
+    {PROXY_IDENTITY_EXPERIENCE_FRAMEWORK_APP_ID}
+-->
+<TrustFrameworkPolicy
+  xmlns="http://schemas.microsoft.com/online/cpim/schemas/2013/06"
+  PolicySchemaVersion="0.3.0.0"
+  TenantId="{B2C_TENANT_NAME}.onmicrosoft.com"
+  PolicyId="B2C_1A_TrustFrameworkBase"
+  PublicPolicyUri="http://{B2C_TENANT_NAME}.onmicrosoft.com/B2C_1A_TrustFrameworkBase">
+
+  <BuildingBlocks>
+    <ClaimsSchema>
+      <ClaimType Id="tenantId">
+        <DisplayName>Tenant Id</DisplayName>
+        <DataType>string</DataType>
+        <UserHelpText>Merchant tenant identifier</UserHelpText>
+      </ClaimType>
+      <ClaimType Id="memberId">
+        <DisplayName>Member Id</DisplayName>
+        <DataType>string</DataType>
+      </ClaimType>
+      <ClaimType Id="email">
+        <DisplayName>Email Address</DisplayName>
+        <DataType>string</DataType>
+      </ClaimType>
+      <ClaimType Id="objectId">
+        <DisplayName>User's Object ID</DisplayName>
+        <DataType>string</DataType>
+      </ClaimType>
+    </ClaimsSchema>
+  </BuildingBlocks>
+
+  <ClaimsProviders>
+    <ClaimsProvider>
+      <DisplayName>Token Issuer</DisplayName>
+      <TechnicalProfiles>
+        <TechnicalProfile Id="JwtIssuer">
+          <DisplayName>JWT Issuer</DisplayName>
+          <Protocol Name="None" />
+          <OutputTokenFormat>JWT</OutputTokenFormat>
+          <Metadata>
+            <Item Key="client_id">{service:te}</Item>
+            <Item Key="issuer_refresh_token_user_identity_claim_type">objectId</Item>
+            <Item Key="SendTokenResponseBodyWithJsonNumbers">true</Item>
+          </Metadata>
+        </TechnicalProfile>
+      </TechnicalProfiles>
+    </ClaimsProvider>
+  </ClaimsProviders>
+
+  <UserJourneys>
+    <!-- Defined in SignUpOrSignin.xml -->
+  </UserJourneys>
+</TrustFrameworkPolicy>

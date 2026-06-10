@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daiso Rewards</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { font-family: 'Inter', system-ui, sans-serif; }
+    :root { --brand: #EB1256; --brand-dark: #C70E48; --brand-rgb: 235, 18, 86; }
+
+    /* Animations */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes checkmark-circle { 0% { stroke-dashoffset: 166; } 100% { stroke-dashoffset: 0; } }
+    @keyframes checkmark-check { 0% { stroke-dashoffset: 48; } 100% { stroke-dashoffset: 0; } }
+    @keyframes checkmark-scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
+    .checkmark-svg { width: 80px; height: 80px; border-radius: 50%; display: block; stroke-width: 3; stroke: currentColor; stroke-miterlimit: 10; animation: checkmark-scale 0.3s ease-in-out 0.9s both; }
+    .checkmark-circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 3; stroke-miterlimit: 10; fill: none; animation: checkmark-circle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
+    .checkmark-check { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; animation: checkmark-check 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards; }
+
+    @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+    .confetti-piece { position: fixed; width: 10px; height: 10px; top: -10px; opacity: 0; pointer-events: none; z-index: 1000; }
+    .confetti-piece.animate { animation: confetti-fall linear forwards; }
+
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+
+    /* Focus rings */
+    input:focus, select:focus { outline: none; box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.3); border-color: var(--brand); }
+    button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.3); }
+
+    /* Tab bar */
+    .tab-bar { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn { flex-shrink: 0; padding: 12px 20px; font-weight: 600; font-size: 14px; color: #6b7280; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; background: none; border-top: none; border-left: none; border-right: none; cursor: pointer; }
+    .tab-btn:hover { color: #374151; }
+    .tab-btn.active { color: var(--brand); border-bottom-color: var(--brand); }
+
+    /* Progress bar */
+    .tier-progress-bar { height: 10px; border-radius: 5px; background: #e5e7eb; overflow: hidden; }
+    .tier-progress-fill { height: 100%; border-radius: 5px; transition: width 0.8s ease-out; }
+
+    /* Mobile bottom nav */
+    @media (max-width: 639px) {
+      .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: white; border-top: 1px solid #e5e7eb; padding-bottom: env(safe-area-inset-bottom); display: flex; }
+      .bottom-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 6px; font-size: 11px; font-weight: 500; color: #9ca3af; background: none; border: none; cursor: pointer; }
+      .bottom-nav button.active { color: var(--brand); }
+      .bottom-nav button svg { width: 22px; height: 22px; }
+      body.has-bottom-nav { padding-bottom: 80px; }
+      .desktop-tabs { display: none; }
+    }
+    @media (min-width: 640px) {
+      .bottom-nav { display: none; }
+    }
+
+    /* Offer card */
+    .offer-card { background: white; border-radius: 16px; border: 1px solid #f3f4f6; padding: 20px; transition: box-shadow 0.2s; }
+    .offer-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+    /* Transaction row */
+    .txn-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f3f4f6; }
+    .txn-row:last-child { border-bottom: none; }
+
+    /* Toggle switch */
+    .toggle-track { width: 44px; height: 24px; border-radius: 12px; background: #d1d5db; position: relative; cursor: pointer; transition: background 0.2s; }
+    .toggle-track.on { background: var(--brand); }
+    .toggle-knob { width: 20px; height: 20px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle-track.on .toggle-knob { transform: translateX(20px); }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <div id="confetti-container"></div>
+
+  <!-- ========== STATE 1: LANDING / LOGIN ========== -->
+  <div id="state-landing">
+    <!-- HERO -->
+    <header class="relative overflow-hidden text-white" style="background: linear-gradient(135deg, #EB1256 0%, #C70E48 100%);">
+      <div class="absolute inset-0 opacity-20">
+        <div class="absolute -top-1/2 -right-1/4 w-96 h-96 rounded-full bg-white/20 blur-3xl"></div>
+        <div class="absolute -bottom-1/4 -left-1/4 w-80 h-80 rounded-full bg-white/10 blur-3xl"></div>
+      </div>
+      <div class="relative max-w-2xl mx-auto px-4 py-12 sm:py-16 text-center">
+        <div class="mb-6">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso USA" class="mx-auto h-16 sm:h-20 object-contain rounded-xl bg-white/20 backdrop-blur p-2" onerror="this.parentElement.innerHTML='<div style=&quot;font-size:2rem;font-weight:900;color:#fff;letter-spacing:-0.03em&quot;>DAISO</div>'" />
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-3">Daiso Rewards</h1>
+        <p class="text-lg sm:text-xl text-white/90 font-medium">Earn rewards on every visit to Daiso!</p>
+      </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4 -mt-6 pb-16 relative z-10">
+      <!-- Benefits -->
+      <section class="mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-white text-xl" style="background:#EB1256;">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-1">Earn Points</h3>
+            <p class="text-sm text-gray-500">Earn 1 point for every $1 at Daiso</p>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-white text-xl" style="background:#EB1256;">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-1">Unlock Tiers</h3>
+            <p class="text-sm text-gray-500">Level up from Bronze to Platinum</p>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-white text-xl" style="background:#EB1256;">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-1">Exclusive Offers</h3>
+            <p class="text-sm text-gray-500">Members-only deals on your favorite Daiso products</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Login / Join toggle -->
+      <section>
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
+          <!-- Toggle buttons -->
+          <div class="flex rounded-xl bg-gray-100 p-1 mb-6">
+            <button id="toggle-member" onclick="showLoginMode()" class="flex-1 py-3 rounded-lg text-sm font-semibold transition-all bg-white shadow text-gray-900">I'm a Member</button>
+            <button id="toggle-join" onclick="showJoinMode()" class="flex-1 py-3 rounded-lg text-sm font-semibold transition-all text-gray-500">Join Now</button>
+          </div>
+
+          <!-- Member lookup -->
+          <div id="login-section">
+            <h2 class="text-2xl font-bold text-gray-900 mb-1">Welcome Back</h2>
+            <p class="text-gray-500 mb-6">Enter your phone number to access your account.</p>
+            <div id="login-error" class="hidden mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm" role="alert"></div>
+            <div class="mb-4">
+              <label for="lookup-phone" class="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
+              <div class="flex">
+                <span class="inline-flex items-center px-4 h-12 rounded-l-xl border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm font-medium">+1</span>
+                <input type="tel" id="lookup-phone" autocomplete="tel-national" class="w-full h-12 px-4 rounded-r-xl border border-gray-300 text-gray-900 placeholder-gray-400 transition-colors" placeholder="(555) 123-4567" />
+              </div>
+            </div>
+            <button id="lookup-btn" onclick="handleLookup()" class="w-full h-14 rounded-xl text-white font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2" style="background:#EB1256;">
+              <span id="lookup-btn-text">Look Up My Account</span>
+              <svg id="lookup-spinner" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </button>
+          </div>
+
+          <!-- Not found prompt -->
+          <div id="not-found-section" class="hidden text-center py-6">
+            <div class="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">No Account Found</h3>
+            <p class="text-gray-500 mb-4">We couldn't find an account for <span id="not-found-phone" class="font-semibold"></span>.</p>
+            <button onclick="showJoinMode(); prefillPhone();" class="px-6 py-3 rounded-xl text-white font-bold shadow-lg hover:shadow-xl transition-all" style="background:#EB1256;">Join Daiso Rewards</button>
+            <button onclick="showLoginMode()" class="block mx-auto mt-3 text-sm text-gray-500 hover:text-gray-700">Try a different number</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ========== STATE 2: ENROLLMENT FORM ========== -->
+  <div id="state-enroll" class="hidden">
+    <header class="relative overflow-hidden text-white" style="background: linear-gradient(135deg, #EB1256 0%, #C70E48 100%);">
+      <div class="absolute inset-0 opacity-20">
+        <div class="absolute -top-1/2 -right-1/4 w-96 h-96 rounded-full bg-white/20 blur-3xl"></div>
+      </div>
+      <div class="relative max-w-2xl mx-auto px-4 py-10 sm:py-12 text-center">
+        <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso USA" class="mx-auto h-12 sm:h-14 object-contain rounded-xl bg-white/20 backdrop-blur p-2 mb-4" onerror="this.style.display='none'" />
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Join Daiso Rewards</h1>
+      </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4 -mt-6 pb-16 relative z-10">
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-1">Sign Up</h2>
+            <p class="text-gray-500">It only takes a minute to start earning.</p>
+          </div>
+          <button onclick="goToLanding()" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            Back
+          </button>
+        </div>
+
+        <div id="global-error" class="hidden mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm" role="alert" aria-live="assertive"></div>
+
+        <form id="enrollment-form" novalidate>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label for="firstName" class="block text-sm font-semibold text-gray-700 mb-1.5">First Name <span class="text-red-500">*</span></label>
+              <input type="text" id="firstName" name="firstName" required autocomplete="given-name" class="w-full h-12 px-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-400 transition-colors" placeholder="Jane" />
+              <p class="field-error text-red-600 text-xs mt-1 hidden" aria-live="polite"></p>
+            </div>
+            <div>
+              <label for="lastName" class="block text-sm font-semibold text-gray-700 mb-1.5">Last Name <span class="text-red-500">*</span></label>
+              <input type="text" id="lastName" name="lastName" required autocomplete="family-name" class="w-full h-12 px-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-400 transition-colors" placeholder="Doe" />
+              <p class="field-error text-red-600 text-xs mt-1 hidden" aria-live="polite"></p>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email Address <span class="text-red-500">*</span></label>
+            <input type="email" id="email" name="email" required autocomplete="email" class="w-full h-12 px-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-400 transition-colors" placeholder="jane@example.com" />
+            <p class="field-error text-red-600 text-xs mt-1 hidden" aria-live="polite"></p>
+          </div>
+          <div class="mb-4">
+            <label for="phone" class="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number <span class="text-red-500">*</span></label>
+            <div class="flex">
+              <span class="inline-flex items-center px-4 h-12 rounded-l-xl border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm font-medium">+1</span>
+              <input type="tel" id="phone" name="phone" required autocomplete="tel-national" class="w-full h-12 px-4 rounded-r-xl border border-gray-300 text-gray-900 placeholder-gray-400 transition-colors" placeholder="(555) 123-4567" />
+            </div>
+            <p class="field-error text-red-600 text-xs mt-1 hidden" aria-live="polite"></p>
+          </div>
+          <div class="mb-6">
+            <label for="dob" class="block text-sm font-semibold text-gray-700 mb-1.5">Date of Birth <span class="text-gray-400 font-normal">(optional, for birthday rewards)</span></label>
+            <input type="date" id="dob" name="dob" autocomplete="bday" class="w-full h-12 px-4 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-400 transition-colors" />
+          </div>
+          <fieldset class="mb-6">
+            <legend class="text-sm font-semibold text-gray-700 mb-3">Communication Preferences</legend>
+            <div class="space-y-3">
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" name="pref_email" checked class="mt-0.5 h-5 w-5 rounded border-gray-300" style="accent-color:#EB1256;" />
+                <span class="text-sm text-gray-700">Email me about points and rewards</span>
+              </label>
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" name="pref_sms" checked class="mt-0.5 h-5 w-5 rounded border-gray-300" style="accent-color:#EB1256;" />
+                <span class="text-sm text-gray-700">Text me about exclusive offers</span>
+              </label>
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" name="pref_newsletter" class="mt-0.5 h-5 w-5 rounded border-gray-300" style="accent-color:#EB1256;" />
+                <span class="text-sm text-gray-700">Send me the weekly deals newsletter</span>
+              </label>
+            </div>
+          </fieldset>
+          <div class="mb-6">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" id="terms" name="terms" required class="mt-0.5 h-5 w-5 rounded border-gray-300" style="accent-color:#EB1256;" />
+              <span class="text-sm text-gray-700">I agree to the <a href="#" class="underline font-medium hover:text-gray-900">Terms &amp; Conditions</a> and <a href="#" class="underline font-medium hover:text-gray-900">Privacy Policy</a></span>
+            </label>
+            <p id="terms-error" class="text-red-600 text-xs mt-1 hidden" aria-live="polite"></p>
+          </div>
+          <button type="submit" id="submit-btn" class="w-full h-14 rounded-xl text-white font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2" style="background:#EB1256;">
+            <span id="btn-text">Join Now</span>
+            <svg id="btn-spinner" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+          </button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========== STATE 3: MEMBER DASHBOARD ========== -->
+  <div id="state-dashboard" class="hidden">
+    <!-- Dashboard header -->
+    <header class="relative overflow-hidden text-white" style="background: linear-gradient(135deg, #EB1256 0%, #C70E48 100%);">
+      <div class="absolute inset-0 opacity-20">
+        <div class="absolute -top-1/2 -right-1/4 w-96 h-96 rounded-full bg-white/20 blur-3xl"></div>
+      </div>
+      <div class="relative max-w-3xl mx-auto px-4 py-6 sm:py-8">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" class="h-8 sm:h-10 object-contain rounded-lg bg-white/20 backdrop-blur p-1" onerror="this.style.display='none'" />
+            <span class="text-white/80 font-semibold text-sm sm:text-base">Daiso Rewards</span>
+          </div>
+          <button onclick="handleLogout()" class="text-white/70 hover:text-white text-sm font-medium flex items-center gap-1 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            Log Out
+          </button>
+        </div>
+        <h2 id="dash-welcome" class="text-2xl sm:text-3xl font-extrabold tracking-tight">Welcome back!</h2>
+      </div>
+    </header>
+
+    <!-- Desktop tabs -->
+    <div class="desktop-tabs bg-white border-b border-gray-200 sticky top-0 z-40">
+      <div class="max-w-3xl mx-auto px-4">
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+          <button class="tab-btn" onclick="switchTab('transactions')">Transactions</button>
+          <button class="tab-btn" onclick="switchTab('offers')">Offers</button>
+          <button class="tab-btn" onclick="switchTab('profile')">My Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <main class="max-w-3xl mx-auto px-4 pb-24 sm:pb-16">
+
+      <!-- ===== DASHBOARD TAB ===== -->
+      <div id="tab-dashboard" class="tab-content pt-6 fade-in">
+        <!-- Stats cards -->
+        <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 text-center">
+            <div id="dash-points" class="text-2xl sm:text-3xl font-extrabold text-gray-900">--</div>
+            <div class="text-xs sm:text-sm text-gray-500 font-medium">Points</div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 text-center">
+            <div id="dash-tier" class="text-xl sm:text-2xl font-extrabold" style="color:#CD7F32;">--</div>
+            <div class="text-xs sm:text-sm text-gray-500 font-medium">Tier</div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 text-center">
+            <div id="dash-next" class="text-2xl sm:text-3xl font-extrabold text-gray-900">--</div>
+            <div id="dash-next-label" class="text-xs sm:text-sm text-gray-500 font-medium">to next tier</div>
+          </div>
+        </div>
+
+        <!-- Tier progress -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Tier Progress</h3>
+          <div class="tier-progress-bar mb-2">
+            <div id="tier-bar-fill" class="tier-progress-fill" style="width:0%; background: #CD7F32;"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-400">
+            <span id="tier-label-current">Bronze (0)</span>
+            <span id="tier-progress-pct" class="font-semibold text-gray-600"></span>
+            <span id="tier-label-next">Silver (500)</span>
+          </div>
+        </div>
+
+        <!-- Earn Rule + Visit Stats -->
+        <div id="dash-earn-rule" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6" style="display:none;">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">How You Earn</h3>
+          <p id="earn-rule-text" class="text-base text-gray-700 font-medium mb-3"></p>
+          <div id="visit-stats" class="grid grid-cols-3 gap-3" style="display:none;">
+            <div class="bg-gray-50 rounded-xl p-3 text-center">
+              <div id="visit-stat-total" class="text-2xl font-bold" style="color:#EB1256;">0</div>
+              <div class="text-xs text-gray-500">Total Visits</div>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3 text-center">
+              <div id="visit-stat-month" class="text-2xl font-bold" style="color:#EB1256;">0</div>
+              <div class="text-xs text-gray-500">This Month</div>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3 text-center">
+              <div id="visit-stat-streak" class="text-2xl font-bold" style="color:#EB1256;">0</div>
+              <div class="text-xs text-gray-500">Day Streak</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Benefits -->
+        <div id="dash-benefits" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Your Benefits</h3>
+          <div id="benefits-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Quick offers -->
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Available Offers</h3>
+            <button onclick="switchTab('offers')" class="text-sm font-semibold hover:underline" style="color:#EB1256;">View All</button>
+          </div>
+          <div id="dash-offers-preview" class="grid grid-cols-2 gap-3">
+            <div class="skeleton h-32"></div>
+            <div class="skeleton h-32"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TRANSACTIONS TAB ===== -->
+      <div id="tab-transactions" class="tab-content hidden pt-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">This Month</h3>
+          <div class="grid grid-cols-2 gap-4 mt-3">
+            <div>
+              <div id="txn-month-points" class="text-2xl font-extrabold text-gray-900">--</div>
+              <div class="text-xs text-gray-500">Points earned</div>
+            </div>
+            <div>
+              <div id="txn-month-count" class="text-2xl font-extrabold text-gray-900">--</div>
+              <div class="text-xs text-gray-500">Transactions</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Recent Transactions</h3>
+          <div id="txn-list">
+            <div class="skeleton h-12 mb-3"></div>
+            <div class="skeleton h-12 mb-3"></div>
+            <div class="skeleton h-12"></div>
+          </div>
+          <div id="txn-empty" class="hidden text-center py-8 text-gray-400">
+            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
+            <p class="font-medium">No transactions yet</p>
+            <p class="text-sm mt-1">Make your first purchase to start earning points!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== OFFERS TAB ===== -->
+      <div id="tab-offers" class="tab-content hidden pt-6">
+        <div id="offers-list" class="space-y-4">
+          <div class="skeleton h-32"></div>
+          <div class="skeleton h-32"></div>
+        </div>
+        <div id="offers-empty" class="hidden text-center py-12 text-gray-400">
+          <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+          <p class="font-medium">No offers available right now</p>
+          <p class="text-sm mt-1">Check back soon for exclusive deals!</p>
+        </div>
+      </div>
+
+      <!-- ===== PROFILE TAB ===== -->
+      <div id="tab-profile" class="tab-content hidden pt-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Personal Information</h3>
+          <div id="profile-error" class="hidden mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+          <div id="profile-success" class="hidden mb-4 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm"></div>
+          <form id="profile-form" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
+                <input type="text" id="prof-firstName" class="w-full h-12 px-4 rounded-xl border border-gray-300 text-gray-900 transition-colors" />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                <input type="text" id="prof-lastName" class="w-full h-12 px-4 rounded-xl border border-gray-300 text-gray-900 transition-colors" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+              <input type="email" id="prof-email" class="w-full h-12 px-4 rounded-xl border border-gray-300 text-gray-900 transition-colors" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Phone</label>
+              <input type="tel" id="prof-phone" class="w-full h-12 px-4 rounded-xl border border-gray-300 text-gray-900 bg-gray-50 transition-colors" readonly />
+              <p class="text-xs text-gray-400 mt-1">Phone number cannot be changed. Contact support if needed.</p>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Date of Birth</label>
+              <input type="date" id="prof-dob" class="w-full h-12 px-4 rounded-xl border border-gray-300 text-gray-900 transition-colors" />
+            </div>
+            <button type="submit" id="profile-save-btn" class="w-full sm:w-auto px-8 h-12 rounded-xl text-white font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50" style="background:#EB1256;">Save Changes</button>
+          </form>
+        </div>
+
+        <!-- Communication preferences -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Communication Preferences</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-medium text-gray-900 text-sm">Email Notifications</div>
+                <div class="text-xs text-gray-500">Points and rewards updates</div>
+              </div>
+              <div id="pref-email-toggle" class="toggle-track on" onclick="togglePref(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-medium text-gray-900 text-sm">SMS Notifications</div>
+                <div class="text-xs text-gray-500">Exclusive offers via text</div>
+              </div>
+              <div id="pref-sms-toggle" class="toggle-track on" onclick="togglePref(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-medium text-gray-900 text-sm">Weekly Newsletter</div>
+                <div class="text-xs text-gray-500">Weekly deals and new products</div>
+              </div>
+              <div id="pref-newsletter-toggle" class="toggle-track" onclick="togglePref(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account info -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Account Details</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">Member ID</span>
+              <span id="prof-memberId" class="font-mono font-bold text-gray-900"></span>
+            </div>
+            <div class="border-t border-gray-100"></div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">Member Since</span>
+              <span id="prof-memberSince" class="font-semibold text-gray-900"></span>
+            </div>
+            <div class="border-t border-gray-100"></div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">Current Tier</span>
+              <span id="prof-tier" class="font-semibold"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delete account -->
+        <div class="bg-white rounded-2xl shadow-sm border border-red-100 p-5 sm:p-6 mb-6">
+          <h3 class="text-sm font-semibold text-red-500 uppercase tracking-wider mb-2">Danger Zone</h3>
+          <p class="text-sm text-gray-500 mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
+          <button onclick="showDeleteModal()" class="px-6 py-3 rounded-xl border-2 border-red-300 text-red-600 font-bold text-sm hover:bg-red-50 transition-colors">Delete My Account</button>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Mobile bottom nav -->
+    <div class="bottom-nav">
+      <button class="active" onclick="switchTab('dashboard')" data-tab="dashboard">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+        Home
+      </button>
+      <button onclick="switchTab('transactions')" data-tab="transactions">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
+        History
+      </button>
+      <button onclick="switchTab('offers')" data-tab="offers">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+        Offers
+      </button>
+      <button onclick="switchTab('profile')" data-tab="profile">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+        Profile
+      </button>
+    </div>
+  </div>
+
+  <!-- Delete confirmation modal -->
+  <div id="delete-modal" class="hidden">
+    <div class="modal-overlay" onclick="hideDeleteModal()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+          <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 text-center mb-2">Delete Your Account?</h3>
+        <p class="text-sm text-gray-500 text-center mb-6">This will permanently delete your account, points balance, and all transaction history. This cannot be undone.</p>
+        <div class="flex gap-3">
+          <button onclick="hideDeleteModal()" class="flex-1 h-12 rounded-xl border border-gray-300 font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+          <button onclick="deleteAccount()" id="delete-confirm-btn" class="flex-1 h-12 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-50">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER (visible on landing/enroll, hidden on dashboard) -->
+  <footer id="main-footer" class="border-t border-gray-200 bg-white py-8 text-center">
+    <p class="text-sm text-gray-400 mb-2">Powered by <a href="#" class="font-semibold text-gray-500 hover:text-gray-700 transition-colors">Daiso USA</a></p>
+    <p class="text-xs text-gray-400">
+      <a href="#" class="hover:text-gray-600 transition-colors">Privacy Policy</a>
+      <span class="mx-2">&middot;</span>
+      <a href="#" class="hover:text-gray-600 transition-colors">Terms of Service</a>
+    </p>
+  </footer>
+
+  <script>
+    // =====================================================================
+    // CONFIGURATION
+    // =====================================================================
+    const params = new URLSearchParams(location.search);
+    const CONFIG = {
+      memberService: params.get('api') || 'https://loyalty-dev-member-service.azurewebsites.net',
+      loyaltyEngine: params.get('engine') || 'https://loyalty-dev-loyalty-engine.azurewebsites.net',
+      offerService: params.get('offers') || 'https://loyalty-dev-offer-service.azurewebsites.net',
+      adminApi: params.get('admin') || 'https://loyalty-dev-admin-api.azurewebsites.net',
+      tenantId: params.get('tenant') || '273684b8-4d97-48b0-afb8-cfe831555bc8',
+    };
+
+    const HEADERS = {
+      'x-tenant-id': CONFIG.tenantId,
+      'x-user-id': 'member-portal',
+      'x-user-role': 'owner',
+    };
+
+    const TIERS = [
+      { name: 'Bronze', threshold: 0, color: '#CD7F32', benefits: ['1x points on every purchase', 'Birthday bonus: 100 points', 'Access to member-only sales'] },
+      { name: 'Silver', threshold: 500, color: '#C0C0C0', benefits: ['1.25x points multiplier', 'Birthday bonus: 150 points', 'Early access to seasonal sales', 'Free shipping on orders over $35'] },
+      { name: 'Gold', threshold: 2000, color: '#FFD700', benefits: ['1.5x points multiplier', 'Free shipping on orders over $25', 'Early access to new products', 'Birthday bonus: 200 points'] },
+      { name: 'Platinum', threshold: 5000, color: '#E5E4E2', benefits: ['2x points multiplier', 'Free shipping on all orders', 'Priority access to limited editions', 'Birthday bonus: 500 points', 'Exclusive Platinum member events'] },
+    ];
+
+    let currentMember = null;
+    let currentOffers = [];
+    let currentLedger = [];
+    let currentTransactions = [];
+    let cachedProgramConfig = null;
+    let lookupPhoneValue = '';
+
+    async function fetchProgramConfig() {
+      if (cachedProgramConfig) return cachedProgramConfig;
+      try {
+        const res = await fetch(`${CONFIG.adminApi}/v1/admin/program`, { headers: { ...HEADERS, 'x-user-role': 'owner' } });
+        if (!res.ok) return null;
+        const data = await res.json();
+        cachedProgramConfig = data.configJson || data;
+        return cachedProgramConfig;
+      } catch { return null; }
+    }
+
+    // =====================================================================
+    // UTILITY
+    // =====================================================================
+    function normalizePhone(raw) {
+      const digits = raw.replace(/\D/g, '');
+      if (digits.startsWith('1') && digits.length === 11) return '+' + digits;
+      return '+1' + digits;
+    }
+
+    function formatPhoneDisplay(phone) {
+      if (!phone) return '';
+      const digits = phone.replace(/\D/g, '');
+      const nat = digits.startsWith('1') ? digits.slice(1) : digits;
+      if (nat.length === 10) return `(${nat.slice(0,3)}) ${nat.slice(3,6)}-${nat.slice(6)}`;
+      return phone;
+    }
+
+    function getPrevDay(dateStr) {
+      const d = new Date(dateStr);
+      d.setDate(d.getDate() - 1);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '--';
+      try { return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); }
+      catch { return iso; }
+    }
+
+    function toggleTxnDetails(txnId) {
+      const el = document.getElementById('txn-detail-' + txnId);
+      if (!el) return;
+      const card = el.parentElement;
+      const chevron = card.querySelector('.txn-chevron');
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+      } else {
+        el.classList.add('hidden');
+        if (chevron) chevron.style.transform = '';
+      }
+    }
+
+    function shortId(id) {
+      return (typeof id === 'string' && id.length > 8) ? id.slice(0, 8).toUpperCase() : (id || '--');
+    }
+
+    function getTierInfo(tierName) {
+      const t = TIERS.find(t => t.name.toLowerCase() === (tierName || 'bronze').toLowerCase());
+      return t || TIERS[0];
+    }
+
+    function getNextTier(tierName) {
+      const idx = TIERS.findIndex(t => t.name.toLowerCase() === (tierName || 'bronze').toLowerCase());
+      return idx < TIERS.length - 1 ? TIERS[idx + 1] : null;
+    }
+
+    // =====================================================================
+    // STATE MANAGEMENT
+    // =====================================================================
+    function showState(state) {
+      document.getElementById('state-landing').classList.toggle('hidden', state !== 'landing');
+      document.getElementById('state-enroll').classList.toggle('hidden', state !== 'enroll');
+      document.getElementById('state-dashboard').classList.toggle('hidden', state !== 'dashboard');
+      document.getElementById('main-footer').classList.toggle('hidden', state === 'dashboard');
+
+      if (state === 'dashboard') {
+        document.body.classList.add('has-bottom-nav');
+      } else {
+        document.body.classList.remove('has-bottom-nav');
+      }
+    }
+
+    function goToLanding() {
+      showState('landing');
+      showLoginMode();
+      window.location.hash = '';
+    }
+
+    function showLoginMode() {
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('not-found-section').classList.add('hidden');
+      document.getElementById('login-error').classList.add('hidden');
+      document.getElementById('toggle-member').classList.add('bg-white', 'shadow', 'text-gray-900');
+      document.getElementById('toggle-member').classList.remove('text-gray-500');
+      document.getElementById('toggle-join').classList.remove('bg-white', 'shadow', 'text-gray-900');
+      document.getElementById('toggle-join').classList.add('text-gray-500');
+    }
+
+    function showJoinMode() {
+      showState('enroll');
+      window.location.hash = '';
+    }
+
+    function prefillPhone() {
+      if (lookupPhoneValue) {
+        document.getElementById('phone').value = lookupPhoneValue;
+      }
+    }
+
+    // =====================================================================
+    // PHONE LOOKUP
+    // =====================================================================
+    async function handleLookup() {
+      const phoneInput = document.getElementById('lookup-phone');
+      const raw = phoneInput.value.trim();
+      if (!raw || raw.replace(/\D/g, '').length < 7) {
+        document.getElementById('login-error').textContent = 'Please enter a valid phone number.';
+        document.getElementById('login-error').classList.remove('hidden');
+        return;
+      }
+
+      lookupPhoneValue = raw;
+      const phone = normalizePhone(raw);
+      const btn = document.getElementById('lookup-btn');
+      const btnText = document.getElementById('lookup-btn-text');
+      const spinner = document.getElementById('lookup-spinner');
+
+      btn.disabled = true;
+      btnText.textContent = 'Looking up...';
+      spinner.classList.remove('hidden');
+      document.getElementById('login-error').classList.add('hidden');
+
+      try {
+        const res = await fetch(`${CONFIG.memberService}/v1/members?phone=${encodeURIComponent(phone)}`, { headers: HEADERS });
+
+        if (res.ok) {
+          const data = await res.json();
+          // API may return array or single object
+          currentMember = Array.isArray(data) ? data[0] : data;
+          if (!currentMember || (Array.isArray(data) && data.length === 0)) {
+            showNotFound(raw);
+            return;
+          }
+          // Persist for remember-me
+          localStorage.setItem('daiso_memberId', currentMember.id);
+          localStorage.setItem('daiso_phone', phone);
+          await loadMemberData();
+          showDashboard();
+        } else if (res.status === 404) {
+          showNotFound(raw);
+        } else {
+          document.getElementById('login-error').textContent = 'Something went wrong. Please try again.';
+          document.getElementById('login-error').classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error('Lookup error:', err);
+        document.getElementById('login-error').textContent = 'Could not connect. Please check your connection and try again.';
+        document.getElementById('login-error').classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Look Up My Account';
+        spinner.classList.add('hidden');
+      }
+    }
+
+    function showNotFound(phone) {
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('not-found-section').classList.remove('hidden');
+      document.getElementById('not-found-phone').textContent = phone;
+    }
+
+    // Enter key on phone lookup
+    document.getElementById('lookup-phone').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); handleLookup(); }
+    });
+
+    // =====================================================================
+    // LOAD MEMBER DATA (balance, offers, ledger)
+    // =====================================================================
+    async function loadMemberData() {
+      if (!currentMember) return;
+
+      // Fetch balance, ledger, transactions, and offers in parallel
+      const ADMIN_HEADERS = { ...HEADERS, 'x-user-role': 'owner' };
+      const [balRes, ledgerRes, txnRes, offersRes] = await Promise.allSettled([
+        fetch(`${CONFIG.loyaltyEngine}/v1/members/${currentMember.id}/balance`, { headers: HEADERS }),
+        fetch(`${CONFIG.memberService}/v1/members/${currentMember.id}/ledger`, { headers: HEADERS }),
+        fetch(`${CONFIG.adminApi}/v1/admin/transactions?memberId=${currentMember.id}&limit=50`, { headers: ADMIN_HEADERS }),
+        fetch(`${CONFIG.offerService}/v1/members/${currentMember.id}/offers`, { headers: HEADERS }),
+      ]);
+
+      if (balRes.status === 'fulfilled' && balRes.value.ok) {
+        try {
+          const bal = await balRes.value.json();
+          currentMember.pointsBalance = bal.balance ?? bal.pointsBalance ?? bal.points ?? 0;
+        } catch { currentMember.pointsBalance = currentMember.pointsBalance || 0; }
+      }
+
+      if (ledgerRes.status === 'fulfilled' && ledgerRes.value.ok) {
+        try {
+          const data = await ledgerRes.value.json();
+          currentLedger = Array.isArray(data) ? data : (data.entries || data.transactions || data.items || []);
+        } catch { currentLedger = []; }
+      } else {
+        currentLedger = [];
+      }
+
+      // Parse transaction details (from admin-api)
+      if (txnRes.status === 'fulfilled' && txnRes.value.ok) {
+        try {
+          const data = await txnRes.value.json();
+          currentTransactions = Array.isArray(data) ? data : (data.items || []);
+        } catch { currentTransactions = []; }
+      } else {
+        currentTransactions = [];
+      }
+
+      if (offersRes.status === 'fulfilled' && offersRes.value.ok) {
+        try {
+          const data = await offersRes.value.json();
+          currentOffers = Array.isArray(data) ? data : (data.offers || data.items || []);
+        } catch { currentOffers = []; }
+      } else {
+        currentOffers = [];
+      }
+    }
+
+    // =====================================================================
+    // DASHBOARD RENDERING
+    // =====================================================================
+    function showDashboard() {
+      showState('dashboard');
+      document.title = 'Daiso Rewards - My Account';
+
+      const member = currentMember;
+      const firstName = member.firstName || member.first_name || 'Member';
+      const tierName = member.tier || member.tierName || 'Bronze';
+      const tier = getTierInfo(tierName);
+      const nextTier = getNextTier(tierName);
+      const points = member.pointsBalance ?? member.points ?? 0;
+
+      // Welcome
+      document.getElementById('dash-welcome').textContent = `Welcome back, ${firstName}!`;
+
+      // Stats
+      document.getElementById('dash-points').textContent = points.toLocaleString();
+      document.getElementById('dash-tier').textContent = tierName;
+      document.getElementById('dash-tier').style.color = tier.color;
+
+      if (nextTier) {
+        const needed = Math.max(0, nextTier.threshold - points);
+        document.getElementById('dash-next').textContent = needed.toLocaleString();
+        document.getElementById('dash-next-label').textContent = `pts to ${nextTier.name}`;
+      } else {
+        document.getElementById('dash-next').textContent = 'MAX';
+        document.getElementById('dash-next-label').textContent = 'Top tier!';
+      }
+
+      // Tier progress
+      if (nextTier) {
+        const range = nextTier.threshold - tier.threshold;
+        const progress = Math.min(100, Math.max(0, ((points - tier.threshold) / range) * 100));
+        document.getElementById('tier-bar-fill').style.width = progress.toFixed(1) + '%';
+        document.getElementById('tier-bar-fill').style.background = tier.color;
+        document.getElementById('tier-progress-pct').textContent = Math.round(progress) + '% to ' + nextTier.name;
+        document.getElementById('tier-label-current').textContent = `${tier.name} (${tier.threshold.toLocaleString()})`;
+        document.getElementById('tier-label-next').textContent = `${nextTier.name} (${nextTier.threshold.toLocaleString()})`;
+      } else {
+        document.getElementById('tier-bar-fill').style.width = '100%';
+        document.getElementById('tier-bar-fill').style.background = tier.color;
+        document.getElementById('tier-progress-pct').textContent = 'Maximum tier reached!';
+        const prevTier = TIERS[TIERS.length - 2];
+        document.getElementById('tier-label-current').textContent = prevTier ? `${prevTier.name} (${prevTier.threshold.toLocaleString()})` : '';
+        document.getElementById('tier-label-next').textContent = `${tier.name} (${tier.threshold.toLocaleString()})`;
+      }
+
+      // Benefits
+      const benefitsList = document.getElementById('benefits-list');
+      benefitsList.innerHTML = tier.benefits.map(b =>
+        `<div class="flex items-start gap-2"><span style="color:${tier.color};" class="text-lg leading-none mt-0.5">&#10003;</span><span class="text-sm text-gray-700">${b}</span></div>`
+      ).join('');
+
+      // Earn rule
+      fetchProgramConfig().then(cfg => {
+        const earnRuleEl = document.getElementById('dash-earn-rule');
+        const earnRuleText = document.getElementById('earn-rule-text');
+        if (cfg && earnRuleEl && earnRuleText) {
+          earnRuleEl.style.display = 'block';
+          if (cfg.earnMode === 'per-visit') {
+            const pts = cfg.pointsPerVisit || 10;
+            const minSpend = (cfg.visitMinSpendCents || 500) / 100;
+            const maxPerDay = cfg.maxVisitsPerDay;
+            let text = `Earn ${pts} points every time you spend $${minSpend.toFixed(2)} or more`;
+            if (maxPerDay) text += ` (max ${maxPerDay} per day)`;
+            earnRuleText.textContent = text;
+
+            // Show visit stats
+            const visitStatsEl = document.getElementById('visit-stats');
+            if (visitStatsEl && currentTransactions.length > 0) {
+              visitStatsEl.style.display = 'grid';
+              const minSpendCents = cfg.visitMinSpendCents || 500;
+              const qualifiedTxns = currentTransactions.filter(t => (t.amount || 0) >= minSpendCents);
+              const now = new Date();
+              const thisMonthQualified = qualifiedTxns.filter(t => {
+                const d = new Date(t.occurredAt || t.createdAt);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+              });
+
+              // Day streak: count consecutive days with qualified visits (backwards from today)
+              const visitDates = [...new Set(qualifiedTxns.map(t => new Date(t.occurredAt || t.createdAt).toISOString().slice(0, 10)))].sort().reverse();
+              let streak = 0;
+              const today = now.toISOString().slice(0, 10);
+              let checkDate = today;
+              for (const d of visitDates) {
+                if (d === checkDate || d === getPrevDay(checkDate)) {
+                  streak++;
+                  checkDate = d;
+                } else if (d < checkDate) {
+                  break;
+                }
+              }
+
+              document.getElementById('visit-stat-total').textContent = qualifiedTxns.length.toString();
+              document.getElementById('visit-stat-month').textContent = thisMonthQualified.length.toString();
+              document.getElementById('visit-stat-streak').textContent = streak.toString();
+            }
+          } else {
+            const rate = cfg.baseEarnRate || 1;
+            earnRuleText.textContent = `Earn ${rate} point${rate !== 1 ? 's' : ''} per $1 spent`;
+          }
+        }
+      });
+
+      // Offers preview (first 2)
+      renderDashOffersPreview();
+
+      // Transactions
+      renderTransactions();
+
+      // Offers tab
+      renderOffers();
+
+      // Profile tab
+      renderProfile();
+
+      // Default to dashboard tab
+      switchTab('dashboard');
+
+      // Handle hash
+      const hash = window.location.hash.replace('#', '');
+      if (['dashboard', 'transactions', 'offers', 'profile'].includes(hash)) {
+        switchTab(hash);
+      }
+    }
+
+    function renderDashOffersPreview() {
+      const container = document.getElementById('dash-offers-preview');
+      if (currentOffers.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-400 col-span-2 text-center py-6">No offers available right now</p>';
+        return;
+      }
+      container.innerHTML = currentOffers.slice(0, 2).map(o => renderOfferCard(o, true)).join('');
+    }
+
+    function renderOfferCard(offer, compact) {
+      const name = offer.name || offer.title || 'Special Offer';
+      const type = offer.type || offer.offerType || 'discount';
+      const value = offer.value || offer.discountValue || '';
+      const expiry = offer.expiresAt || offer.endDate || offer.expiry || '';
+      const pointsCost = offer.pointsCost || offer.cost || 0;
+      const isEligible = offer.eligibility?.eligible !== false;
+      const vp = offer.visitProgress;
+      const hasVisitReq = vp && vp.required > 0;
+
+      let badge = '';
+      let valueDisplay = name;
+      const typeLower = type.toLowerCase();
+      if (typeLower.includes('percent') || typeLower === '%') {
+        badge = '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">% OFF</span>';
+        valueDisplay = value ? `${value}% Off` : name;
+      } else if (typeLower.includes('dollar') || typeLower.includes('fixed') || typeLower === '$') {
+        badge = '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">$ OFF</span>';
+        valueDisplay = value ? `$${value} Off` : name;
+      } else if (typeLower.includes('bogo') || typeLower.includes('buy')) {
+        badge = '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700">BOGO</span>';
+      } else {
+        badge = '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600">DEAL</span>';
+      }
+
+      const expiryHtml = expiry ? `<div class="text-xs text-gray-400 mt-1">Expires ${formatDate(expiry)}</div>` : '';
+      const costHtml = pointsCost ? `<div class="text-xs font-semibold mt-1" style="color:#EB1256;">${pointsCost.toLocaleString()} pts</div>` : '';
+
+      // Visit progress bar
+      let visitHtml = '';
+      if (hasVisitReq) {
+        const pct = Math.min(100, Math.round((vp.current / vp.required) * 100));
+        const remaining = Math.max(0, vp.required - vp.current);
+        const minSpend = offer.visitMinSpendCents || offer.visit_min_spend_cents;
+        const channels = offer.visitChannels || (offer.visit_channels_json ? JSON.parse(offer.visit_channels_json) : null);
+        let qualRules = [];
+        if (minSpend) qualRules.push('Min $' + (minSpend / 100).toFixed(2) + ' per visit');
+        if (channels && channels.length) qualRules.push(channels.join(', '));
+
+        visitHtml = `
+          <div class="mt-2">
+            <div class="w-full bg-gray-200 rounded-full h-2" style="border-radius:4px;overflow:hidden;">
+              <div style="width:${pct}%;height:100%;border-radius:4px;background:${vp.qualified ? '#22c55e' : '#3b82f6'};transition:width 0.5s;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <span class="text-xs text-gray-500">${vp.current} of ${vp.required} visits</span>
+              ${!vp.qualified
+                ? `<span class="text-xs font-medium" style="color:#d97706;">${remaining} more to unlock</span>`
+                : '<span class="text-xs font-medium" style="color:#16a34a;">Unlocked!</span>'}
+            </div>
+            ${qualRules.length ? `<div class="text-xs text-gray-400" style="margin-top:2px;font-size:10px;">${qualRules.join(' &middot; ')}</div>` : ''}
+          </div>
+        `;
+      }
+
+      const btnHtml = isEligible
+        ? `<button disabled class="mt-3 w-full py-2 rounded-lg text-xs font-semibold border border-gray-200 text-gray-400 cursor-not-allowed" title="Redeem at checkout">Redeem at Checkout</button>`
+        : (hasVisitReq
+          ? `<div class="mt-3 w-full py-2 rounded-lg text-xs font-semibold border border-gray-200 text-gray-400 text-center">Keep visiting to unlock!</div>`
+          : `<div class="mt-3 w-full py-2 rounded-lg text-xs font-semibold border border-gray-200 text-gray-400 text-center">Not yet eligible</div>`);
+
+      return `
+        <div class="offer-card${compact ? '' : ''}">
+          <div class="mb-2">${badge}</div>
+          <div class="font-bold text-gray-900 text-sm">${valueDisplay}</div>
+          <div class="text-xs text-gray-500">${name !== valueDisplay ? name : ''}</div>
+          ${costHtml}
+          ${expiryHtml}
+          ${visitHtml}
+          ${btnHtml}
+        </div>
+      `;
+    }
+
+    function renderTransactions() {
+      const container = document.getElementById('txn-list');
+      const emptyEl = document.getElementById('txn-empty');
+
+      // Merge transactions (from admin-api, has store/amount details) with ledger (has points)
+      const hasTransactions = currentTransactions.length > 0;
+      const hasLedger = currentLedger.length > 0;
+
+      if (!hasTransactions && !hasLedger) {
+        container.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+
+      // Monthly summary from ledger
+      const now = new Date();
+      const thisMonthLedger = currentLedger.filter(t => {
+        const d = new Date(t.createdAt || t.date || t.timestamp);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+      const monthPoints = thisMonthLedger.reduce((sum, t) => sum + (t.points || t.amount || t.delta || 0), 0);
+      const thisMonthTxns = currentTransactions.filter(t => {
+        const d = new Date(t.occurredAt || t.createdAt);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+      const monthSpend = thisMonthTxns.reduce((sum, t) => sum + (t.amount || 0), 0);
+      document.getElementById('txn-month-points').textContent = (monthPoints >= 0 ? '+' : '') + monthPoints.toLocaleString();
+      document.getElementById('txn-month-count').textContent = thisMonthTxns.length || thisMonthLedger.length;
+
+      // Prefer transactions (richer data) if available, fall back to ledger
+      if (hasTransactions) {
+        container.innerHTML = currentTransactions.slice(0, 50).map(t => {
+          const date = formatDate(t.occurredAt || t.createdAt);
+          const amountCents = t.amount || 0;
+          const amountDollars = (amountCents / 100).toFixed(2);
+          const pts = t.pointsEarned || 0;
+          const store = t.storeName || t.storeId || '';
+          const associate = t.associateName || '';
+          const channel = t.sourceChannel || t.channel || '';
+          const orderRef = t.orderRef || '';
+          const status = t.status || 'posted';
+
+          const channelIcon = channel === 'in-store' || channel === 'pos' ? '🏪'
+            : channel === 'dotcom' || channel === 'ecommerce' ? '🛒'
+            : channel === 'mobile-app' || channel === 'mobile' ? '📱' : '💳';
+
+          // Visit qualification check
+          const minSpendCents = cachedProgramConfig?.visitMinSpendCents || 500;
+          const isPerVisit = cachedProgramConfig?.earnMode === 'per-visit';
+          const qualified = isPerVisit ? amountCents >= minSpendCents : true;
+          const visitBadge = isPerVisit
+            ? (qualified
+              ? '<span class="inline-flex items-center gap-1 text-[10px] font-medium text-green-700 bg-green-50 px-1.5 py-0.5 rounded-full">✓ Qualified visit</span>'
+              : `<span class="inline-flex items-center gap-1 text-[10px] font-medium text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded-full">✗ Below $${(minSpendCents/100).toFixed(2)} min</span>`)
+            : '';
+
+          const txnId = t.transactionId || Math.random().toString(36).slice(2);
+          const hasDetails = (t.items && t.items.length > 0) || store || associate || orderRef;
+          return `
+            <div class="bg-white rounded-xl border border-gray-100 mb-3 hover:shadow-sm transition-shadow overflow-hidden">
+              <div class="p-4 ${hasDetails ? 'cursor-pointer' : ''}" ${hasDetails ? `onclick="toggleTxnDetails('${txnId}')"` : ''}>
+                <div class="flex items-start justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg">${channelIcon}</span>
+                    <div>
+                      <div class="font-semibold text-gray-900 text-sm">Purchase — $${amountDollars}</div>
+                      <div class="text-xs text-gray-400">${date}${store ? ' · ' + store : ''} ${visitBadge}</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="text-right">
+                      <div class="font-bold text-sm ${pts > 0 ? 'text-green-600' : 'text-gray-400'}">${pts > 0 ? '+' + pts.toLocaleString() + ' pts' : '—'}</div>
+                      <div class="text-xs ${status === 'posted' ? 'text-green-500' : status === 'voided' ? 'text-red-400' : 'text-gray-400'}">${status}</div>
+                    </div>
+                    ${hasDetails ? '<svg class="w-4 h-4 text-gray-300 txn-chevron transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>' : ''}
+                  </div>
+                </div>
+              </div>
+              ${hasDetails ? `
+              <div id="txn-detail-${txnId}" class="hidden border-t border-gray-50 px-4 pb-4 pt-3 bg-gray-50/50">
+                ${(t.items && t.items.length > 0) ? `
+                <div class="mb-3">
+                  <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Items</div>
+                  ${t.items.map(item => `
+                    <div class="flex justify-between text-sm text-gray-700 py-1">
+                      <span>${item.name || item.sku}${item.quantity && item.quantity > 1 ? ' <span class="text-gray-400">× ' + item.quantity + '</span>' : ''}</span>
+                      <span class="font-medium">${item.unitPrice ? '$' + (item.unitPrice / 1).toFixed(2) : item.amount ? '$' + (item.amount / 100).toFixed(2) : ''}</span>
+                    </div>
+                  `).join('')}
+                </div>` : ''}
+                <div class="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-gray-500">
+                  ${store ? `<span class="flex items-center gap-1">📍 ${store}</span>` : ''}
+                  ${associate ? `<span class="flex items-center gap-1">👤 ${associate}</span>` : ''}
+                  ${channel ? `<span class="flex items-center gap-1">📡 ${channel}</span>` : ''}
+                  ${orderRef ? `<span class="flex items-center gap-1">🧾 ${orderRef}</span>` : ''}
+                </div>
+              </div>` : ''}
+            </div>
+          `;
+        }).join('');
+      } else {
+        // Fallback to ledger entries
+        container.innerHTML = currentLedger.slice(0, 50).map(t => {
+          const date = formatDate(t.createdAt || t.date || t.timestamp);
+          const desc = t.reasonCode || t.description || t.type || t.reason || 'Transaction';
+          const pts = t.points || t.amount || t.delta || 0;
+          const isPositive = pts >= 0;
+          const icon = desc === 'earn' ? '⭐' : desc === 'redeem' ? '🎁' : desc === 'void' ? '↩️' : desc === 'expire' ? '⏰' : desc === 'adjust' ? '✏️' : '💳';
+          const label = desc === 'earn' ? 'Points Earned' : desc === 'redeem' ? 'Redemption' : desc === 'void' ? 'Void/Reversal' : desc === 'expire' ? 'Points Expired' : desc === 'adjust' ? 'Manual Adjustment' : desc;
+          return `
+            <div class="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">${icon}</span>
+                  <div>
+                    <div class="font-medium text-gray-900 text-sm">${label}</div>
+                    <div class="text-xs text-gray-400">${date}</div>
+                  </div>
+                </div>
+                <div class="font-bold text-sm ${isPositive ? 'text-green-600' : 'text-red-500'}">${isPositive ? '+' : ''}${pts.toLocaleString()} pts</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderOffers() {
+      const container = document.getElementById('offers-list');
+      const emptyEl = document.getElementById('offers-empty');
+
+      if (currentOffers.length === 0) {
+        container.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+      } else {
+        emptyEl.classList.add('hidden');
+        container.innerHTML = currentOffers.map(o => renderOfferCard(o, false)).join('');
+      }
+    }
+
+    function renderProfile() {
+      const m = currentMember;
+      document.getElementById('prof-firstName').value = m.firstName || m.first_name || '';
+      document.getElementById('prof-lastName').value = m.lastName || m.last_name || '';
+      document.getElementById('prof-email').value = m.email || '';
+      document.getElementById('prof-phone').value = formatPhoneDisplay(m.phone || '');
+      document.getElementById('prof-dob').value = m.dateOfBirth || m.dob || '';
+      document.getElementById('prof-memberId').textContent = shortId(m.id);
+      document.getElementById('prof-memberSince').textContent = formatDate(m.createdAt || m.enrolledAt || m.created_at);
+      const tier = getTierInfo(m.tier || m.tierName || 'Bronze');
+      document.getElementById('prof-tier').textContent = tier.name;
+      document.getElementById('prof-tier').style.color = tier.color;
+
+      // Prefs
+      const prefs = m.communicationPreferences || m.preferences || {};
+      setToggle('pref-email-toggle', prefs.email !== false);
+      setToggle('pref-sms-toggle', prefs.sms !== false);
+      setToggle('pref-newsletter-toggle', prefs.newsletter === true);
+    }
+
+    // =====================================================================
+    // TAB SWITCHING
+    // =====================================================================
+    function switchTab(tab) {
+      // Hide all tab content
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('tab-' + tab).classList.remove('hidden');
+      document.getElementById('tab-' + tab).classList.add('fade-in');
+
+      // Desktop tabs
+      document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.trim().toLowerCase().replace(' ', '') === tab || btn.onclick.toString().includes(tab));
+      });
+      // Fix: use onclick attr matching
+      document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => {
+        const match = btn.getAttribute('onclick') || '';
+        btn.classList.toggle('active', match.includes(`'${tab}'`));
+      });
+
+      // Mobile bottom nav
+      document.querySelectorAll('.bottom-nav button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+
+      window.location.hash = tab;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // =====================================================================
+    // ENROLLMENT FORM
+    // =====================================================================
+    const form = document.getElementById('enrollment-form');
+
+    function showFieldError(field, message) {
+      const input = document.getElementById(field);
+      const errorEl = input ? (input.closest('div').querySelector('.field-error') || input.parentElement.querySelector('.field-error')) : null;
+      if (input) input.classList.add('border-red-500');
+      if (errorEl) { errorEl.textContent = message; errorEl.classList.remove('hidden'); }
+    }
+
+    function clearErrors() {
+      document.querySelectorAll('.field-error').forEach(el => { el.textContent = ''; el.classList.add('hidden'); });
+      document.querySelectorAll('input.border-red-500').forEach(el => el.classList.remove('border-red-500'));
+      document.getElementById('terms-error').classList.add('hidden');
+      document.getElementById('global-error').classList.add('hidden');
+    }
+
+    function validateForm() {
+      let valid = true;
+      let firstErrorEl = null;
+      const globalError = document.getElementById('global-error');
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const terms = document.getElementById('terms').checked;
+
+      if (!firstName) { showFieldError('firstName', 'First name is required'); valid = false; firstErrorEl = firstErrorEl || document.getElementById('firstName'); }
+      if (!lastName) { showFieldError('lastName', 'Last name is required'); valid = false; firstErrorEl = firstErrorEl || document.getElementById('lastName'); }
+      if (!email) { showFieldError('email', 'Email is required'); valid = false; firstErrorEl = firstErrorEl || document.getElementById('email'); }
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showFieldError('email', 'Please enter a valid email'); valid = false; firstErrorEl = firstErrorEl || document.getElementById('email'); }
+      if (!phone) { showFieldError('phone', 'Phone number is required'); valid = false; firstErrorEl = firstErrorEl || document.getElementById('phone'); }
+      else if (phone.replace(/\D/g, '').length < 7) { showFieldError('phone', 'Please enter a valid phone number'); valid = false; firstErrorEl = firstErrorEl || document.getElementById('phone'); }
+      if (!terms) {
+        const termsErr = document.getElementById('terms-error');
+        termsErr.textContent = 'You must agree to the Terms & Conditions';
+        termsErr.classList.remove('hidden');
+        valid = false;
+        firstErrorEl = firstErrorEl || document.getElementById('terms');
+      }
+      if (!valid && firstErrorEl) {
+        firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstErrorEl.focus();
+        globalError.textContent = 'Please fill in all required fields and accept the Terms & Conditions.';
+        globalError.classList.remove('hidden');
+      }
+      return valid;
+    }
+
+    function setEnrollLoading(loading) {
+      document.getElementById('submit-btn').disabled = loading;
+      document.getElementById('btn-text').textContent = loading ? 'Joining...' : 'Join Now';
+      document.getElementById('btn-spinner').classList.toggle('hidden', !loading);
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+      if (!validateForm()) return;
+
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = normalizePhone(document.getElementById('phone').value);
+      const dob = document.getElementById('dob').value || undefined;
+
+      setEnrollLoading(true);
+      const globalError = document.getElementById('global-error');
+
+      try {
+        const res = await fetch(`${CONFIG.memberService}/v1/members`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...HEADERS },
+          body: JSON.stringify({ firstName, lastName, email, phone, dateOfBirth: dob, enrolledChannel: 'ecommerce' }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          currentMember = data;
+          currentMember.pointsBalance = 0;
+          localStorage.setItem('daiso_memberId', currentMember.id);
+          localStorage.setItem('daiso_phone', phone);
+          await loadMemberData();
+          launchConfetti();
+          showDashboard();
+        } else if (res.status === 409) {
+          globalError.innerHTML = "<strong>Looks like you're already a member!</strong> Go back and use 'I'm a Member' to look up your account.";
+          globalError.classList.remove('hidden');
+        } else if (res.status === 400) {
+          try {
+            const errData = await res.json();
+            const issues = errData.issues || errData.errors || [];
+            if (Array.isArray(issues)) issues.forEach(issue => { const field = issue.path || issue.field; if (field) showFieldError(field, issue.message); });
+            globalError.textContent = errData.detail || errData.message || 'Please check your information and try again.';
+            globalError.classList.remove('hidden');
+          } catch { globalError.textContent = 'Please check your information and try again.'; globalError.classList.remove('hidden'); }
+        } else {
+          globalError.textContent = 'Something went wrong. Please try again.';
+          globalError.classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error('Enrollment error:', err);
+        globalError.textContent = 'Something went wrong. Please try again.';
+        globalError.classList.remove('hidden');
+      } finally {
+        setEnrollLoading(false);
+      }
+    });
+
+    // Clear field errors on input
+    document.querySelectorAll('#enrollment-form input').forEach(input => {
+      input.addEventListener('input', () => {
+        input.classList.remove('border-red-500');
+        const errorEl = input.closest('div')?.querySelector('.field-error');
+        if (errorEl) { errorEl.textContent = ''; errorEl.classList.add('hidden'); }
+      });
+    });
+
+    // =====================================================================
+    // PROFILE SAVE
+    // =====================================================================
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('profile-save-btn');
+      const errEl = document.getElementById('profile-error');
+      const successEl = document.getElementById('profile-success');
+      errEl.classList.add('hidden');
+      successEl.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const body = {
+          firstName: document.getElementById('prof-firstName').value.trim(),
+          lastName: document.getElementById('prof-lastName').value.trim(),
+          email: document.getElementById('prof-email').value.trim(),
+          dateOfBirth: document.getElementById('prof-dob').value || undefined,
+        };
+
+        const res = await fetch(`${CONFIG.memberService}/v1/members/${currentMember.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...HEADERS },
+          body: JSON.stringify(body),
+        });
+
+        if (res.ok) {
+          const updated = await res.json();
+          Object.assign(currentMember, updated);
+          successEl.textContent = 'Profile updated successfully!';
+          successEl.classList.remove('hidden');
+          document.getElementById('dash-welcome').textContent = `Welcome back, ${currentMember.firstName || 'Member'}!`;
+          setTimeout(() => successEl.classList.add('hidden'), 3000);
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          errEl.textContent = errData.message || errData.detail || 'Could not update profile. Please try again.';
+          errEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errEl.textContent = 'Could not connect. Please try again.';
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+      }
+    });
+
+    // =====================================================================
+    // TOGGLE PREFERENCES
+    // =====================================================================
+    function togglePref(el) {
+      el.classList.toggle('on');
+      // Fire and forget preference update
+      if (currentMember) {
+        const prefs = {
+          email: document.getElementById('pref-email-toggle').classList.contains('on'),
+          sms: document.getElementById('pref-sms-toggle').classList.contains('on'),
+          newsletter: document.getElementById('pref-newsletter-toggle').classList.contains('on'),
+        };
+        fetch(`${CONFIG.memberService}/v1/members/${currentMember.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...HEADERS },
+          body: JSON.stringify({ communicationPreferences: prefs }),
+        }).catch(() => {});
+      }
+    }
+
+    function setToggle(id, on) {
+      const el = document.getElementById(id);
+      if (on) el.classList.add('on');
+      else el.classList.remove('on');
+    }
+
+    // =====================================================================
+    // DELETE ACCOUNT
+    // =====================================================================
+    function showDeleteModal() { document.getElementById('delete-modal').classList.remove('hidden'); }
+    function hideDeleteModal() { document.getElementById('delete-modal').classList.add('hidden'); }
+
+    async function deleteAccount() {
+      const btn = document.getElementById('delete-confirm-btn');
+      btn.disabled = true;
+      btn.textContent = 'Deleting...';
+      try {
+        await fetch(`${CONFIG.memberService}/v1/members/${currentMember.id}`, { method: 'DELETE', headers: HEADERS });
+        handleLogout();
+      } catch {
+        alert('Could not delete account. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+        hideDeleteModal();
+      }
+    }
+
+    // =====================================================================
+    // LOGOUT
+    // =====================================================================
+    function handleLogout() {
+      currentMember = null;
+      currentOffers = [];
+      currentLedger = [];
+      localStorage.removeItem('daiso_memberId');
+      localStorage.removeItem('daiso_phone');
+      window.location.hash = '';
+      document.title = 'Daiso Rewards';
+      goToLanding();
+    }
+
+    // =====================================================================
+    // CONFETTI
+    // =====================================================================
+    function launchConfetti() {
+      const container = document.getElementById('confetti-container');
+      const colors = ['#EB1256', '#fbbf24', '#34d399', '#f472b6', '#818cf8', '#fb923c'];
+      for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + 'vw';
+        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.width = (Math.random() * 8 + 6) + 'px';
+        piece.style.height = (Math.random() * 8 + 6) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        piece.style.animationDelay = (Math.random() * 0.8) + 's';
+        container.appendChild(piece);
+        requestAnimationFrame(() => piece.classList.add('animate'));
+        setTimeout(() => piece.remove(), 5000);
+      }
+    }
+
+    // =====================================================================
+    // AUTO-LOGIN (remember me)
+    // =====================================================================
+    async function autoLogin() {
+      const savedId = localStorage.getItem('daiso_memberId');
+      const savedPhone = localStorage.getItem('daiso_phone');
+      if (!savedId || !savedPhone) return false;
+
+      try {
+        const res = await fetch(`${CONFIG.memberService}/v1/members/${savedId}`, { headers: HEADERS });
+        if (res.ok) {
+          currentMember = await res.json();
+          await loadMemberData();
+          showDashboard();
+          return true;
+        } else {
+          // Clear stale data
+          localStorage.removeItem('daiso_memberId');
+          localStorage.removeItem('daiso_phone');
+          return false;
+        }
+      } catch {
+        return false;
+      }
+    }
+
+    // =====================================================================
+    // HASH NAVIGATION
+    // =====================================================================
+    window.addEventListener('hashchange', () => {
+      if (!currentMember) return;
+      const hash = window.location.hash.replace('#', '');
+      if (['dashboard', 'transactions', 'offers', 'profile'].includes(hash)) {
+        switchTab(hash);
+      }
+    });
+
+    // =====================================================================
+    // INIT
+    // =====================================================================
+    (async function init() {
+      const loggedIn = await autoLogin();
+      if (!loggedIn) {
+        showState('landing');
+      }
+    })();
+  </script>
+</body>
+</html>

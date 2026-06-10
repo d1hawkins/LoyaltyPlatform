@@ -1,0 +1,579 @@
+openapi: 3.0.3
+info:
+  title: Loyalty Platform — Analytics Service
+  description: |
+    Analytics aggregation, reporting endpoints, bulk export, and real-time KPIs
+    for the Loyalty Platform. Multi-tenant. Provides daily summaries, enrollment
+    trends, transaction analytics, points economy, tier distribution, retention
+    cohorts, and CSV/JSON bulk exports.
+  version: "1.0.0"
+  contact:
+    name: Loyalty Platform Team
+servers:
+  - url: https://analytics-service.blackgrass-225d994b.eastus.azurecontainerapps.io
+    description: Dev Container App
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+tags:
+  - name: Summary
+    description: Aggregated daily summaries with derived KPIs
+  - name: Trends
+    description: Enrollment and transaction trend analytics
+  - name: Points
+    description: Points economy metrics
+  - name: Tiers
+    description: Tier distribution analytics
+  - name: Retention
+    description: Cohort retention analysis
+  - name: Export
+    description: Bulk data export (CSV/JSON)
+  - name: Realtime
+    description: Live KPI metrics
+  - name: Reports - Finance
+    description: Financial reporting — liability, points flow, redemption reserves, revenue attribution
+  - name: Reports - Marketing
+    description: Marketing reporting — engagement funnels, at-risk members, tier distribution, offer performance
+paths:
+  /v1/analytics/summary:
+    get:
+      tags: [Summary]
+      summary: Daily summaries with derived KPIs
+      operationId: getAnalyticsSummary
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date }
+          description: Start date (inclusive)
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date }
+          description: End date (inclusive)
+        - in: query
+          name: metrics
+          schema: { type: string }
+          description: "Comma-separated metric keys: enrollments, transactions, total_spend, points_issued, points_redeemed, points_expired, redemptions, active_members"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryResponse'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/enrollment:
+    get:
+      tags: [Trends]
+      summary: Enrollment trends with channel breakdown
+      operationId: getEnrollmentTrends
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: groupBy
+          schema:
+            type: string
+            enum: [day, week, month]
+            default: day
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentTrendResponse'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/transactions:
+    get:
+      tags: [Trends]
+      summary: Transaction volume, spend, and points analytics
+      operationId: getTransactionTrends
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: groupBy
+          schema:
+            type: string
+            enum: [day, week, month]
+            default: day
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionTrendResponse'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/points-economy:
+    get:
+      tags: [Points]
+      summary: Points issued vs redeemed vs expired, net outstanding, liability
+      operationId: getPointsEconomy
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PointsEconomyResponse'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/tier-distribution:
+    get:
+      tags: [Tiers]
+      summary: Member count and percentage per tier
+      operationId: getTierDistribution
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TierDistributionResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/retention-cohort:
+    get:
+      tags: [Retention]
+      summary: Cohort retention matrix
+      operationId: getRetentionCohort
+      parameters:
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionCohortResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/export/{entity}:
+    parameters:
+      - name: entity
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [members, transactions, ledger, redemptions]
+    get:
+      tags: [Export]
+      summary: Bulk export data as CSV or JSON
+      operationId: exportEntity
+      parameters:
+        - in: query
+          name: format
+          schema:
+            type: string
+            enum: [csv, json]
+            default: json
+        - in: query
+          name: since
+          schema: { type: string, format: date-time }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: OK — CSV returns text/csv with Content-Disposition attachment; JSON returns application/json
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { type: object }
+            text/csv:
+              schema:
+                type: string
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/kpi/realtime:
+    get:
+      tags: [Realtime]
+      summary: Live real-time KPI metrics
+      operationId: getRealtimeKpis
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealtimeKpiResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/reports/liability:
+    get:
+      tags: [Reports - Finance]
+      summary: Points liability report
+      description: Outstanding points liability for balance sheet recognition (ASC 606 / IFRS 15). Includes gross liability, breakage estimate, and net liability.
+      parameters:
+        - name: x-tenant-id
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liability report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reportDate: { type: string, format: date }
+                  activeMembers: { type: integer }
+                  totalOutstandingPoints: { type: integer }
+                  estimatedLiabilityUsd: { type: number }
+                  estimatedBreakagePoints: { type: integer }
+                  netLiabilityUsd: { type: number }
+                  breakageRate: { type: number }
+                  costPerPoint: { type: number }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/reports/points-flow:
+    get:
+      tags: [Reports - Finance]
+      summary: Points issuance & redemption flow
+      description: Daily/weekly/monthly breakdown of points issued, redeemed, expired, voided, and adjusted.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: groupBy
+          in: query
+          schema: { type: string, enum: [day, week, month], default: day }
+      responses:
+        '200':
+          description: Points flow data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  periods:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date: { type: string }
+                        pointsIssued: { type: integer }
+                        pointsRedeemed: { type: integer }
+                        pointsExpired: { type: integer }
+                        pointsVoided: { type: integer }
+                        netChange: { type: integer }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/reports/redemption-reserve:
+    get:
+      tags: [Reports - Finance]
+      summary: Redemption reserve (monthly)
+      description: Monthly breakdown of redemptions with count, points used, discount value, and cost per point.
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Redemption reserve data
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/reports/revenue-attribution:
+    get:
+      tags: [Reports - Finance]
+      summary: Revenue attribution
+      description: Daily transaction volume, spend, avg basket, and spend per member for loyalty ROI analysis.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Revenue attribution data
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/reports/engagement-funnel:
+    get:
+      tags: [Reports - Marketing]
+      summary: Member engagement funnel
+      description: Conversion rates from enrollment through first purchase, repeat, frequent, tier upgrade, and redemption.
+      responses:
+        '200':
+          description: Funnel data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalEnrolled: { type: integer }
+                  madeFirstPurchase: { type: integer }
+                  repeatPurchasers: { type: integer }
+                  frequentPurchasers: { type: integer }
+                  tierUpgradedMembers: { type: integer }
+                  redeemedMembers: { type: integer }
+                  conversionRates:
+                    type: object
+                    properties:
+                      enrollToFirst: { type: number }
+                      firstToRepeat: { type: number }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/reports/at-risk-members:
+    get:
+      tags: [Reports - Marketing]
+      summary: At-risk members
+      description: Members with positive balance who haven't transacted in a configurable window. Used for win-back campaigns.
+      parameters:
+        - name: daysInactive
+          in: query
+          schema: { type: integer, default: 60 }
+        - name: minBalance
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        '200':
+          description: At-risk member list
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/reports/tier-distribution:
+    get:
+      tags: [Reports - Marketing]
+      summary: Tier distribution
+      description: Member count and percentage at each tier level.
+      responses:
+        '200':
+          description: Tier distribution data
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/analytics/reports/offer-performance:
+    get:
+      tags: [Reports - Marketing]
+      summary: Offer performance
+      description: Per-offer metrics including redemption count, rate, and revenue impact.
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Offer performance data
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Ocp-Apim-Subscription-Key
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    InternalError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      description: RFC 7807 problem+json
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        instance: { type: string }
+    DailySummary:
+      type: object
+      properties:
+        summaryDate: { type: string, format: date }
+        metricKey: { type: string }
+        metricValue: { type: number }
+        dimensionsJson: { type: object, additionalProperties: true }
+    DerivedKpis:
+      type: object
+      properties:
+        avgTransactionValue: { type: number }
+        pointsPerTransaction: { type: number }
+        redemptionRate: { type: number }
+        enrollmentGrowthRate: { type: number }
+        activeRate: { type: number }
+    SummaryResponse:
+      type: object
+      required: [from, to, summaries, derived]
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        summaries:
+          type: array
+          items: { $ref: '#/components/schemas/DailySummary' }
+        derived: { $ref: '#/components/schemas/DerivedKpis' }
+    EnrollmentTrendResponse:
+      type: object
+      properties:
+        buckets:
+          type: array
+          items:
+            type: object
+            properties:
+              period: { type: string }
+              count: { type: integer }
+              channels: { type: object, additionalProperties: { type: integer } }
+    TransactionTrendResponse:
+      type: object
+      properties:
+        buckets:
+          type: array
+          items:
+            type: object
+            properties:
+              period: { type: string }
+              transactionCount: { type: integer }
+              totalSpend: { type: number }
+              avgBasket: { type: number }
+              pointsPerTransaction: { type: number }
+              channels: { type: object, additionalProperties: { type: integer } }
+    PointsEconomyResponse:
+      type: object
+      properties:
+        issued: { type: number }
+        redeemed: { type: number }
+        expired: { type: number }
+        netOutstanding: { type: number }
+        liabilityEstimate: { type: number }
+    TierDistributionResponse:
+      type: object
+      required: [tiers]
+      properties:
+        tiers:
+          type: array
+          items:
+            type: object
+            required: [tierId, tierName, memberCount, percentage]
+            properties:
+              tierId: { type: string }
+              tierName: { type: string }
+              memberCount: { type: integer }
+              percentage: { type: number }
+    CohortInterval:
+      type: object
+      properties:
+        daysSinceEnroll: { type: integer }
+        activeCount: { type: integer }
+        retentionRate: { type: number }
+    Cohort:
+      type: object
+      properties:
+        cohortMonth: { type: string, format: date }
+        totalMembers: { type: integer }
+        intervals:
+          type: array
+          items: { $ref: '#/components/schemas/CohortInterval' }
+    RetentionCohortResponse:
+      type: object
+      required: [cohorts]
+      properties:
+        cohorts:
+          type: array
+          items: { $ref: '#/components/schemas/Cohort' }
+    RealtimeKpiResponse:
+      type: object
+      required: [activeMembersToday, transactionsToday, pointsIssuedToday, redemptionsToday, asOf]
+      properties:
+        activeMembersToday: { type: integer }
+        transactionsToday: { type: integer }
+        pointsIssuedToday: { type: integer }
+        redemptionsToday: { type: integer }
+        asOf: { type: string, format: date-time }

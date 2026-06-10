@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authentication — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link active">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Authentication
+        </div>
+
+        <h1>Authentication</h1>
+        <p class="subtitle">The platform supports Azure AD B2C tokens, APIM subscription keys, and a dev-mode bypass for local development.</p>
+
+        <h2>Authentication Layers</h2>
+        <p>Every API request passes through two layers of authentication:</p>
+
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>Mechanism</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>API Gateway (APIM)</strong></td><td><code>Ocp-Apim-Subscription-Key</code> header</td><td>Identifies the calling application and enforces rate limits</td></tr>
+            <tr><td><strong>Service Auth</strong></td><td><code>Authorization: Bearer {JWT}</code></td><td>Identifies the user/service and resolves the tenant</td></tr>
+          </tbody>
+        </table>
+
+        <h2>APIM Subscription Keys</h2>
+        <p>All requests through the API gateway require a subscription key in the <code>Ocp-Apim-Subscription-Key</code> header.</p>
+
+        <pre><code class="language-bash">curl https://loyalty-dev-apim-5rdrqh.azure-api.net/member/v1/members \
+  -H "Ocp-Apim-Subscription-Key: YOUR_KEY_HERE"</code></pre>
+
+        <p>Keys are scoped to the <code>loyalty-b2b</code> product. The current rate limit is <strong>1,000 requests per minute</strong> per subscription.</p>
+
+        <h3>Retrieving Your Key</h3>
+        <pre><code class="language-bash"># List subscriptions
+az rest --method get \
+  --url "https://management.azure.com/subscriptions/13e630db-.../providers/Microsoft.ApiManagement/service/loyalty-dev-apim-5rdrqh/subscriptions?api-version=2022-08-01"
+
+# Get keys for a specific subscription
+az rest --method post \
+  --url "https://management.azure.com/.../subscriptions/loyalty-b2b-dev/listSecrets?api-version=2022-08-01"</code></pre>
+
+        <h2>Azure AD B2C (Production)</h2>
+        <p>In production, all requests must include a valid B2C JWT token. The platform uses two B2C flows:</p>
+
+        <h3>B2B (Server-to-Server)</h3>
+        <p>For backend integrations using the Client Credentials flow.</p>
+
+        <table>
+          <thead>
+            <tr><th>Setting</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Policy</td><td><code>B2C_1A_ClientCredentials</code></td></tr>
+            <tr><td>Audience</td><td><code>api://loyalty-b2b</code></td></tr>
+            <tr><td>Scopes</td><td><code>members.read</code>, <code>members.write</code>, <code>transactions.write</code>, <code>admin</code></td></tr>
+          </tbody>
+        </table>
+
+        <pre><code class="language-bash"># Acquire a B2B token
+export B2C_TENANT_NAME=loyaltyplatformdev
+export B2C_B2B_CLIENT_ID=your-client-id
+export B2C_B2B_CLIENT_SECRET=your-client-secret
+./infra/b2c/acquire-b2b-token.sh</code></pre>
+
+        <h3>Consumer (Mobile / End-User)</h3>
+        <p>For mobile apps and consumer-facing flows using PKCE.</p>
+
+        <table>
+          <thead>
+            <tr><th>Setting</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Policy</td><td><code>B2C_1A_SignUpOrSignin</code></td></tr>
+            <tr><td>Audience</td><td><code>api://loyalty-consumer</code></td></tr>
+            <tr><td>Scopes</td><td><code>openid</code>, <code>profile</code>, <code>offline_access</code>, <code>member.self</code></td></tr>
+            <tr><td>Redirect URIs</td><td><code>loyalty://callback</code>, <code>https://localhost:3000/callback</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Additional B2C Policies</h3>
+        <ul>
+          <li><code>B2C_1A_PasswordReset</code> -- password reset flow</li>
+          <li><code>B2C_1A_ProfileEdit</code> -- profile edit flow</li>
+        </ul>
+
+        <h3>JWT Claims Used</h3>
+        <p>Services extract the following from validated tokens:</p>
+        <table>
+          <thead>
+            <tr><th>Claim</th><th>Mapped To</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>sub</code></td><td><code>X-User-ID</code></td><td>Identifies the authenticated user</td></tr>
+            <tr><td><code>tenantId</code></td><td><code>X-Tenant-ID</code></td><td>Tenant scoping for data isolation</td></tr>
+            <tr><td><code>roles</code></td><td>Role-based access</td><td>Admin API RBAC (owner / manager / analyst)</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="dev-mode">Dev Mode (SKIP_AUTH)</h2>
+        <p>For local development and testing, services can bypass JWT validation entirely.</p>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">Development Only</div>
+          <code>SKIP_AUTH=true</code> must never be enabled in staging or production environments. The CI/CD pipeline enforces this check.
+        </div>
+
+        <h3>Service-Level Bypass</h3>
+        <p>When a service is started with <code>SKIP_AUTH=true</code>, it trusts these headers instead of JWT claims:</p>
+
+        <pre><code class="language-bash">curl http://localhost:3001/v1/members \
+  -H "X-Tenant-ID: 11111111-1111-1111-1111-111111111111" \
+  -H "X-User-ID: dev-user"</code></pre>
+
+        <p>For admin endpoints, also include:</p>
+        <pre><code class="language-bash">curl http://localhost:3005/v1/admin/tiers \
+  -H "X-Tenant-ID: 11111111-1111-1111-1111-111111111111" \
+  -H "X-User-ID: dev-user" \
+  -H "X-User-Role: owner"</code></pre>
+
+        <h3>APIM Gateway Bypass</h3>
+        <p>When calling through the APIM gateway, add the <code>X-Skip-Auth</code> header. APIM strips this header before forwarding to the backend service:</p>
+
+        <pre><code class="language-bash">curl https://loyalty-dev-apim-5rdrqh.azure-api.net/member/v1/members \
+  -H "Ocp-Apim-Subscription-Key: YOUR_KEY" \
+  -H "X-Skip-Auth: true" \
+  -H "X-Tenant-ID: 11111111-1111-1111-1111-111111111111"</code></pre>
+
+        <h2>Required Headers Summary</h2>
+        <table>
+          <thead>
+            <tr><th>Header</th><th>Required</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Ocp-Apim-Subscription-Key</code></td><td>Always (via APIM)</td><td>APIM subscription key</td></tr>
+            <tr><td><code>Authorization</code></td><td>Production</td><td><code>Bearer {JWT}</code></td></tr>
+            <tr><td><code>X-Tenant-ID</code></td><td>Always</td><td>Tenant UUID</td></tr>
+            <tr><td><code>X-Skip-Auth</code></td><td>Dev only (APIM)</td><td>Bypasses JWT validation at gateway</td></tr>
+            <tr><td><code>X-User-ID</code></td><td>Dev only (service)</td><td>User identifier when SKIP_AUTH=true</td></tr>
+            <tr><td><code>X-User-Role</code></td><td>Dev only (admin)</td><td>Role override: owner, manager, analyst</td></tr>
+            <tr><td><code>Idempotency-Key</code></td><td>All POST writes</td><td>Required on transaction and redemption endpoints</td></tr>
+          </tbody>
+        </table>
+
+        <h2>RBAC Roles (Admin API)</h2>
+        <p>The Admin API uses three role levels sourced from the JWT <code>roles</code> claim:</p>
+
+        <table>
+          <thead>
+            <tr><th>Role</th><th>Access Level</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>owner</code></td><td>Full access: API keys, tier create/delete, feature flags, GDPR confirm</td></tr>
+            <tr><td><code>manager</code></td><td>Member management, webhooks, offers, points adjustments, branding</td></tr>
+            <tr><td><code>analyst</code></td><td>Read-only: members, tiers, audit log, branding</td></tr>
+          </tbody>
+        </table>
+
+        <div class="next-page">
+          <a href="api-reference.html">Next: API Reference &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

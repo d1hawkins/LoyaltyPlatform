@@ -1,0 +1,913 @@
+openapi: 3.0.3
+info:
+  title: Loyalty Platform — Admin API
+  description: |
+    Program configuration, member management, tiers, webhooks, API keys,
+    feature flags, branding, and audit log for the Loyalty Platform.
+    Multi-tenant with role-based access control (owner, manager, analyst).
+    All endpoints are under `/v1/admin`.
+  version: "1.0.0"
+  contact:
+    name: Loyalty Platform Team
+servers:
+  - url: https://admin-api.blackgrass-225d994b.eastus.azurecontainerapps.io
+    description: Dev Container App
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+tags:
+  - name: Transactions
+    description: Transaction list with enrichment data
+  - name: Program
+    description: Program configuration and version history
+  - name: Tiers
+    description: Tier management
+  - name: Members
+    description: Member management, search, bulk ops, GDPR
+  - name: ApiKeys
+    description: API key management (owner only)
+  - name: Webhooks
+    description: Webhook CRUD, testing, and delivery log
+  - name: Audit
+    description: Audit log and CSV export
+  - name: FeatureFlags
+    description: Feature flag management
+  - name: Branding
+    description: Branding configuration
+paths:
+  # --- Program ---
+  /v1/admin/program:
+    get:
+      tags: [Program]
+      summary: Get program configuration
+      operationId: getProgram
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProgramConfig' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [Program]
+      summary: Update program configuration (manager+)
+      operationId: updateProgram
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProgramConfig' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProgramConfig' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/program/version-history:
+    get:
+      tags: [Program]
+      summary: Get program config version history
+      operationId: getProgramVersionHistory
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AuditLogEntry' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # --- Tiers ---
+  /v1/admin/tiers:
+    get:
+      tags: [Tiers]
+      summary: List tiers (analyst+)
+      operationId: listTiers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Tier' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    post:
+      tags: [Tiers]
+      summary: Create a tier (owner only)
+      operationId: createTier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTierRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tier' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/tiers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    put:
+      tags: [Tiers]
+      summary: Update a tier (manager+)
+      operationId: updateTier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateTierRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tier' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [Tiers]
+      summary: Soft-deactivate a tier (owner only)
+      operationId: deleteTier
+      responses:
+        '204':
+          description: Deactivated
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # --- Members ---
+  /v1/admin/members/search:
+    get:
+      tags: [Members]
+      summary: Search members (analyst+)
+      operationId: searchMembers
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Free-text search query
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { type: object }
+                  nextCursor: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/members/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    get:
+      tags: [Members]
+      summary: Get member detail (analyst+)
+      operationId: getMemberAdmin
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/members/export.csv:
+    get:
+      tags: [Members]
+      summary: Export members as CSV (analyst+)
+      operationId: exportMembersCsv
+      responses:
+        '200':
+          description: CSV file download
+          content:
+            text/csv:
+              schema: { type: string }
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/members/{id}/points-adjust:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    post:
+      tags: [Members]
+      summary: Adjust member points (manager+)
+      operationId: adjustPoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PointsAdjustRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/members/{id}/tier-override:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    post:
+      tags: [Members]
+      summary: Override member tier (manager+)
+      operationId: overrideTier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TierOverrideRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/members/{id}/status:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    post:
+      tags: [Members]
+      summary: Change member status (manager+)
+      operationId: changeMemberStatusAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusChangeRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/members/{id}/gdpr-delete:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    post:
+      tags: [Members]
+      summary: Request or confirm GDPR deletion (manager+ to request, owner to confirm)
+      operationId: gdprDelete
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirm: { type: boolean, description: "Set to true to confirm deletion (owner only)" }
+                reason: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/members/bulk:
+    post:
+      tags: [Members]
+      summary: Bulk member action (manager+)
+      operationId: bulkMemberAction
+      description: Max 1000 IDs per call, server partitions into 100-sized chunks. Async processing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkMemberRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkMemberResponse'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # --- Transactions ---
+  /v1/admin/transactions:
+    get:
+      tags: [Transactions]
+      summary: List transactions with enrichment data (analyst+)
+      operationId: listTransactions
+      parameters:
+        - in: query
+          name: memberId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+        - in: query
+          name: storeId
+          schema: { type: string }
+        - in: query
+          name: sourceChannel
+          schema: { type: string }
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/TransactionRecord' }
+                  nextCursor: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # --- API Keys ---
+  /v1/admin/apikeys:
+    get:
+      tags: [ApiKeys]
+      summary: List API keys (owner only)
+      operationId: listApiKeys
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/ApiKey' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    post:
+      tags: [ApiKeys]
+      summary: Create an API key (owner only) — plaintext returned once
+      operationId: createApiKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiKeyRequest'
+      responses:
+        '201':
+          description: Created — plaintextKey is returned exactly once
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyCreatedResponse'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/apikeys/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    delete:
+      tags: [ApiKeys]
+      summary: Revoke an API key (owner only)
+      operationId: deleteApiKey
+      responses:
+        '204':
+          description: Revoked
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # --- Webhooks ---
+  /v1/admin/webhooks:
+    get:
+      tags: [Webhooks]
+      summary: List webhooks (manager+)
+      operationId: listWebhooks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Webhook' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    post:
+      tags: [Webhooks]
+      summary: Create a webhook (manager+)
+      operationId: createWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateWebhookRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Webhook' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/webhooks/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    put:
+      tags: [Webhooks]
+      summary: Update a webhook (manager+)
+      operationId: updateWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateWebhookRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Webhook' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [Webhooks]
+      summary: Delete a webhook (manager+)
+      operationId: deleteWebhook
+      responses:
+        '204':
+          description: Deleted
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/webhooks/{id}/test:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    post:
+      tags: [Webhooks]
+      summary: Send test webhook delivery (manager+)
+      operationId: testWebhook
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/webhooks/{id}/deliveries:
+    parameters:
+      - $ref: '#/components/parameters/ResourceIdPath'
+    get:
+      tags: [Webhooks]
+      summary: Get webhook delivery log (manager+)
+      operationId: getWebhookDeliveries
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # --- Audit ---
+  /v1/admin/audit:
+    get:
+      tags: [Audit]
+      summary: Query audit log (analyst+)
+      operationId: getAuditLog
+      parameters:
+        - in: query
+          name: entity
+          schema: { type: string }
+        - in: query
+          name: action
+          schema: { type: string }
+        - in: query
+          name: actor
+          schema: { type: string }
+        - in: query
+          name: from
+          schema: { type: string, format: date-time }
+        - in: query
+          name: to
+          schema: { type: string, format: date-time }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+        - in: query
+          name: cursor
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AuditLogEntry' }
+                  nextCursor: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/audit/export.csv:
+    get:
+      tags: [Audit]
+      summary: Export audit log as CSV (analyst+)
+      operationId: exportAuditCsv
+      responses:
+        '200':
+          description: CSV file download
+          content:
+            text/csv:
+              schema: { type: string }
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # --- Feature Flags ---
+  /v1/admin/feature-flags:
+    get:
+      tags: [FeatureFlags]
+      summary: List feature flags (manager+)
+      operationId: listFeatureFlags
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/FeatureFlag' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/feature-flags/{key}:
+    parameters:
+      - name: key
+        in: path
+        required: true
+        schema: { type: string }
+    put:
+      tags: [FeatureFlags]
+      summary: Update a feature flag (owner only)
+      operationId: updateFeatureFlag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateFeatureFlagRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FeatureFlag' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # --- Branding ---
+  /v1/admin/branding:
+    get:
+      tags: [Branding]
+      summary: Get branding config (analyst+)
+      operationId: getBranding
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BrandingConfig' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [Branding]
+      summary: Update branding config (manager+)
+      operationId: updateBranding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BrandingConfig' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BrandingConfig' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Ocp-Apim-Subscription-Key
+  parameters:
+    ResourceIdPath:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    InternalError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      description: RFC 7807 problem+json
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        instance: { type: string }
+    ProgramConfig:
+      type: object
+      properties:
+        programName: { type: string }
+        currency: { type: string }
+        pointsName: { type: string }
+        configJson: { type: object, additionalProperties: true }
+        updatedAt: { type: string, format: date-time }
+    Tier:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        threshold: { type: integer }
+        multiplier: { type: number }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreateTierRequest:
+      type: object
+      required: [name, threshold]
+      properties:
+        name: { type: string }
+        threshold: { type: integer }
+        multiplier: { type: number, default: 1 }
+    UpdateTierRequest:
+      type: object
+      properties:
+        name: { type: string }
+        threshold: { type: integer }
+        multiplier: { type: number }
+    PointsAdjustRequest:
+      type: object
+      required: [delta, reason]
+      properties:
+        delta: { type: integer, description: "Positive to credit, negative to debit" }
+        reason: { type: string }
+    TierOverrideRequest:
+      type: object
+      required: [tierId, reason]
+      properties:
+        tierId: { type: string }
+        reason: { type: string }
+    StatusChangeRequest:
+      type: object
+      required: [status, reason]
+      properties:
+        status: { type: string, enum: [active, suspended, closed] }
+        reason: { type: string }
+    BulkMemberRequest:
+      type: object
+      required: [action, memberIds]
+      properties:
+        action: { type: string }
+        memberIds:
+          type: array
+          items: { type: string, format: uuid }
+          maxItems: 1000
+    BulkMemberResponse:
+      type: object
+      properties:
+        action: { type: string }
+        total: { type: integer }
+        chunkCount: { type: integer }
+        acceptedAt: { type: string, format: date-time }
+    ApiKey:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        prefix: { type: string, description: "First 8 chars of the key for identification" }
+        createdAt: { type: string, format: date-time }
+    CreateApiKeyRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+    ApiKeyCreatedResponse:
+      type: object
+      required: [id, name, plaintextKey]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        plaintextKey: { type: string, description: "Returned exactly once. Store securely." }
+        createdAt: { type: string, format: date-time }
+    Webhook:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string, format: uri }
+        events:
+          type: array
+          items: { type: string }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreateWebhookRequest:
+      type: object
+      required: [url, events]
+      properties:
+        url: { type: string, format: uri }
+        events:
+          type: array
+          items: { type: string }
+        isActive: { type: boolean, default: true }
+    AuditLogEntry:
+      type: object
+      properties:
+        id: { type: string }
+        actorUserId: { type: string }
+        actorRole: { type: string }
+        action: { type: string }
+        entity: { type: string }
+        entityId: { type: string }
+        beforeJson: { type: object }
+        afterJson: { type: object }
+        reason: { type: string }
+        ipAddress: { type: string }
+        userAgent: { type: string }
+        correlationId: { type: string }
+        createdAt: { type: string, format: date-time }
+    FeatureFlag:
+      type: object
+      properties:
+        key: { type: string }
+        enabled: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+    UpdateFeatureFlagRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: { type: boolean }
+    TransactionRecord:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        memberId: { type: string, format: uuid }
+        channel: { type: string }
+        amount: { type: integer, description: Minor currency units }
+        currency: { type: string }
+        pointsEarned: { type: integer }
+        storeId: { type: string, description: Store/location identifier }
+        storeName: { type: string, description: Human-readable store name }
+        registerId: { type: string, description: POS register/terminal identifier }
+        associateId: { type: string, description: Employee/associate who processed the sale }
+        associateName: { type: string, description: Associate display name }
+        sourceChannel: { type: string, description: "Granular source: in-store, dotcom, mobile-app, kiosk" }
+        sourceSystem: { type: string, description: "POS/ecom system: shopify, square, lightspeed" }
+        orderRef: { type: string, description: External order/receipt reference number }
+        metadata: { type: object, additionalProperties: true, description: Flexible key-value metadata }
+        occurredAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+    BrandingConfig:
+      type: object
+      additionalProperties: true
+      description: Free-form branding configuration merged into program_config.config_json.branding

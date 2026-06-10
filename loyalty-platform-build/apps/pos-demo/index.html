@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daiso USA - POS Terminal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes countUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes celebrationBanner { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-count { animation: countUp 0.4s ease-out; }
+    .animate-celebration { animation: celebrationBanner 0.6s ease-out; }
+    .animate-fade { animation: fadeIn 0.3s ease-out; }
+    .animate-slide { animation: slideUp 0.3s ease-out; }
+    .tier-bronze { background: linear-gradient(135deg, #CD7F32, #a06428); }
+    .tier-silver { background: linear-gradient(135deg, #C0C0C0, #969696); }
+    .tier-gold { background: linear-gradient(135deg, #FFD700, #c8a900); }
+    .tier-platinum { background: linear-gradient(135deg, #E5E4E2, #b8b7b5); }
+    .toast { animation: slideUp 0.3s ease-out; }
+    #activity-log { font-family: 'Courier New', monospace; font-size: 12px; }
+    #activity-log .log-entry { animation: fadeIn 0.2s ease-out; }
+    .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .product-card { transition: all 0.15s ease; }
+    .offer-card { transition: all 0.15s ease; }
+    .offer-card:hover { transform: translateY(-1px); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .status-green { background: #22c55e; }
+    .status-red { background: #ef4444; }
+    .status-yellow { background: #eab308; }
+    body { min-height: 100vh; display: flex; flex-direction: column; }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<!-- Header -->
+<header class="text-white px-6 py-3 flex items-center justify-between shadow-lg flex-shrink-0" style="background: linear-gradient(135deg, #8E0E3C 0%, #EB1256 100%);">
+  <div class="flex items-center gap-3">
+    <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" class="h-7 object-contain" onerror="this.style.display='none'">
+    <h1 class="text-lg font-semibold tracking-wide">Daiso USA &mdash; POS Terminal</h1>
+  </div>
+  <div class="text-xs text-gray-400">
+    Tenant: <span id="header-tenant" class="text-gray-300 font-mono"></span>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="flex overflow-hidden" style="height: calc(100vh - 52px - 32px - 40px);">
+
+  <!-- LEFT PANEL: Checkout Terminal (60%) -->
+  <section class="w-3/5 bg-white flex flex-col border-r border-gray-200 overflow-hidden">
+
+    <!-- Product Catalog -->
+    <div class="p-4 border-b border-gray-100 flex-shrink-0">
+      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Product Catalog</h2>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2" id="product-grid"></div>
+    </div>
+
+    <!-- Cart (scrollable) -->
+    <div class="flex-1 overflow-y-auto p-4" style="min-height: 0;">
+      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Shopping Cart</h2>
+      <div id="cart-empty" class="text-center py-8 text-gray-400">
+        <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4m1.6 8l-1.35-6.75M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+        <p>Tap products to add items</p>
+      </div>
+      <table class="w-full text-sm" id="cart-table" style="display:none;">
+        <thead>
+          <tr class="border-b border-gray-200 text-gray-500 text-xs uppercase">
+            <th class="text-left py-2">Item</th>
+            <th class="text-center py-2 w-28">Qty</th>
+            <th class="text-right py-2">Price</th>
+            <th class="text-right py-2 w-10"></th>
+          </tr>
+        </thead>
+        <tbody id="cart-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Totals & Actions -->
+    <div class="border-t border-gray-200 bg-gray-50 p-4 flex-shrink-0">
+      <div class="space-y-1 text-sm mb-4">
+        <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span id="subtotal" class="font-medium">$0.00</span></div>
+        <div class="flex justify-between"><span class="text-gray-500">Tax (8.5%)</span><span id="tax">$0.00</span></div>
+        <div class="flex justify-between text-green-600" id="discount-row" style="display:none;"><span>Discount</span><span id="discount-amount">-$0.00</span></div>
+        <div class="flex justify-between text-lg font-bold border-t border-gray-300 pt-2 mt-2"><span>Total</span><span id="total">$0.00</span></div>
+      </div>
+      <div class="flex gap-2">
+        <button id="btn-clear-cart" onclick="clearCart()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition">Clear</button>
+        <button id="btn-complete-sale" onclick="completeSale()" disabled class="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold text-lg hover:bg-green-700 transition disabled:opacity-40 disabled:cursor-not-allowed">Complete Sale</button>
+      </div>
+    </div>
+
+    <!-- Receipt Area -->
+    <div id="receipt-area" class="border-t border-gray-200 bg-green-50 p-4 flex-shrink-0" style="display:none;">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold text-green-800 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Sale Complete
+        </h3>
+        <div class="flex gap-2">
+          <button onclick="voidLastTransaction()" class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition">Void Last</button>
+          <button onclick="retryPayment()" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium hover:bg-blue-200 transition" title="Sends same Idempotency-Key to demonstrate safety">Retry Payment (Idempotency Demo)</button>
+          <button onclick="newSale()" class="px-3 py-1 bg-green-200 text-green-800 rounded text-xs font-medium hover:bg-green-300 transition">New Sale</button>
+        </div>
+      </div>
+      <div id="receipt-details" class="text-sm text-green-900 space-y-1"></div>
+    </div>
+  </section>
+
+  <!-- RIGHT PANEL: Loyalty Integration (40%) -->
+  <section class="w-2/5 bg-slate-50 flex flex-col overflow-y-auto">
+
+    <!-- Store / Associate Config -->
+    <div class="p-4 border-b border-gray-200 bg-indigo-50">
+      <details>
+        <summary class="text-sm font-semibold text-indigo-700 uppercase tracking-wider cursor-pointer mb-2">POS Settings</summary>
+        <div class="grid grid-cols-2 gap-2 mt-2">
+          <div>
+            <label class="text-xs text-gray-500 font-medium">Store ID</label>
+            <input id="store-id" type="text" value="DAISO-042" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 font-medium">Store Name</label>
+            <input id="store-name" type="text" value="Daiso Carrollton" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 font-medium">Register ID</label>
+            <input id="register-id" type="text" value="REG-01" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 font-medium">Associate</label>
+            <select id="associate-select" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none bg-white">
+              <option>EMP-1001 — Jane Smith</option>
+              <option>EMP-1002 — Mike Johnson</option>
+              <option>EMP-1003 — Sarah Lee</option>
+            </select>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- Member Lookup -->
+    <div class="p-4 border-b border-gray-200">
+      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Member Lookup</h2>
+      <div class="flex gap-2">
+        <div class="flex-1 relative">
+          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input id="phone-input" type="tel" placeholder="+1 (555) 123-4567" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" onkeydown="if(event.key==='Enter') lookupMember()">
+        </div>
+        <button onclick="lookupMember()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          Look Up
+        </button>
+        <button onclick="showEnrollModal()" class="px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition">+ New</button>
+      </div>
+    </div>
+
+    <!-- Member Card -->
+    <div id="member-card" class="p-4 border-b border-gray-200" style="display:none;">
+      <div class="bg-white rounded-xl shadow-md p-4 animate-fade">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h3 id="member-name" class="text-lg font-bold text-gray-900"></h3>
+            <p id="member-since" class="text-xs text-gray-400"></p>
+          </div>
+          <span id="tier-badge" class="px-3 py-1 rounded-full text-xs font-bold text-white uppercase"></span>
+        </div>
+        <div class="flex items-end justify-between">
+          <div>
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Points Balance</p>
+            <p id="points-balance" class="text-3xl font-bold text-gray-900"></p>
+          </div>
+          <div id="points-earned-anim" class="text-right" style="display:none;">
+            <p class="text-xs text-green-500 uppercase">Just Earned</p>
+            <p id="points-earned-value" class="text-xl font-bold text-green-600 animate-count"></p>
+          </div>
+        </div>
+        <div id="earn-mode-info" class="mt-2 pt-2 border-t border-gray-100" style="display:none;"></div>
+      </div>
+
+      <!-- Tier Upgrade Celebration -->
+      <div id="tier-celebration" class="mt-3 p-3 rounded-lg text-center animate-celebration" style="display:none;">
+        <p class="text-lg font-bold">&#127881; Tier Upgrade!</p>
+        <p id="tier-celebration-text" class="text-sm"></p>
+      </div>
+    </div>
+
+    <!-- Eligible Offers -->
+    <div id="offers-section" class="p-4 border-b border-gray-200" style="display:none;">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Available Offers</span>
+        <button onclick="toggleOffers()" class="text-xs text-gray-400 hover:text-gray-600 transition">
+          <svg id="offers-chevron" class="w-4 h-4 transition-transform inline" style="transform:rotate(90deg)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div id="offers-list" class="space-y-2 overflow-y-auto" style="max-height: 220px;"></div>
+      <p id="no-offers" class="text-sm text-gray-400 text-center py-3" style="display:none;">No offers available</p>
+    </div>
+
+    <!-- Transaction History -->
+    <div id="history-section" class="p-4" style="display:none;">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Recent Activity</span>
+        <button onclick="toggleHistory()" class="text-xs text-gray-400 hover:text-gray-600 transition">
+          <svg id="history-chevron" class="w-4 h-4 transition-transform inline" style="transform:rotate(90deg)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <div id="history-list" class="space-y-2 overflow-y-auto" style="max-height: 250px;"></div>
+    </div>
+  </section>
+</main>
+
+<!-- Status Bar -->
+<footer class="bg-gray-800 text-xs text-gray-400 px-6 py-2 flex items-center justify-between flex-shrink-0">
+  <div class="flex items-center gap-6">
+    <span class="flex items-center gap-1.5"><span id="status-member" class="status-dot status-yellow"></span> Member Service</span>
+    <span class="flex items-center gap-1.5"><span id="status-engine" class="status-dot status-yellow"></span> Loyalty Engine</span>
+    <span class="flex items-center gap-1.5"><span id="status-offer" class="status-dot status-yellow"></span> Offer Service</span>
+  </div>
+  <span>Daiso USA — POS Terminal #1 | <span id="clock"></span></span>
+</footer>
+
+<!-- Activity Log -->
+<div class="bg-gray-900 border-t border-gray-700 flex-shrink-0">
+  <button onclick="toggleActivityLog()" class="w-full flex items-center justify-between px-4 py-1.5 text-xs text-gray-400 hover:text-gray-300 transition">
+    <span class="flex items-center gap-2 font-semibold uppercase tracking-wider">
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+      Activity Log
+    </span>
+    <svg id="log-chevron" class="w-4 h-4 transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+  </button>
+  <div id="activity-log" class="px-4 pb-2 overflow-auto text-green-400" style="max-height: 160px;"></div>
+</div>
+
+<!-- Debug Panel -->
+<div class="bg-gray-950 border-t border-gray-800 flex-shrink-0">
+  <button onclick="toggleDebug()" class="w-full flex items-center justify-between px-4 py-1.5 text-xs text-gray-500 hover:text-gray-400 transition">
+    <span class="font-semibold uppercase tracking-wider">Debug: Raw API Responses</span>
+    <svg id="debug-chevron" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+  </button>
+  <div id="debug-panel" class="px-4 pb-2 overflow-auto" style="max-height: 200px; display:none;">
+    <pre id="debug-content" class="text-xs text-gray-500 font-mono whitespace-pre-wrap"></pre>
+  </div>
+</div>
+
+<!-- Enrollment Modal -->
+<div id="enroll-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" style="display:none;">
+  <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md animate-slide">
+    <h3 class="text-lg font-bold mb-4">Quick Enrollment</h3>
+    <div class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-gray-500 font-medium">First Name</label>
+          <input id="enroll-first" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 font-medium">Last Name</label>
+          <input id="enroll-last" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 font-medium">Email</label>
+        <input id="enroll-email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 font-medium">Phone</label>
+        <input id="enroll-phone" type="tel" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+      </div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button onclick="hideEnrollModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition">Cancel</button>
+      <button onclick="enrollMember()" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition">Enroll Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<script>
+// ── Configuration ──
+const CONFIG = {
+  memberService: new URLSearchParams(location.search).get('member') || 'https://loyalty-dev-member-service.azurewebsites.net',
+  loyaltyEngine: new URLSearchParams(location.search).get('engine') || 'https://loyalty-dev-loyalty-engine.azurewebsites.net',
+  offerService: new URLSearchParams(location.search).get('offers') || 'https://loyalty-dev-offer-service.azurewebsites.net',
+  adminApi: new URLSearchParams(location.search).get('admin') || 'https://loyalty-dev-admin-api.azurewebsites.net',
+  tenantId: new URLSearchParams(location.search).get('tenant') || '273684b8-4d97-48b0-afb8-cfe831555bc8',
+};
+
+const headers = {
+  'Content-Type': 'application/json',
+  'x-tenant-id': CONFIG.tenantId,
+  'x-user-id': 'pos-terminal-1',
+  'x-user-role': 'owner',
+};
+
+document.getElementById('header-tenant').textContent = CONFIG.tenantId.substring(0, 8) + '...';
+
+// ── Product Catalog ──
+const PRODUCTS = [
+  { name: 'Ceramic Mug', price: 1.50, sku: 'MUG-001', icon: '\uD83C\uDF75' },
+  { name: 'Stationery Set', price: 1.50, sku: 'STA-001', icon: '\u270F\uFE0F' },
+  { name: 'Bento Box Set', price: 5.00, sku: 'BEN-001', icon: '\uD83C\uDF71' },
+  { name: 'Face Mask Pack', price: 1.50, sku: 'FAC-001', category: 'beauty', icon: '\uD83E\uDDF4' },
+  { name: 'Storage Bins', price: 1.50, sku: 'STO-001', icon: '\uD83D\uDCE6' },
+  { name: 'Kitchen Towels', price: 1.50, sku: 'KIT-001', icon: '\uD83E\uDDFB' },
+  { name: 'Snack Box', price: 3.00, sku: 'SNK-001', category: 'food', icon: '\uD83C\uDF6C' },
+  { name: 'Phone Case', price: 1.50, sku: 'PHO-001', icon: '\uD83D\uDCF1' },
+];
+
+// ── State ──
+let cart = [];
+let currentMember = null;
+let lastTransactionId = null;
+let lastIdempotencyKey = null;
+let lastTransactionPayload = null;
+let appliedDiscount = 0;
+let appliedOfferId = null;
+let appliedOfferCode = null;
+let cachedProgramConfig = null;
+
+// ── Fetch & cache program config ──
+async function fetchProgramConfig() {
+  if (cachedProgramConfig) return cachedProgramConfig;
+  try {
+    const data = await apiFetch(CONFIG.adminApi, '/v1/admin/program');
+    const cfg = data.configJson || data;
+    cachedProgramConfig = cfg;
+    return cfg;
+  } catch (err) {
+    log('Failed to fetch program config: ' + (err.message || err), 'warn');
+    return null;
+  }
+}
+
+// ── UUID v4 Generator ──
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+// ── Logging ──
+function log(message, type = 'info') {
+  const el = document.getElementById('activity-log');
+  const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+  const colors = { info: 'text-green-400', error: 'text-red-400', warn: 'text-yellow-400', success: 'text-cyan-400' };
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${colors[type] || colors.info}`;
+  entry.textContent = `[${time}] ${message}`;
+  el.appendChild(entry);
+  el.scrollTop = el.scrollHeight;
+}
+
+function debugLog(label, data) {
+  const el = document.getElementById('debug-content');
+  const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+  el.textContent += `\n--- ${label} [${time}] ---\n${JSON.stringify(data, null, 2)}\n`;
+  el.parentElement.scrollTop = el.parentElement.scrollHeight;
+}
+
+// ── Toast Notifications ──
+function toast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600', warn: 'bg-yellow-600 text-gray-900' };
+  const div = document.createElement('div');
+  div.className = `toast px-4 py-2.5 rounded-lg text-white text-sm font-medium shadow-lg ${colors[type] || colors.info}`;
+  div.textContent = message;
+  container.appendChild(div);
+  setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.3s'; setTimeout(() => div.remove(), 300); }, 4000);
+}
+
+// ── API Helper ──
+async function apiFetch(baseUrl, path, options = {}) {
+  const url = `${baseUrl}${path}`;
+  const method = options.method || 'GET';
+  const start = performance.now();
+  try {
+    const fetchOpts = { method, headers: { ...headers, ...options.extraHeaders }, };
+    if (options.body) fetchOpts.body = JSON.stringify(options.body);
+    const res = await fetch(url, fetchOpts);
+    const elapsed = Math.round(performance.now() - start);
+    const data = res.status !== 204 ? await res.json().catch(() => null) : null;
+    log(`${method} ${path} \u2192 ${res.status} (${elapsed}ms)`, res.ok ? 'info' : 'error');
+    debugLog(`${method} ${path} [${res.status}]`, data);
+    if (!res.ok) throw { status: res.status, data };
+    return data;
+  } catch (err) {
+    if (err.status) throw err;
+    const elapsed = Math.round(performance.now() - start);
+    log(`${method} ${path} \u2192 FAILED (${elapsed}ms): ${err.message}`, 'error');
+    throw err;
+  }
+}
+
+// ── Product Grid ──
+function renderProducts() {
+  const grid = document.getElementById('product-grid');
+  grid.innerHTML = PRODUCTS.map((p, i) => `
+    <button onclick="addToCart(${i})" class="product-card bg-white border border-gray-200 rounded-lg p-3 text-left hover:border-blue-300">
+      <div class="text-2xl mb-1">${p.icon}</div>
+      <div class="text-sm font-medium text-gray-800 truncate">${p.name}</div>
+      <div class="flex items-center justify-between mt-1">
+        <span class="text-sm font-bold text-gray-900">$${p.price.toFixed(2)}</span>
+        <span class="text-xs text-gray-400">${p.sku}</span>
+      </div>
+    </button>
+  `).join('');
+}
+
+// ── Cart Management ──
+function addToCart(idx) {
+  const product = PRODUCTS[idx];
+  const existing = cart.find(item => item.sku === product.sku);
+  if (existing) { existing.qty++; } else { cart.push({ ...product, qty: 1 }); }
+  renderCart();
+  toast(`Added ${product.name}`, 'info');
+}
+
+function updateQty(sku, delta) {
+  const item = cart.find(i => i.sku === sku);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.sku !== sku);
+  renderCart();
+}
+
+function removeItem(sku) {
+  cart = cart.filter(i => i.sku !== sku);
+  renderCart();
+}
+
+function clearCart() {
+  newSale();
+}
+
+function renderCart() {
+  const empty = document.getElementById('cart-empty');
+  const table = document.getElementById('cart-table');
+  const body = document.getElementById('cart-body');
+
+  if (cart.length === 0) {
+    empty.style.display = 'block';
+    table.style.display = 'none';
+  } else {
+    empty.style.display = 'none';
+    table.style.display = 'table';
+    body.innerHTML = cart.map(item => `
+      <tr class="border-b border-gray-100">
+        <td class="py-2">
+          <span class="font-medium">${item.name}</span>
+          <span class="text-xs text-gray-400 ml-1">${item.sku}</span>
+        </td>
+        <td class="py-2 text-center">
+          <div class="inline-flex items-center border border-gray-200 rounded-lg">
+            <button onclick="updateQty('${item.sku}', -1)" class="px-2 py-1 text-gray-500 hover:bg-gray-100 rounded-l-lg">&minus;</button>
+            <span class="px-3 py-1 font-medium text-sm">${item.qty}</span>
+            <button onclick="updateQty('${item.sku}', 1)" class="px-2 py-1 text-gray-500 hover:bg-gray-100 rounded-r-lg">+</button>
+          </div>
+        </td>
+        <td class="py-2 text-right font-medium">$${(item.price * item.qty).toFixed(2)}</td>
+        <td class="py-2 text-right">
+          <button onclick="removeItem('${item.sku}')" class="text-red-400 hover:text-red-600 transition">&times;</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+  updateTotals();
+}
+
+function getSubtotal() { return cart.reduce((sum, item) => sum + item.price * item.qty, 0); }
+
+function updateTotals() {
+  const subtotal = getSubtotal();
+  const tax = subtotal * 0.085;
+  const total = subtotal + tax - appliedDiscount;
+  document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
+  document.getElementById('total').textContent = `$${Math.max(0, total).toFixed(2)}`;
+  // Enable complete sale only if cart has items and member is looked up
+  document.getElementById('btn-complete-sale').disabled = cart.length === 0 || !currentMember;
+}
+
+// ── Member Lookup ──
+function normalizePhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('1') && digits.length === 11) return '+' + digits;
+  if (digits.length === 10) return '+1' + digits;
+  return '+' + digits;
+}
+
+async function lookupMember() {
+  const rawPhone = document.getElementById('phone-input').value.trim();
+  if (!rawPhone) { toast('Enter a phone number', 'warn'); return; }
+  const digits = rawPhone.replace(/\D/g, '');
+  if (digits.length < 10) { toast('Enter a valid 10-digit phone number', 'warn'); return; }
+  const phone = normalizePhone(rawPhone);
+  // Refresh program config on each lookup
+  cachedProgramConfig = null;
+  try {
+    const data = await apiFetch(CONFIG.memberService, `/v1/members?phone=${encodeURIComponent(phone)}`);
+    const member = Array.isArray(data) ? data[0] : (data.data ? data.data[0] : data);
+    if (!member || (Array.isArray(data) && data.length === 0) || (data.data && data.data.length === 0)) {
+      toast('Member not found. Try enrolling.', 'warn');
+      log(`No member found for phone: ${phone}`, 'warn');
+      return;
+    }
+    currentMember = member;
+    log(`Member found: ${member.firstName} ${member.lastName} (${member.tier || 'Bronze'}, ${(member.pointsBalance || 0).toLocaleString()} pts)`, 'success');
+    renderMemberCard(member);
+    await Promise.allSettled([fetchBalance(member.id), fetchOffers(member.id), fetchLedger(member.id)]);
+    updateTotals();
+  } catch (err) {
+    toast('Member lookup failed', 'error');
+  }
+}
+
+function renderMemberCard(member) {
+  document.getElementById('member-card').style.display = 'block';
+  document.getElementById('member-name').textContent = `${member.firstName} ${member.lastName}`;
+  const since = member.createdAt ? new Date(member.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A';
+  document.getElementById('member-since').textContent = `Member since ${since}`;
+
+  const tier = (member.tier || 'bronze').toLowerCase();
+  const badge = document.getElementById('tier-badge');
+  badge.textContent = tier;
+  badge.className = `px-3 py-1 rounded-full text-xs font-bold uppercase tier-${tier} ${tier === 'platinum' || tier === 'silver' ? 'text-gray-800' : 'text-white'}`;
+
+  document.getElementById('points-balance').textContent = (member.pointsBalance || 0).toLocaleString();
+  document.getElementById('points-earned-anim').style.display = 'none';
+  document.getElementById('tier-celebration').style.display = 'none';
+
+  // Show earn mode info
+  renderEarnModeInfo();
+}
+
+async function renderEarnModeInfo() {
+  const el = document.getElementById('earn-mode-info');
+  if (!el) return;
+  const cfg = await fetchProgramConfig();
+  if (!cfg) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  if (cfg.earnMode === 'per-visit') {
+    const pts = cfg.pointsPerVisit || 10;
+    const minSpend = (cfg.visitMinSpendCents || 500) / 100;
+    const maxVisits = cfg.maxVisitsPerDay;
+    let text = `${pts} pts per qualifying visit (min $${minSpend.toFixed(2)})`;
+    if (maxVisits) text += ` | max ${maxVisits}/day`;
+    el.innerHTML = `<span class="text-xs text-blue-600 font-medium">${text}</span>`;
+  } else {
+    const rate = cfg.baseEarnRate || 1;
+    el.innerHTML = `<span class="text-xs text-blue-600 font-medium">${rate} pt${rate !== 1 ? 's' : ''} / $1 spent</span>`;
+  }
+}
+
+// ── Balance ──
+async function fetchBalance(memberId) {
+  try {
+    const data = await apiFetch(CONFIG.loyaltyEngine, `/v1/members/${memberId}/balance`);
+    if (data && data.balance !== undefined) {
+      document.getElementById('points-balance').textContent = data.balance.toLocaleString();
+      if (currentMember) currentMember.pointsBalance = data.balance;
+    }
+  } catch (err) {
+    // Balance endpoint may not exist; fallback to member data
+  }
+}
+
+// ── Offers ──
+async function fetchOffers(memberId) {
+  const section = document.getElementById('offers-section');
+  section.style.display = 'block';
+  try {
+    const data = await apiFetch(CONFIG.offerService, `/v1/members/${memberId}/offers`);
+    const offers = Array.isArray(data) ? data : (data.items || data.data || []);
+    currentOffers = offers;
+    const list = document.getElementById('offers-list');
+    const noOffers = document.getElementById('no-offers');
+    if (offers.length === 0) {
+      list.innerHTML = '';
+      noOffers.style.display = 'block';
+      return;
+    }
+    noOffers.style.display = 'none';
+    list.innerHTML = offers.map(o => {
+      const id = o.offerId || o.id;
+      const name = o.name || o.title || 'Special Offer';
+      const type = o.type || 'fixed';
+      const value = o.value || 0;
+      const pointsCost = o.pointsCost || o.points_cost || null;
+      const validTo = o.validTo || o.valid_to;
+      const expiry = validTo ? new Date(validTo).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+      const valueDisplay = type === 'percent' ? `${value}% off` : `$${value.toFixed(2)} off`;
+      const typeBadge = type === 'percent' ? '% OFF' : type === 'bogo' ? 'BOGO' : type === 'threshold' ? 'REWARD' : '$ OFF';
+      const badgeColor = type === 'percent' ? 'bg-blue-100 text-blue-700' : type === 'bogo' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700';
+      const isEligible = o.eligibility?.eligible !== false;
+      const vp = o.visitProgress;
+      const hasVisitReq = vp && vp.required > 0;
+
+      // Visit progress bar HTML
+      let visitHtml = '';
+      if (hasVisitReq) {
+        const pct = Math.min(100, Math.round((vp.current / vp.required) * 100));
+        const remaining = Math.max(0, vp.required - vp.current);
+        const minSpend = o.visitMinSpendCents || o.visit_min_spend_cents;
+        const channels = o.visitChannels || (o.visit_channels_json ? JSON.parse(o.visit_channels_json) : null);
+        let qualRules = [];
+        if (minSpend) qualRules.push('Min $' + (minSpend / 100).toFixed(2) + ' per visit');
+        if (channels && channels.length) qualRules.push(channels.join(', '));
+
+        visitHtml = `
+          <div class="mt-2">
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+              <div class="h-2.5 rounded-full transition-all ${vp.qualified ? 'bg-green-500' : 'bg-blue-500'}" style="width: ${pct}%"></div>
+            </div>
+            <div class="flex justify-between items-center text-xs text-gray-500">
+              <span>${vp.current} of ${vp.required} visits</span>
+              ${!vp.qualified ? `<span class="text-amber-600 font-medium">${remaining} more to unlock</span>` : '<span class="text-green-600 font-medium">Unlocked!</span>'}
+            </div>
+            ${qualRules.length ? `<div class="text-[10px] text-gray-400 mt-0.5">${qualRules.join(' · ')}</div>` : ''}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="offer-card bg-white border border-gray-200 rounded-lg p-3 mb-2">
+          <div class="flex items-start justify-between mb-1">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="px-1.5 py-0.5 ${badgeColor} text-[10px] font-bold rounded">${typeBadge}</span>
+                <span class="text-sm font-semibold text-gray-900">${name}</span>
+              </div>
+              <p class="text-lg font-bold" style="color: var(--brand, #EB1256)">${valueDisplay}</p>
+            </div>
+            ${isEligible ? `
+              <button onclick="applyOffer('${id}', '${name}', '${type}', ${value}, ${pointsCost || 0}, ${o.code ? `'${o.code}'` : 'null'})"
+                class="px-3 py-2 text-white text-xs font-bold rounded-lg hover:opacity-90 transition flex-shrink-0"
+                style="background: var(--brand, #EB1256)"
+                ${appliedOfferId === id ? 'disabled style="opacity:0.5"' : ''}>
+                ${appliedOfferId === id ? '✓ Applied' : 'Apply'}
+              </button>
+            ` : `
+              <span class="px-3 py-2 text-xs font-bold rounded-lg flex-shrink-0 bg-gray-100 text-gray-400">Locked</span>
+            `}
+          </div>
+          <div class="flex items-center gap-3 text-xs text-gray-400">
+            ${pointsCost ? `<span class="text-purple-600 font-medium">🎯 ${pointsCost} pts to redeem</span>` : '<span class="text-green-600 font-medium">Free for members</span>'}
+            ${expiry ? `<span>Expires ${expiry}</span>` : ''}
+          </div>
+          ${o.code ? `<div class="text-xs font-mono text-purple-600 mt-1 bg-purple-50 px-2 py-1 rounded">Code: ${o.code}</div>` : ''}
+          ${visitHtml}
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    document.getElementById('offers-list').innerHTML = '';
+    document.getElementById('no-offers').style.display = 'block';
+  }
+}
+
+// ── Apply Offer (preview discount before completing sale) ──
+let currentOffers = [];
+
+function applyOffer(offerId, name, type, value, pointsCost, code) {
+  if (!currentMember) { toast('Look up a member first', 'warn'); return; }
+  if (cart.length === 0) { toast('Add items to cart first', 'warn'); return; }
+  if (appliedOfferId) { toast('Only one offer per transaction', 'warn'); return; }
+
+  const subtotal = getSubtotal();
+  let discount = 0;
+  if (type === 'percent') {
+    discount = Math.round(subtotal * (value / 100) * 100) / 100;
+  } else if (type === 'fixed') {
+    discount = value;
+  } else if (type === 'bogo') {
+    // Cheapest item free
+    const cheapest = Math.min(...cart.map(c => c.price));
+    discount = cheapest;
+  } else {
+    discount = value;
+  }
+
+  appliedOfferId = offerId;
+  appliedOfferName = name;
+  appliedOfferPointsCost = pointsCost;
+  appliedOfferCode = code || null;
+  appliedDiscount = discount;
+
+  document.getElementById('discount-row').style.display = 'flex';
+  document.getElementById('discount-amount').textContent = `-$${discount.toFixed(2)}`;
+  updateTotals();
+
+  toast(`${name} applied — $${discount.toFixed(2)} off!`, 'success');
+  log(`Offer "${name}" applied: -$${discount.toFixed(2)}${pointsCost ? ' (will deduct ' + pointsCost + ' pts at checkout)' : ''}`, 'success');
+
+  // Refresh offer buttons (mark applied)
+  fetchOffers(currentMember.id);
+}
+
+// ── Redeem Offer (called during completeSale) ──
+async function redeemOfferAtCheckout() {
+  if (!appliedOfferId || !currentMember) return;
+  try {
+    const redeemBody = {
+        memberId: currentMember.id,
+        offerId: appliedOfferId,
+        channel: 'pos',
+      };
+    if (appliedOfferCode) redeemBody.redemptionCode = appliedOfferCode;
+    const data = await apiFetch(CONFIG.offerService, `/v1/redemptions`, {
+      method: 'POST',
+      body: redeemBody,
+      extraHeaders: { 'Idempotency-Key': `redeem-${appliedOfferId}-${Date.now()}` },
+    });
+    log(`Offer redeemed: ${appliedOfferName} (redemptionId: ${data.redemptionId || 'ok'})`, 'success');
+    if (data.pointsUsed) {
+      log(`Points deducted: -${data.pointsUsed} pts`, 'info');
+    }
+  } catch (err) {
+    log(`Offer redemption recording failed: ${err.message || 'error'} — discount still applied locally`, 'warn');
+  }
+}
+
+let appliedOfferName = '';
+let appliedOfferPointsCost = 0;
+
+// ── Transaction History / Ledger ──
+async function fetchLedger(memberId) {
+  const section = document.getElementById('history-section');
+  section.style.display = 'block';
+  try {
+    // Fetch both ledger AND transactions for richer display
+    const [ledgerData, txnData] = await Promise.allSettled([
+      apiFetch(CONFIG.memberService, `/v1/members/${memberId}/ledger`),
+      apiFetch(CONFIG.adminApi, `/v1/admin/transactions?memberId=${memberId}&limit=10`),
+    ]);
+
+    const ledger = ledgerData.status === 'fulfilled' ? (Array.isArray(ledgerData.value) ? ledgerData.value : (ledgerData.value?.items || ledgerData.value?.data || [])) : [];
+    const txns = txnData.status === 'fulfilled' ? (Array.isArray(txnData.value) ? txnData.value : (txnData.value?.items || [])) : [];
+
+    const list = document.getElementById('history-list');
+    // Show expanded by default
+    list.style.display = 'block';
+
+    if (txns.length === 0 && ledger.length === 0) {
+      list.innerHTML = '<p class="text-sm text-gray-400 text-center py-2">No recent activity</p>';
+      return;
+    }
+
+    // Prefer transactions (richer data) if available
+    if (txns.length > 0) {
+      list.innerHTML = txns.slice(0, 8).map(t => {
+        const date = new Date(t.occurredAt || t.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const time = new Date(t.occurredAt || t.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const amount = ((t.amount || 0) / 100).toFixed(2);
+        const pts = t.pointsEarned || 0;
+        const store = t.storeName || '';
+        const items = t.items || [];
+        const itemSummary = items.length > 0 ? items.map(i => i.name || i.sku).slice(0, 3).join(', ') + (items.length > 3 ? ` +${items.length - 3} more` : '') : '';
+        const status = t.status || 'posted';
+        const icon = status === 'voided' ? '↩️' : '🛍️';
+
+        return `
+          <div class="bg-white border border-gray-100 rounded-lg px-3 py-2.5 mb-1.5">
+            <div class="flex items-center justify-between mb-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm">${icon}</span>
+                <span class="font-semibold text-gray-900 text-sm">$${amount}</span>
+                ${store ? `<span class="text-xs text-gray-400">· ${store}</span>` : ''}
+              </div>
+              <span class="font-bold text-sm ${pts > 0 ? 'text-green-600' : 'text-gray-400'}">${pts > 0 ? '+' + pts + ' pts' : '—'}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-gray-400">
+              <span>${itemSummary || 'Purchase'}</span>
+              <span>${date} ${time}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      // Fallback to ledger
+      list.innerHTML = ledger.slice(0, 8).map(e => {
+        const date = e.createdAt ? new Date(e.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+        const pts = e.points || e.amount || e.delta || 0;
+        const reason = e.reasonCode || e.reason || e.type || 'transaction';
+        const icon = reason === 'earn' ? '⭐' : reason === 'redeem' ? '🎁' : reason === 'void' ? '↩️' : reason === 'expire' ? '⏰' : '💳';
+        const label = reason === 'earn' ? 'Points Earned' : reason === 'redeem' ? 'Redemption' : reason === 'void' ? 'Void' : reason === 'expire' ? 'Expired' : reason === 'adjust' ? 'Adjustment' : reason;
+        return `
+          <div class="bg-white border border-gray-100 rounded-lg px-3 py-2 mb-1.5 flex items-center justify-between text-sm">
+            <div class="flex items-center gap-1.5">
+              <span>${icon}</span>
+              <span class="font-medium text-gray-700">${label}</span>
+              <span class="text-gray-400 text-xs">${date}</span>
+            </div>
+            <span class="font-bold ${pts >= 0 ? 'text-green-600' : 'text-red-500'}">${pts >= 0 ? '+' : ''}${pts} pts</span>
+          </div>
+        `;
+      }).join('');
+    }
+  } catch (err) {
+    // Ledger may not be available
+  }
+}
+
+function toggleOffers() {
+  const list = document.getElementById('offers-list');
+  const noOffers = document.getElementById('no-offers');
+  const chevron = document.getElementById('offers-chevron');
+  const isHidden = list.style.display === 'none';
+  list.style.display = isHidden ? '' : 'none';
+  if (noOffers.style.display !== 'none') noOffers.style.display = isHidden ? '' : 'none';
+  chevron.style.transform = isHidden ? 'rotate(90deg)' : '';
+}
+
+function toggleHistory() {
+  const list = document.getElementById('history-list');
+  const chevron = document.getElementById('history-chevron');
+  const isHidden = list.style.display === 'none';
+  list.style.display = isHidden ? 'block' : 'none';
+  chevron.style.transform = isHidden ? 'rotate(90deg)' : '';
+}
+
+// ── Complete Sale / Process Transaction ──
+async function completeSale() {
+  if (!currentMember || cart.length === 0) return;
+
+  const subtotal = getSubtotal();
+  const tax = subtotal * 0.085;
+  const total = subtotal + tax - appliedDiscount;
+  const idempotencyKey = uuidv4();
+  lastIdempotencyKey = idempotencyKey;
+
+  const associateVal = document.getElementById('associate-select').value;
+  const associateId = associateVal.split(' — ')[0];
+  const associateName = associateVal.split(' — ')[1] || '';
+
+  const payload = {
+    memberId: currentMember.id,
+    channel: 'pos',
+    amount: Math.round(Math.max(0, total) * 100),  // cents (minor units)
+    currency: 'USD',
+    skuList: cart.map(item => ({
+      sku: item.sku,
+      name: item.name,
+      quantity: item.qty,
+      unitPrice: item.price,
+      ...(item.category ? { category: item.category } : {}),
+    })),
+    storeId: document.getElementById('store-id').value,
+    storeName: document.getElementById('store-name').value,
+    registerId: document.getElementById('register-id').value,
+    associateId: associateId,
+    associateName: associateName,
+    sourceChannel: 'in-store',
+    sourceSystem: 'square',
+    orderRef: `ORD-${Date.now()}`,
+    metadata: {
+      terminalId: 'pos-terminal-1',
+      subtotal: subtotal,
+      tax: tax,
+      discount: appliedDiscount,
+    },
+  };
+  lastTransactionPayload = payload;
+
+  const previousTier = (currentMember.tier || 'bronze').toLowerCase();
+
+  try {
+    const data = await apiFetch(CONFIG.loyaltyEngine, `/v1/transactions`, {
+      method: 'POST',
+      body: payload,
+      extraHeaders: { 'Idempotency-Key': idempotencyKey },
+    });
+
+    lastTransactionId = data.id || data.transactionId;
+    const pointsEarned = data.pointsEarned || data.points || 0;
+    const newBalance = data.newBalance || data.balance || (currentMember.pointsBalance || 0) + pointsEarned;
+    const newTier = data.tier || data.newTier || currentMember.tier;
+
+    log(`Transaction ${lastTransactionId}: earned ${pointsEarned} pts`, 'success');
+    log(`New balance: ${newBalance.toLocaleString()} pts`, 'success');
+
+    // Update member card
+    animatePointsEarned(pointsEarned);
+    document.getElementById('points-balance').textContent = newBalance.toLocaleString();
+    currentMember.pointsBalance = newBalance;
+
+    // Tier change check
+    if (newTier && newTier.toLowerCase() !== previousTier) {
+      showTierCelebration(previousTier, newTier.toLowerCase());
+      currentMember.tier = newTier;
+      renderMemberCard({ ...currentMember, pointsBalance: newBalance });
+      animatePointsEarned(pointsEarned);
+    }
+
+    // Record the offer redemption if one was applied
+    if (appliedOfferId) {
+      await redeemOfferAtCheckout();
+    }
+
+    // Show receipt
+    showReceipt(data, pointsEarned, newBalance, total);
+
+    toast(`Sale complete! Earned ${pointsEarned} points${appliedDiscount > 0 ? ', saved $' + appliedDiscount.toFixed(2) : ''}`, 'success');
+
+    // Refresh balance, offers, and activity
+    await Promise.allSettled([fetchBalance(currentMember.id), fetchOffers(currentMember.id), fetchLedger(currentMember.id)]);
+
+  } catch (err) {
+    toast('Transaction failed', 'error');
+    log(`Transaction failed: ${JSON.stringify(err.data || err.message)}`, 'error');
+  }
+}
+
+function animatePointsEarned(points) {
+  const container = document.getElementById('points-earned-anim');
+  const value = document.getElementById('points-earned-value');
+  container.style.display = 'block';
+  value.textContent = `+${points}`;
+  value.classList.remove('animate-count');
+  void value.offsetWidth; // trigger reflow
+  value.classList.add('animate-count');
+}
+
+function showTierCelebration(oldTier, newTier) {
+  const el = document.getElementById('tier-celebration');
+  const text = document.getElementById('tier-celebration-text');
+  el.style.display = 'block';
+  el.className = `mt-3 p-3 rounded-lg text-center animate-celebration tier-${newTier} ${newTier === 'platinum' || newTier === 'silver' ? 'text-gray-800' : 'text-white'}`;
+  text.textContent = `Upgraded from ${oldTier} to ${newTier}!`;
+}
+
+function showReceipt(data, pointsEarned, newBalance, total) {
+  const area = document.getElementById('receipt-area');
+  const details = document.getElementById('receipt-details');
+  area.style.display = 'block';
+  const receiptStore = document.getElementById('store-name').value || 'N/A';
+  const receiptAssoc = document.getElementById('associate-select').value || 'N/A';
+
+  // Per-visit earn mode details
+  let earnModeHtml = '';
+  if (data.earnMode === 'per-visit') {
+    if (data.qualifiedAsVisit) {
+      earnModeHtml = `<span class="text-green-700">Earn Mode:</span><span class="text-green-600 font-medium">Qualified visit &mdash; earned ${pointsEarned} pts</span>`;
+    } else if (data.dailyVisitCount && data.maxVisitsPerDay && data.dailyVisitCount > data.maxVisitsPerDay) {
+      earnModeHtml = `<span class="text-green-700">Earn Mode:</span><span class="text-red-500 font-medium">Daily visit limit reached (${data.maxVisitsPerDay}/day)</span>`;
+    } else {
+      const cfg = cachedProgramConfig;
+      const minSpend = cfg ? (cfg.visitMinSpendCents || 500) / 100 : 5;
+      earnModeHtml = `<span class="text-green-700">Earn Mode:</span><span class="text-red-500 font-medium">Below minimum spend ($${minSpend.toFixed(2)}) &mdash; no points earned</span>`;
+    }
+  }
+
+  details.innerHTML = `
+    <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+      <span class="text-green-700">Transaction ID:</span><span class="font-mono text-xs">${lastTransactionId || 'N/A'}</span>
+      <span class="text-green-700">Amount:</span><span>$${total.toFixed(2)}</span>
+      <span class="text-green-700">Points Earned:</span><span class="font-bold">+${pointsEarned}</span>
+      <span class="text-green-700">New Balance:</span><span class="font-bold">${newBalance.toLocaleString()} pts</span>
+      ${earnModeHtml}
+      <span class="text-green-700">Store:</span><span>${receiptStore}</span>
+      <span class="text-green-700">Associate:</span><span>${receiptAssoc}</span>
+      <span class="text-green-700">Idempotency Key:</span><span class="font-mono text-xs">${lastIdempotencyKey}</span>
+    </div>
+  `;
+  // Disable complete sale button
+  document.getElementById('btn-complete-sale').disabled = true;
+
+  // Auto-reset for next customer after 8 seconds
+  if (window._receiptTimer) clearTimeout(window._receiptTimer);
+  window._receiptTimer = setTimeout(() => {
+    newSale();
+    toast('Ready for next customer', 'info');
+  }, 2000);
+}
+
+// ── Void Transaction ──
+async function voidLastTransaction() {
+  if (!lastTransactionId) { toast('No transaction to void', 'warn'); return; }
+  try {
+    const data = await apiFetch(CONFIG.loyaltyEngine, `/v1/transactions/${lastTransactionId}/void`, { method: 'POST' });
+    const pointsReversed = data.pointsReversed || data.points || 0;
+    toast(`Transaction voided. ${pointsReversed} points reversed.`, 'info');
+    log(`Voided transaction ${lastTransactionId}: ${pointsReversed} pts reversed`, 'warn');
+
+    if (currentMember) {
+      await fetchBalance(currentMember.id);
+      await fetchLedger(currentMember.id);
+    }
+
+    document.getElementById('receipt-area').style.display = 'none';
+    lastTransactionId = null;
+  } catch (err) {
+    toast('Void failed', 'error');
+  }
+}
+
+// ── Idempotency Retry Demo ──
+async function retryPayment() {
+  if (!lastIdempotencyKey || !lastTransactionPayload) { toast('No transaction to retry', 'warn'); return; }
+  log(`Retrying with same Idempotency-Key: ${lastIdempotencyKey}`, 'warn');
+
+  try {
+    const data = await apiFetch(CONFIG.loyaltyEngine, `/v1/transactions`, {
+      method: 'POST',
+      body: lastTransactionPayload,
+      extraHeaders: { 'Idempotency-Key': lastIdempotencyKey },
+    });
+
+    const newBalance = data.newBalance || data.balance;
+    const currentBalance = parseInt(document.getElementById('points-balance').textContent.replace(/,/g, ''));
+    if (newBalance && newBalance === currentBalance) {
+      toast('Idempotency confirmed! Balance unchanged - duplicate was safely ignored.', 'success');
+      log(`Idempotency check passed: balance still ${newBalance.toLocaleString()} pts (no double-earn)`, 'success');
+    } else {
+      toast('Retry processed. Check balance for details.', 'info');
+      log(`Retry response received. Server returned balance: ${newBalance || 'N/A'}`, 'info');
+    }
+  } catch (err) {
+    if (err.status === 409) {
+      toast('Idempotency confirmed! Duplicate rejected (409 Conflict).', 'success');
+      log('Idempotency check passed: server returned 409 Conflict (duplicate detected)', 'success');
+    } else {
+      toast('Retry failed', 'error');
+    }
+  }
+}
+
+// ── Enrollment ──
+function showEnrollModal() {
+  document.getElementById('enroll-modal').style.display = 'flex';
+  const phone = document.getElementById('phone-input').value.trim();
+  if (phone) document.getElementById('enroll-phone').value = phone;
+}
+
+function hideEnrollModal() {
+  document.getElementById('enroll-modal').style.display = 'none';
+}
+
+async function enrollMember() {
+  const firstName = document.getElementById('enroll-first').value.trim();
+  const lastName = document.getElementById('enroll-last').value.trim();
+  const email = document.getElementById('enroll-email').value.trim();
+  const rawPhone = document.getElementById('enroll-phone').value.trim();
+
+  if (!firstName || !lastName || !rawPhone) { toast('Fill in required fields', 'warn'); return; }
+  const digits = rawPhone.replace(/\D/g, '');
+  if (digits.length < 10) { toast('Enter a valid 10-digit phone number', 'warn'); return; }
+  const phone = normalizePhone(rawPhone);
+
+  const enrollAssociateVal = document.getElementById('associate-select').value;
+  const enrollAssociateId = enrollAssociateVal.split(' — ')[0];
+  const enrollStoreId = document.getElementById('store-id').value;
+
+  try {
+    const data = await apiFetch(CONFIG.memberService, `/v1/members`, {
+      method: 'POST',
+      body: { firstName, lastName, email, phone, enrolledChannel: 'pos', metadata: { enrolledBy: enrollAssociateId, storeId: enrollStoreId } },
+    });
+    currentMember = data;
+    toast(`Welcome, ${firstName}! Enrolled successfully.`, 'success');
+    log(`New member enrolled: ${firstName} ${lastName} (${data.id})`, 'success');
+    hideEnrollModal();
+    renderMemberCard(data);
+    document.getElementById('phone-input').value = phone;
+    updateTotals();
+    await Promise.allSettled([fetchOffers(data.id), fetchLedger(data.id)]);
+  } catch (err) {
+    toast('Enrollment failed', 'error');
+  }
+}
+
+// ── New Sale (full reset for next customer) ──
+function newSale() {
+  cart = [];
+  appliedDiscount = 0;
+  appliedOfferId = null;
+  appliedOfferName = '';
+  appliedOfferPointsCost = 0;
+  appliedOfferCode = null;
+  lastTransactionId = null;
+  lastIdempotencyKey = null;
+  lastTransactionPayload = null;
+  currentMember = null;
+  currentOffers = [];
+
+  // Hide receipt + discount + animations
+  document.getElementById('receipt-area').style.display = 'none';
+  document.getElementById('discount-row').style.display = 'none';
+  document.getElementById('points-earned-anim').style.display = 'none';
+  document.getElementById('tier-celebration').style.display = 'none';
+
+  // Clear member card
+  document.getElementById('member-card').style.display = 'none';
+
+  // Clear offers + history
+  document.getElementById('offers-section').style.display = 'none';
+  document.getElementById('offers-list').innerHTML = '';
+  document.getElementById('history-section').style.display = 'none';
+  document.getElementById('history-list').innerHTML = '';
+
+  // Clear phone input
+  document.getElementById('phone-input').value = '';
+
+  // Disable complete sale button
+  document.getElementById('btn-complete-sale').disabled = true;
+
+  // Render empty cart
+  renderCart();
+  updateTotals();
+}
+
+// ── UI Toggles ──
+function toggleActivityLog() {
+  const el = document.getElementById('activity-log');
+  const chevron = document.getElementById('log-chevron');
+  const isHidden = el.style.maxHeight === '0px';
+  el.style.maxHeight = isHidden ? '160px' : '0px';
+  el.style.paddingBottom = isHidden ? '8px' : '0';
+  chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
+}
+
+function toggleDebug() {
+  const el = document.getElementById('debug-panel');
+  const chevron = document.getElementById('debug-chevron');
+  const isHidden = el.style.display === 'none';
+  el.style.display = isHidden ? 'block' : 'none';
+  chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
+}
+
+// ── Health Checks ──
+async function checkHealth() {
+  const checks = [
+    { url: CONFIG.memberService, el: 'status-member' },
+    { url: CONFIG.loyaltyEngine, el: 'status-engine' },
+    { url: CONFIG.offerService, el: 'status-offer' },
+  ];
+  for (const check of checks) {
+    try {
+      const res = await fetch(`${check.url}/health`, { method: 'GET', signal: AbortSignal.timeout(5000) });
+      document.getElementById(check.el).className = `status-dot ${res.ok ? 'status-green' : 'status-red'}`;
+    } catch {
+      document.getElementById(check.el).className = 'status-dot status-red';
+    }
+  }
+}
+
+// ── Clock ──
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+}
+
+// ── Init ──
+renderProducts();
+updateClock();
+setInterval(updateClock, 1000);
+checkHealth();
+setInterval(checkHealth, 30000);
+log('POS Terminal initialized');
+log(`Member Service: ${CONFIG.memberService}`);
+log(`Loyalty Engine: ${CONFIG.loyaltyEngine}`);
+log(`Offer Service: ${CONFIG.offerService}`);
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "subscriptionId": "13e630db-8816-46b8-896e-511fab75a53a",
+  "resourceGroup": "loyalty-platform-dev",
+  "location": "eastus",
+  "appServicePlanId": "/subscriptions/13e630db-8816-46b8-896e-511fab75a53a/resourceGroups/loyalty-platform-dev/providers/Microsoft.Web/serverfarms/loyalty-dev-asp",
+  "apimUrl": "https://loyalty-dev-apim-5rdrqh.azure-api.net",
+  "apimName": "loyalty-dev-apim-5rdrqh",
+  "serviceBusNamespace": "loyalty-dev-sb-5rdrqh",
+  "serviceBusConnectionStringSecretName": "service-bus-connection-string",
+  "sqlServerName": "loyalty-dev-sql-5rdrqhw",
+  "sqlServerFqdn": "loyalty-dev-sql-5rdrqhw.database.windows.net",
+  "controlPlaneDbName": "control-plane",
+  "redisHostname": "loyalty-dev-redis-5rdrqh.redis.cache.windows.net",
+  "redisConnectionStringSecretName": "redis-connection-string",
+  "storageAccountName": "loyaltydevst5rdrqh",
+  "keyVaultName": "loyalty-dev-kv-5rdrqh",
+  "keyVaultUri": "https://loyalty-dev-kv-5rdrqh.vault.azure.net/",
+  "appInsightsConnectionString": "REDACTED — retrieve from Key Vault secret 'app-insights-connection-string'",
+  "appInsightsConnectionStringSecretName": "app-insights-connection-string",
+  "logAnalyticsWorkspaceId": "/subscriptions/13e630db-8816-46b8-896e-511fab75a53a/resourceGroups/loyalty-platform-dev/providers/Microsoft.OperationalInsights/workspaces/loyalty-dev-law",
+  "containerAppsEnvId": "/subscriptions/13e630db-8816-46b8-896e-511fab75a53a/resourceGroups/loyalty-platform-dev/providers/Microsoft.App/managedEnvironments/loyalty-dev-cae",
+  "containerAppsEnvName": "loyalty-dev-cae"
+}

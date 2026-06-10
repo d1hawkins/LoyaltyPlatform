@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webhooks — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link active">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Webhooks
+        </div>
+
+        <h1>Webhooks</h1>
+        <p class="subtitle">Receive real-time HTTP notifications for loyalty platform events with HMAC-SHA256 signature verification and automatic retries.</p>
+
+        <h2>Overview</h2>
+        <p>The webhook system delivers events to your registered HTTP endpoints. Events flow through Azure Service Bus, are persisted to a durable delivery table, and then dispatched via HTTP POST with retry logic.</p>
+
+        <pre class="language-text"><code>Platform Event --> Service Bus --> Webhook Worker --> webhook_deliveries (DB)
+                                                            |
+                                         Delivery Loop ---->|  POST your-endpoint.com
+                                           2xx = delivered
+                                           5xx = retry (exponential backoff)
+                                           4xx = permanent failure</code></pre>
+
+        <h2>Supported Events</h2>
+        <table>
+          <thead>
+            <tr><th>Event Type</th><th>Trigger</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>member.enrolled</code></td><td>New member enrolled</td></tr>
+            <tr><td><code>member.updated</code></td><td>Member profile updated</td></tr>
+            <tr><td><code>member.deleted</code></td><td>Member GDPR deleted</td></tr>
+            <tr><td><code>points.earned</code></td><td>Points awarded (transaction or adjustment)</td></tr>
+            <tr><td><code>points.redeemed</code></td><td>Points redeemed for offer</td></tr>
+            <tr><td><code>tier.upgraded</code></td><td>Member tier upgraded</td></tr>
+            <tr><td><code>tier.downgraded</code></td><td>Member tier downgraded</td></tr>
+            <tr><td><code>transaction.voided</code></td><td>Transaction reversed</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Event Envelope</h2>
+        <p>All events are wrapped in a standard envelope:</p>
+        <pre><code class="language-json">{
+  "eventId": "550e8400-e29b-41d4-a716-446655440000",
+  "eventType": "points.earned",
+  "tenantId": "your-tenant-id",
+  "timestamp": "2026-04-10T12:00:00Z",
+  "version": "1.0",
+  "payload": {
+    "memberId": "member-uuid",
+    "transactionId": "txn-uuid",
+    "ledgerId": "ledger-uuid",
+    "delta": 25,
+    "newBalance": 125,
+    "channel": "pos",
+    "reasonCode": "earn"
+  }
+}</code></pre>
+
+        <h2>Event Payloads</h2>
+
+        <h3>points.earned</h3>
+        <pre><code class="language-json">{
+  "memberId": "uuid",
+  "transactionId": "uuid",
+  "ledgerId": "uuid",
+  "delta": 25,
+  "newBalance": 125,
+  "channel": "pos",
+  "reasonCode": "earn"
+}</code></pre>
+
+        <h3>points.redeemed</h3>
+        <pre><code class="language-json">{
+  "memberId": "uuid",
+  "redemptionId": "uuid",
+  "ledgerId": "uuid",
+  "delta": -200,
+  "newBalance": 925,
+  "offerId": "offer-1"
+}</code></pre>
+
+        <h3>transaction.voided</h3>
+        <pre><code class="language-json">{
+  "memberId": "uuid",
+  "transactionId": "uuid",
+  "originalLedgerId": "uuid",
+  "reversalLedgerId": "uuid",
+  "delta": -25,
+  "newBalance": 100,
+  "reason": "customer return"
+}</code></pre>
+
+        <h3>member.enrolled</h3>
+        <pre><code class="language-json">{
+  "memberId": "uuid",
+  "channel": "ecommerce",
+  "enrolledAt": "2026-04-10T12:00:00Z",
+  "tierId": "bronze"
+}</code></pre>
+
+        <h2>HTTP Request Format</h2>
+        <p>Each webhook delivery sends a POST request with these headers:</p>
+
+        <table>
+          <thead>
+            <tr><th>Header</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Content-Type</code></td><td><code>application/json</code></td></tr>
+            <tr><td><code>X-Loyalty-Event</code></td><td>Event type (e.g. <code>points.earned</code>)</td></tr>
+            <tr><td><code>X-Loyalty-Signature</code></td><td><code>sha256={hex}</code> -- HMAC-SHA256 signature</td></tr>
+            <tr><td><code>X-Loyalty-Delivery-Id</code></td><td>Unique delivery UUID (use for idempotency)</td></tr>
+            <tr><td><code>X-Loyalty-Timestamp</code></td><td>ISO-8601 timestamp used in signature</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Signature Verification</h2>
+        <p>Verify that webhook requests originate from the Loyalty Platform by checking the HMAC-SHA256 signature.</p>
+
+        <h3>Canonical String</h3>
+        <pre class="language-text"><code>{timestamp}.{raw_request_body}</code></pre>
+
+        <h3>Verification (Node.js)</h3>
+        <pre><code class="language-typescript">import crypto from 'crypto';
+
+function verifyWebhookSignature(
+  secret: string,
+  timestamp: string,
+  body: string,
+  signature: string
+): boolean {
+  const canonical = `${timestamp}.${body}`;
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', secret)
+    .update(canonical)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(expected),
+    Buffer.from(signature)
+  );
+}
+
+// In your Express handler:
+app.post('/webhooks/loyalty', (req, res) => {
+  const isValid = verifyWebhookSignature(
+    process.env.WEBHOOK_SECRET,
+    req.headers['x-loyalty-timestamp'],
+    JSON.stringify(req.body), // or raw body
+    req.headers['x-loyalty-signature']
+  );
+
+  if (!isValid) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  // Use X-Loyalty-Delivery-Id for idempotency
+  const deliveryId = req.headers['x-loyalty-delivery-id'];
+
+  // Process the event
+  const { eventType, payload } = req.body;
+  switch (eventType) {
+    case 'points.earned':
+      handlePointsEarned(payload);
+      break;
+    case 'member.enrolled':
+      handleMemberEnrolled(payload);
+      break;
+    // ...
+  }
+
+  res.status(200).send('OK');
+});</code></pre>
+
+        <h2>Retry Schedule</h2>
+        <p>Failed deliveries are retried with exponential backoff. 4xx responses are treated as permanent failures and are not retried.</p>
+
+        <table>
+          <thead>
+            <tr><th>Attempt</th><th>Wait Before Next</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>30 seconds</td></tr>
+            <tr><td>2</td><td>2 minutes</td></tr>
+            <tr><td>3</td><td>10 minutes</td></tr>
+            <tr><td>4</td><td>1 hour</td></tr>
+            <tr><td>5</td><td>6 hours</td></tr>
+          </tbody>
+        </table>
+
+        <p>After 5 failed attempts, the delivery is marked <code>dead</code> and a <code>webhook.delivery.failed</code> event is emitted.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Timeout</div>
+          Your endpoint must respond within <strong>10 seconds</strong>. For long-running processing, acknowledge the webhook immediately and process asynchronously.
+        </div>
+
+        <h2>Managing Webhooks</h2>
+        <p>Use the Admin API to register, test, and monitor webhooks.</p>
+
+        <h3>Register a Webhook</h3>
+        <pre><code class="language-bash">curl -X POST https://loyalty-dev-apim-5rdrqh.azure-api.net/v1/admin/webhooks \
+  -H "Content-Type: application/json" \
+  -H "Ocp-Apim-Subscription-Key: YOUR_KEY" \
+  -H "X-Tenant-ID: YOUR_TENANT_ID" \
+  -H "X-User-Role: manager" \
+  -H "X-Skip-Auth: true" \
+  -d '{
+    "targetUrl": "https://your-server.com/webhooks/loyalty",
+    "secret": "your-shared-secret",
+    "events": ["points.earned", "member.enrolled"]
+  }'</code></pre>
+
+        <h3>Send a Test Event</h3>
+        <pre><code class="language-bash">curl -X POST https://loyalty-dev-apim-5rdrqh.azure-api.net/v1/admin/webhooks/{hookId}/test \
+  -H "Ocp-Apim-Subscription-Key: YOUR_KEY" \
+  -H "X-Tenant-ID: YOUR_TENANT_ID" \
+  -H "X-User-Role: manager" \
+  -H "X-Skip-Auth: true"</code></pre>
+
+        <h3>View Delivery History</h3>
+        <pre><code class="language-bash">curl "https://loyalty-dev-apim-5rdrqh.azure-api.net/v1/admin/webhooks/{hookId}/deliveries?status=dead&limit=50" \
+  -H "Ocp-Apim-Subscription-Key: YOUR_KEY" \
+  -H "X-Tenant-ID: YOUR_TENANT_ID" \
+  -H "X-User-Role: manager" \
+  -H "X-Skip-Auth: true"</code></pre>
+
+        <h3>Retry a Failed Delivery</h3>
+        <pre><code class="language-bash">curl -X POST https://loyalty-dev-apim-5rdrqh.azure-api.net/admin/webhooks/deliveries/{deliveryId}/retry \
+  -H "Ocp-Apim-Subscription-Key: YOUR_KEY" \
+  -H "X-Tenant-ID: YOUR_TENANT_ID" \
+  -H "X-Skip-Auth: true"</code></pre>
+
+        <h2>Best Practices</h2>
+        <ul>
+          <li><strong>Respond quickly</strong> -- return 200 within 10 seconds. Process asynchronously for heavy work.</li>
+          <li><strong>Idempotency</strong> -- use <code>X-Loyalty-Delivery-Id</code> to deduplicate. The same event may be delivered more than once.</li>
+          <li><strong>Verify signatures</strong> -- always validate the HMAC signature before processing.</li>
+          <li><strong>Handle all event types</strong> -- gracefully ignore unknown <code>eventType</code> values for forward compatibility.</li>
+          <li><strong>Return 2xx for success</strong> -- any 2xx status code is accepted. 4xx is a permanent failure. 5xx triggers retry.</li>
+        </ul>
+
+        <div class="next-page">
+          <a href="errors.html">Next: Errors &amp; Rate Limits &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

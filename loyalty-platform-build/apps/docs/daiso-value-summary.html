@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daiso Rewards Platform - Value Summary | Xenia Retail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue: #1da0d9;
+  --magenta: #ae1d6b;
+  --dark: #272727;
+  --light-bg: #dff1f9;
+}
+
+html, body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 36px 40px 32px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--blue);
+  padding-bottom: 16px;
+  margin-bottom: 28px;
+}
+.header img {
+  height: 36px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+}
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--dark);
+  letter-spacing: -0.3px;
+}
+.header h1 span {
+  color: var(--blue);
+}
+
+/* Layout */
+.content {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+/* Left column */
+.requirements {
+  flex: 0 0 30%;
+  border-left: 4px solid var(--blue);
+  padding-left: 20px;
+}
+.requirements .section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 14px;
+}
+.req-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.req-item .check {
+  color: #22c55e;
+  font-size: 16px;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.req-summary {
+  font-size: 12px;
+  color: #888;
+  font-weight: 500;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Right column */
+.capabilities {
+  flex: 1;
+}
+.capabilities .section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 14px;
+}
+.cap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px 20px;
+}
+.cap-group h3 {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  padding-bottom: 3px;
+  border-bottom: 2px solid var(--blue);
+  display: inline-block;
+}
+.cap-group h3.alt {
+  border-bottom-color: var(--magenta);
+}
+.cap-group ul {
+  list-style: none;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #444;
+}
+
+/* Callout */
+.callout {
+  margin-top: 24px;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 8px;
+  padding: 14px 24px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* Footer */
+.footer {
+  margin-top: 24px;
+  padding-top: 14px;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #999;
+}
+.footer a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+/* Print styles */
+@media print {
+  html, body {
+    font-size: 11px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page {
+    padding: 20mm 18mm 15mm;
+    max-width: none;
+  }
+  .callout {
+    background: var(--blue) !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .cap-group h3 {
+    border-bottom-color: var(--blue) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .cap-group h3.alt {
+    border-bottom-color: var(--magenta) !important;
+  }
+  .requirements {
+    border-left-color: var(--blue) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .header {
+    border-bottom-color: var(--blue) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .req-item .check {
+    color: #22c55e !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <img src="https://xeniaretail.com/wp-content/uploads/2017/01/Xenia-Logo-White.png" alt="Xenia Retail"
+         style="filter: brightness(0) saturate(100%) invert(47%) sepia(85%) saturate(1200%) hue-rotate(170deg) brightness(92%) contrast(92%);">
+    <h1>Daiso Rewards Platform &mdash; <span>Value Summary</span></h1>
+  </div>
+
+  <!-- Two-column content -->
+  <div class="content">
+
+    <!-- Left: Requirements -->
+    <div class="requirements">
+      <div class="section-title">What You Asked For</div>
+      <div class="req-item">
+        <span class="check">&#10003;</span>
+        <span>Registration via phone number</span>
+      </div>
+      <div class="req-item">
+        <span class="check">&#10003;</span>
+        <span>Member rank based on visit frequency</span>
+      </div>
+      <div class="req-item">
+        <span class="check">&#10003;</span>
+        <span>Coupon issuance based on visit frequency</span>
+      </div>
+      <div class="req-item">
+        <span class="check">&#10003;</span>
+        <span>Members check own status &amp; history</span>
+      </div>
+      <div class="req-summary">4 requirements &mdash; all delivered</div>
+    </div>
+
+    <!-- Right: Capabilities -->
+    <div class="capabilities">
+      <div class="section-title">What You're Getting — and Why It Matters</div>
+      <table style="width:100%; border-collapse:collapse; font-size:12px; line-height:1.5;">
+        <thead>
+          <tr style="border-bottom:2px solid #1da0d9; text-align:left;">
+            <th style="padding:6px 12px 6px 0; color:#1da0d9; width:35%;">Capability</th>
+            <th style="padding:6px 0; color:#1da0d9;">Why It Matters to Daiso</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Points engine (per-visit + per-dollar)</td><td style="padding:4px 0; color:#555;">Reward every visit, not just big spenders — fits Daiso's $1.50 average item</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Promotional multipliers</td><td style="padding:4px 0; color:#555;">"Double points weekends" drives foot traffic during slow periods</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">5 offer types + free item</td><td style="padding:4px 0; color:#555;">Run diverse campaigns — BOGO, thresholds, free items, not just coupons</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Visit qualification rules</td><td style="padding:4px 0; color:#555;">Prevents gaming — buying a $1 item doesn't count as a qualifying visit</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Code-bound coupons</td><td style="padding:4px 0; color:#555;">Can't be shared on social media — only the earning member can redeem</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Self-checkout kiosk</td><td style="padding:4px 0; color:#555;">Works with Daiso's existing SCO lanes — no extra hardware needed</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Web member portal</td><td style="padding:4px 0; color:#555;">Customers check points without downloading an app — zero friction</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">ASC 606 liability reporting</td><td style="padding:4px 0; color:#555;">Finance team gets quarterly numbers without manual calculation</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Fraud detection (6 rules)</td><td style="padding:4px 0; color:#555;">Protects against loyalty abuse before it costs money</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Full audit trail</td><td style="padding:4px 0; color:#555;">Every change tracked — compliance and accountability built in</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">ActiveCampaign + Klaviyo</td><td style="padding:4px 0; color:#555;">Connect existing marketing tools — trigger campaigns on loyalty events</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">GDPR/CCPA + PII encryption</td><td style="padding:4px 0; color:#555;">Customer data encrypted at rest — ready for any compliance audit</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Category &amp; SKU multipliers</td><td style="padding:4px 0; color:#555;">Bonus points on specific products — push high-margin or seasonal items</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Points expiry with warnings</td><td style="padding:4px 0; color:#555;">Creates urgency to redeem — 30d/7d advance SMS warnings reduce liability</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">POS integration (3 API calls)</td><td style="padding:4px 0; color:#555;">Straightforward POS integration — lookup, transact, redeem is all that's needed</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Transaction enrichment (9 fields)</td><td style="padding:4px 0; color:#555;">Store, register, associate, items on every transaction — full traceability</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">E-commerce SDK (Shopify, WooCommerce)</td><td style="padding:4px 0; color:#555;">Ready for Daiso's online store — same loyalty across all channels</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Customer enrollment page (brandable)</td><td style="padding:4px 0; color:#555;">QR code at register, tablet at checkout, self-checkout, website embed — multiple signup paths</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Engagement funnel &amp; at-risk detection</td><td style="padding:4px 0; color:#555;">Marketing knows who's disengaging — target win-back campaigns before churn</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Visit analytics &amp; conversion tracking</td><td style="padding:4px 0; color:#555;">See what % of transactions qualify — optimize min spend threshold</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Revenue attribution</td><td style="padding:4px 0; color:#555;">Prove loyalty ROI — compare member spend vs non-member baseline</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Webhook delivery (real-time events)</td><td style="padding:4px 0; color:#555;">POS reacts instantly to tier changes, offer unlocks — no polling needed</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Admin portal (21 pages)</td><td style="padding:4px 0; color:#555;">Complete self-service — Daiso manages the program without calling Xenia</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:4px 12px 4px 0; font-weight:500;">Multi-tenant database isolation</td><td style="padding:4px 0; color:#555;">Daiso's data is physically separated — no accidental cross-tenant leaks</td></tr>
+          <tr><td style="padding:4px 12px 4px 0; font-weight:500;">SMS milestone notifications</td><td style="padding:4px 0; color:#555;">Automatic coupon sent to member's phone within seconds of qualifying visit</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Callout -->
+  <div class="callout">
+    Daiso asked for 4 capabilities. The platform delivers 25+ &mdash; a complete loyalty ecosystem ready for day one.
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>Xenia Retail &nbsp;|&nbsp; xeniaretail.com &nbsp;|&nbsp; Confidential</span>
+    <span>Contact: <a href="mailto:info@xeniaretail.com">info@xeniaretail.com</a></span>
+  </div>
+
+</div>
+
+</body>
+</html>

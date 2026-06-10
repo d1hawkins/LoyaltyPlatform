@@ -1,0 +1,72 @@
+{% comment %}
+  Loyalty Platform — Balance Widget for Shopify Storefront
+
+  Include this snippet in your theme layout or template:
+    {% include 'loyalty-balance' %}
+
+  Requirements:
+  - Customer must be logged in (uses customer.email for member lookup)
+  - SDK bundle hosted at a CDN URL (update the script src below)
+  - Theme settings or metafields for API configuration
+
+  Configuration:
+  Set these in your theme settings or as Liquid variables:
+    loyalty_api_url    - Your APIM gateway URL
+    loyalty_api_key    - Your subscription key
+    loyalty_tenant_id  - Your tenant ID
+{% endcomment %}
+
+{% if customer %}
+<div id="loyalty-balance-container" style="margin: 16px 0;"></div>
+<div id="loyalty-offers-container" style="margin: 16px 0;"></div>
+
+<script src="https://cdn.example.com/loyalty-sdk/latest/loyalty-sdk.umd.js"></script>
+<script>
+(function() {
+  // Configuration — update these values for your environment
+  var config = {
+    apiUrl: '{{ settings.loyalty_api_url | default: "https://loyalty-dev-apim-5rdrqh.azure-api.net" }}',
+    apiKey: '{{ settings.loyalty_api_key | default: "" }}',
+    tenantId: '{{ settings.loyalty_tenant_id | default: "" }}'
+  };
+
+  if (!config.apiKey || !config.tenantId) {
+    console.warn('Loyalty SDK: Missing apiKey or tenantId configuration');
+    return;
+  }
+
+  var client = new LoyaltySDK.LoyaltyClient(config);
+  var customerEmail = '{{ customer.email | escape }}';
+
+  if (!customerEmail) return;
+
+  // Lookup member by email, then render widgets
+  client.lookupByEmail(customerEmail).then(function(member) {
+    if (!member) {
+      // Customer is not enrolled — optionally show enrollment CTA
+      var container = document.getElementById('loyalty-balance-container');
+      if (container) {
+        container.innerHTML = '<div style="font-family:system-ui,sans-serif;padding:12px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;">' +
+          '<div style="color:#718096;font-size:14px;">Join our loyalty program to earn points on every purchase!</div>' +
+          '</div>';
+      }
+      return;
+    }
+
+    // Render balance widget
+    var balanceEl = document.getElementById('loyalty-balance-container');
+    if (balanceEl) {
+      LoyaltySDK.renderBalanceWidget(balanceEl, client, member.id);
+    }
+
+    // Render offers widget
+    var offersEl = document.getElementById('loyalty-offers-container');
+    if (offersEl) {
+      LoyaltySDK.renderOffersWidget(offersEl, client, member.id);
+    }
+  }).catch(function(err) {
+    console.error('Loyalty SDK error:', err);
+  });
+})();
+</script>
+{% endif %}

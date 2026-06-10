@@ -1,0 +1,240 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.42.1.51946",
+      "templateHash": "4329157631634720562"
+    }
+  },
+  "parameters": {
+    "apimName": {
+      "type": "string",
+      "defaultValue": "loyalty-dev-apim-5rdrqh",
+      "metadata": {
+        "description": "Name of the pre-existing APIM instance"
+      }
+    },
+    "b2cJwksUri": {
+      "type": "string",
+      "defaultValue": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+      "metadata": {
+        "description": "Placeholder OIDC discovery URL — must be reachable at policy-apply time. APIM fetches this synchronously whenever the policy is saved. Swap to the real B2C value after A-06 unblocks: `https://<tenant>.b2clogin.com/<tenant>.onmicrosoft.com/B2C_1A_ClientCredentials/v2.0/.well-known/openid-configuration`. Default points at the Microsoft common v2.0 endpoint so deploys succeed before B2C exists — it is GATED OFF by B2C_VALIDATE_JWT_ENABLED=false so no tokens are ever actually verified against it."
+      }
+    },
+    "b2cIssuer": {
+      "type": "string",
+      "defaultValue": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/v2.0",
+      "metadata": {
+        "description": "Placeholder B2C issuer claim — replace after B2C tenant exists"
+      }
+    },
+    "memberServiceBackendUrl": {
+      "type": "string",
+      "defaultValue": "https://member-service.internal.loyalty-dev-cae.eastus.azurecontainerapps.io",
+      "metadata": {
+        "description": "Member-service backend base URL (Container Apps FQDN placeholder until A-12 deploy)"
+      }
+    },
+    "loyaltyEngineBackendUrl": {
+      "type": "string",
+      "defaultValue": "https://loyalty-engine.internal.loyalty-dev-cae.eastus.azurecontainerapps.io",
+      "metadata": {
+        "description": "Loyalty-engine backend base URL (Container Apps FQDN placeholder until A-12 deploy)"
+      }
+    }
+  },
+  "variables": {
+    "$fxv#0": "<!--\n  Loyalty Platform — APIM global service-scope policy.\n  Applies to all APIs under this service instance.\n\n  Behaviour:\n    1. CORS for portal + localhost dev origins.\n    2. Correlation-id propagation (generate if absent).\n    3. Dev-only bypass: X-Skip-Auth: true skips validate-jwt (DEV APIM ONLY;\n       must be stripped in staging/prod — operators: remove the <choose>\n       wrapper entirely when promoting this file to the staging instance).\n    4. validate-jwt against B2C JWKS (named values B2C_JWKS_URI, B2C_ISSUER).\n    5. Extract tenant + user claims to X-Tenant-ID / X-User-ID headers for\n       downstream services.\n    6. Strip the X-Skip-Auth header so it cannot be used past the gateway.\n-->\n<policies>\n  <inbound>\n    <cors allow-credentials=\"true\">\n      <allowed-origins>\n        <origin>https://loyalty-dev-admin.azurestaticapps.net</origin>\n        <origin>http://localhost:3000</origin>\n        <origin>http://localhost:5173</origin>\n        <origin>http://localhost:8080</origin>\n      </allowed-origins>\n      <allowed-methods preflight-result-max-age=\"300\">\n        <method>GET</method>\n        <method>POST</method>\n        <method>PATCH</method>\n        <method>PUT</method>\n        <method>DELETE</method>\n        <method>OPTIONS</method>\n      </allowed-methods>\n      <allowed-headers>\n        <header>Authorization</header>\n        <header>Content-Type</header>\n        <header>Idempotency-Key</header>\n        <header>X-Tenant-ID</header>\n        <header>X-Correlation-ID</header>\n        <header>X-Skip-Auth</header>\n        <header>Ocp-Apim-Subscription-Key</header>\n      </allowed-headers>\n      <expose-headers>\n        <header>X-Correlation-ID</header>\n      </expose-headers>\n    </cors>\n\n    <!-- Correlation-id: propagate client-supplied value or mint one -->\n    <set-variable name=\"correlationId\" value=\"@(context.Request.Headers.GetValueOrDefault(&quot;X-Correlation-ID&quot;, Guid.NewGuid().ToString()))\" />\n    <set-header name=\"X-Correlation-ID\" exists-action=\"override\">\n      <value>@((string)context.Variables[\"correlationId\"])</value>\n    </set-header>\n\n    <!-- DEV-ONLY: allow X-Skip-Auth: true to bypass JWT validation.\n         REMOVE the <choose> wrapper in staging/prod.\n\n         The <validate-jwt> element is additionally gated on the\n         B2C_VALIDATE_JWT_ENABLED named value. APIM fetches the OIDC metadata\n         at policy-apply time, so we must leave it disabled until the B2C\n         tenant (A-06 soft blocker) is live. Operator updates the three named\n         values B2C_JWKS_URI, B2C_ISSUER, B2C_VALIDATE_JWT_ENABLED=true via\n         `az apim nv update` (see HANDOFF.md for the exact commands).\n         No policy re-deploy needed. -->\n    <choose>\n      <when condition=\"@(context.Request.Headers.GetValueOrDefault(&quot;X-Skip-Auth&quot;, &quot;&quot;) != &quot;true&quot;)\">\n        <choose>\n          <when condition=\"@(\"{{B2C_VALIDATE_JWT_ENABLED}}\" == \"true\")\">\n            <validate-jwt header-name=\"Authorization\"\n                          failed-validation-httpcode=\"401\"\n                          failed-validation-error-message=\"Unauthorized\"\n                          require-expiration-time=\"true\"\n                          require-signed-tokens=\"true\">\n              <openid-config url=\"{{B2C_JWKS_URI}}\" />\n              <required-claims>\n                <claim name=\"iss\" match=\"any\">\n                  <value>{{B2C_ISSUER}}</value>\n                </claim>\n              </required-claims>\n            </validate-jwt>\n          </when>\n        </choose>\n\n        <!-- Extract tenantId claim (B2C custom attr or Entra tid) -->\n        <set-variable name=\"tenantId\" value=\"@{\n            var auth = context.Request.Headers.GetValueOrDefault(\"Authorization\",\"\");\n            var parts = auth.Split(' ');\n            if (parts.Length < 2) { return \"\"; }\n            var jwt = parts[1].AsJwt();\n            if (jwt == null) { return \"\"; }\n            if (jwt.Claims.ContainsKey(\"extension_tenantId\")) { return jwt.Claims.GetValueOrDefault(\"extension_tenantId\", \"\"); }\n            return jwt.Claims.GetValueOrDefault(\"tid\", \"\");\n        }\" />\n        <set-variable name=\"userId\" value=\"@{\n            var auth = context.Request.Headers.GetValueOrDefault(\"Authorization\",\"\");\n            var parts = auth.Split(' ');\n            if (parts.Length < 2) { return \"\"; }\n            var jwt = parts[1].AsJwt();\n            if (jwt == null) { return \"\"; }\n            return jwt.Claims.GetValueOrDefault(\"sub\", \"\");\n        }\" />\n        <set-header name=\"X-Tenant-ID\" exists-action=\"override\">\n          <value>@((string)context.Variables[\"tenantId\"])</value>\n        </set-header>\n        <set-header name=\"X-User-ID\" exists-action=\"override\">\n          <value>@((string)context.Variables[\"userId\"])</value>\n        </set-header>\n      </when>\n      <otherwise>\n        <!-- Dev bypass: require explicit headers so nothing is implicit -->\n        <choose>\n          <when condition=\"@(string.IsNullOrEmpty(context.Request.Headers.GetValueOrDefault(&quot;X-Tenant-ID&quot;,&quot;&quot;)))\">\n            <return-response>\n              <set-status code=\"400\" reason=\"Bad Request\" />\n              <set-header name=\"Content-Type\" exists-action=\"override\">\n                <value>application/problem+json</value>\n              </set-header>\n              <set-body>{\"type\":\"about:blank\",\"title\":\"X-Tenant-ID required in dev bypass\",\"status\":400,\"code\":\"VALIDATION_ERROR\"}</set-body>\n            </return-response>\n          </when>\n        </choose>\n      </otherwise>\n    </choose>\n\n    <!-- Strip the dev bypass header so it never reaches the backend -->\n    <set-header name=\"X-Skip-Auth\" exists-action=\"delete\" />\n  </inbound>\n  <backend />\n  <outbound>\n    <set-header name=\"X-Correlation-ID\" exists-action=\"override\">\n      <value>@((string)context.Variables[\"correlationId\"])</value>\n    </set-header>\n  </outbound>\n  <on-error>\n    <set-header name=\"Content-Type\" exists-action=\"override\">\n      <value>application/problem+json</value>\n    </set-header>\n  </on-error>\n</policies>\n",
+    "$fxv#1": "openapi: 3.0.3\ninfo:\n  title: Loyalty Platform — Member Service\n  description: |\n    Member enrollment, profile, lookup, status, GDPR export/delete, and ledger\n    pagination for the Loyalty Platform. Multi-tenant. All endpoints under\n    `/v1/members` require bearer-JWT auth (or `X-Skip-Auth: true` in dev APIM only).\n    Tenant is resolved from the JWT `tid` / `extension_tenantId` claim and\n    forwarded to the backend as `X-Tenant-ID`.\n  version: \"1.0.0\"\n  contact:\n    name: Loyalty Platform Team\nservers:\n  - url: https://loyalty-dev-apim-5rdrqh.azure-api.net/member\n    description: Dev APIM gateway (member-service API)\nsecurity:\n  - bearerAuth: []\ntags:\n  - name: Members\n  - name: GDPR\n  - name: Ledger\npaths:\n  /v1/members:\n    post:\n      tags: [Members]\n      summary: Enroll a new member\n      operationId: enrollMember\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              $ref: '#/components/schemas/EnrollMemberRequest'\n      responses:\n        '201':\n          description: Created\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/MemberDTO'\n        '400': { $ref: '#/components/responses/ValidationError' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '409':\n          description: Duplicate member\n          content:\n            application/problem+json:\n              schema:\n                allOf:\n                  - $ref: '#/components/schemas/Problem'\n                  - type: object\n                    properties:\n                      existingMemberId: { type: string, format: uuid }\n    get:\n      tags: [Members]\n      summary: Lookup member by phone or email (POS hot path)\n      operationId: lookupMember\n      parameters:\n        - in: query\n          name: phone\n          schema: { type: string }\n          description: Either `phone` or `email` is required.\n        - in: query\n          name: email\n          schema: { type: string, format: email }\n      responses:\n        '200':\n          description: OK\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/MemberSummaryDTO'\n        '400': { $ref: '#/components/responses/ValidationError' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '404': { $ref: '#/components/responses/NotFound' }\n  /v1/members/{id}:\n    parameters:\n      - $ref: '#/components/parameters/MemberIdPath'\n    get:\n      tags: [Members]\n      summary: Get member by id\n      operationId: getMember\n      responses:\n        '200':\n          description: OK\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/MemberDTO' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '403': { $ref: '#/components/responses/Forbidden' }\n        '404': { $ref: '#/components/responses/NotFound' }\n    patch:\n      tags: [Members]\n      summary: Update member profile\n      operationId: patchMember\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema: { $ref: '#/components/schemas/PatchMemberRequest' }\n      responses:\n        '200':\n          description: OK\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/MemberDTO' }\n        '400': { $ref: '#/components/responses/ValidationError' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '403': { $ref: '#/components/responses/Forbidden' }\n        '404': { $ref: '#/components/responses/NotFound' }\n        '409': { $ref: '#/components/responses/Conflict' }\n    delete:\n      tags: [GDPR]\n      summary: GDPR soft-delete\n      operationId: deleteMember\n      responses:\n        '204': { description: Deleted }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '403': { $ref: '#/components/responses/Forbidden' }\n        '404': { $ref: '#/components/responses/NotFound' }\n  /v1/members/{id}/status:\n    parameters:\n      - $ref: '#/components/parameters/MemberIdPath'\n    post:\n      tags: [Members]\n      summary: Change member status\n      operationId: changeMemberStatus\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema: { $ref: '#/components/schemas/StatusChangeRequest' }\n      responses:\n        '200':\n          description: OK\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/MemberDTO' }\n        '400': { $ref: '#/components/responses/ValidationError' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '404': { $ref: '#/components/responses/NotFound' }\n        '422':\n          description: Invalid status transition\n          content:\n            application/problem+json:\n              schema:\n                allOf:\n                  - $ref: '#/components/schemas/Problem'\n                  - type: object\n                    properties:\n                      from: { type: string }\n                      to: { type: string }\n  /v1/members/{id}/export:\n    parameters:\n      - $ref: '#/components/parameters/MemberIdPath'\n    get:\n      tags: [GDPR]\n      summary: GDPR data export\n      operationId: exportMember\n      responses:\n        '200':\n          description: OK\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/MemberExportDTO' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '404': { $ref: '#/components/responses/NotFound' }\n  /v1/members/{id}/ledger:\n    parameters:\n      - $ref: '#/components/parameters/MemberIdPath'\n    get:\n      tags: [Ledger]\n      summary: Paginated points ledger\n      operationId: getLedger\n      parameters:\n        - in: query\n          name: after\n          schema: { type: string }\n          description: Opaque cursor = base64url(ledger_id)\n        - in: query\n          name: limit\n          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }\n      responses:\n        '200':\n          description: OK\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/LedgerPage' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '404': { $ref: '#/components/responses/NotFound' }\ncomponents:\n  securitySchemes:\n    bearerAuth:\n      type: http\n      scheme: bearer\n      bearerFormat: JWT\n  parameters:\n    MemberIdPath:\n      name: id\n      in: path\n      required: true\n      schema: { type: string, format: uuid }\n  responses:\n    ValidationError:\n      description: Validation error\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n    Unauthorized:\n      description: Unauthorized\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n    Forbidden:\n      description: Forbidden (tenant mismatch)\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n    NotFound:\n      description: Not found\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n    Conflict:\n      description: Conflict\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n  schemas:\n    Problem:\n      type: object\n      description: RFC 7807 problem+json\n      required: [type, title, status, code]\n      properties:\n        type: { type: string }\n        title: { type: string }\n        status: { type: integer }\n        detail: { type: string }\n        code: { type: string }\n        instance: { type: string }\n    EnrollMemberRequest:\n      type: object\n      required: [phone, firstName, lastName, enrolledChannel]\n      properties:\n        email: { type: string, format: email }\n        phone: { type: string }\n        firstName: { type: string, minLength: 1, maxLength: 100 }\n        lastName:  { type: string, minLength: 1, maxLength: 100 }\n        dateOfBirth: { type: string, format: date }\n        enrolledChannel:\n          type: string\n          enum: [pos, ecommerce, mobile, admin]\n    PatchMemberRequest:\n      type: object\n      properties:\n        firstName: { type: string }\n        lastName: { type: string }\n        email: { type: string, format: email }\n        phone: { type: string }\n        communicationPrefs:\n          type: object\n          additionalProperties: true\n    StatusChangeRequest:\n      type: object\n      required: [status, reason]\n      properties:\n        status:\n          type: string\n          enum: [active, suspended, closed]\n        reason: { type: string }\n    MemberDTO:\n      type: object\n      required: [id, tenantId, status, tierId, tierName, pointsBalance, firstName, lastName, phone, enrolledChannel, enrolledAt, createdAt, updatedAt]\n      properties:\n        id: { type: string, format: uuid }\n        tenantId: { type: string, format: uuid }\n        status: { type: string, enum: [active, suspended, closed] }\n        tierId: { type: string }\n        tierName: { type: string }\n        pointsBalance: { type: integer }\n        firstName: { type: string }\n        lastName: { type: string }\n        email: { type: string, format: email }\n        phone: { type: string }\n        dateOfBirth: { type: string, format: date }\n        enrolledChannel: { type: string }\n        enrolledAt: { type: string, format: date-time }\n        communicationPrefs:\n          type: object\n          additionalProperties: true\n        createdAt: { type: string, format: date-time }\n        updatedAt: { type: string, format: date-time }\n    MemberSummaryDTO:\n      type: object\n      required: [id, firstName, lastName, tierId, tierName, pointsBalance, eligibleOffers]\n      properties:\n        id: { type: string, format: uuid }\n        firstName: { type: string }\n        lastName: { type: string }\n        tierId: { type: string }\n        tierName: { type: string }\n        pointsBalance: { type: integer }\n        eligibleOffers:\n          type: array\n          items: { type: object }\n    LedgerEntryDTO:\n      type: object\n      required: [id, memberId, delta, balanceAfter, reason, createdAt]\n      properties:\n        id: { type: string, format: uuid }\n        memberId: { type: string, format: uuid }\n        transactionId: { type: string, format: uuid }\n        delta: { type: integer }\n        balanceAfter: { type: integer }\n        reason: { type: string }\n        note: { type: string }\n        createdAt: { type: string, format: date-time }\n    LedgerPage:\n      type: object\n      required: [items]\n      properties:\n        items:\n          type: array\n          items: { $ref: '#/components/schemas/LedgerEntryDTO' }\n        nextCursor: { type: string }\n    MemberExportDTO:\n      type: object\n      required: [profile, ledgerSummary, transactions]\n      properties:\n        profile: { $ref: '#/components/schemas/MemberDTO' }\n        ledgerSummary:\n          type: object\n          properties:\n            count: { type: integer }\n            balance: { type: integer }\n        transactions:\n          type: object\n          properties:\n            note: { type: string }\n",
+    "$fxv#2": "<!--\n  API-scope inbound policy for member-service.\n  Sets the backend base URL (named value) and strips hop-by-hop headers.\n-->\n<policies>\n  <inbound>\n    <base />\n    <set-backend-service base-url=\"{{MEMBER_SERVICE_BACKEND_URL}}\" />\n    <!-- Connection / Keep-Alive / Transfer-Encoding / Upgrade are restricted\n         by APIM and stripped automatically at the gateway. -->\n    <set-header name=\"Proxy-Authorization\" exists-action=\"delete\" />\n    <!-- Ocp-Apim-Subscription-Key must not leak to the backend -->\n    <set-header name=\"Ocp-Apim-Subscription-Key\" exists-action=\"delete\" />\n  </inbound>\n  <backend><base /></backend>\n  <outbound><base /></outbound>\n  <on-error><base /></on-error>\n</policies>\n",
+    "$fxv#3": "openapi: 3.0.3\ninfo:\n  title: Loyalty Platform — Loyalty Engine\n  description: |\n    Transaction processing, points calculation, immutable ledger, idempotent\n    writes, redemptions, and admin adjustments. All write endpoints require an\n    `Idempotency-Key` header. Admin endpoints additionally require the `admin`\n    role claim on the JWT.\n  version: \"1.0.0\"\nservers:\n  - url: https://loyalty-dev-apim-5rdrqh.azure-api.net/engine\n    description: Dev APIM gateway (loyalty-engine API)\nsecurity:\n  - bearerAuth: []\ntags:\n  - name: Transactions\n  - name: Redemptions\n  - name: Balance\n  - name: Admin\npaths:\n  /v1/transactions:\n    post:\n      tags: [Transactions]\n      summary: Create an earn transaction\n      operationId: createTransaction\n      parameters:\n        - $ref: '#/components/parameters/IdempotencyKey'\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema: { $ref: '#/components/schemas/CreateTransactionRequest' }\n      responses:\n        '201':\n          description: Created\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/CreateTransactionResponse' }\n        '400': { $ref: '#/components/responses/ValidationError' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '403': { $ref: '#/components/responses/Forbidden' }\n        '404': { $ref: '#/components/responses/NotFound' }\n        '409': { $ref: '#/components/responses/Conflict' }\n  /v1/transactions/{id}/void:\n    parameters:\n      - name: id\n        in: path\n        required: true\n        schema: { type: string, format: uuid }\n    post:\n      tags: [Transactions]\n      summary: Void a committed transaction\n      operationId: voidTransaction\n      parameters:\n        - $ref: '#/components/parameters/IdempotencyKey'\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              required: [reason]\n              properties:\n                reason: { type: string }\n      responses:\n        '200':\n          description: OK\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/VoidTransactionResponse' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '403':\n          description: Outside void window\n          content:\n            application/problem+json:\n              schema: { $ref: '#/components/schemas/Problem' }\n        '404': { $ref: '#/components/responses/NotFound' }\n        '409': { $ref: '#/components/responses/Conflict' }\n  /v1/members/{id}/adjustments:\n    parameters:\n      - name: id\n        in: path\n        required: true\n        schema: { type: string, format: uuid }\n    post:\n      tags: [Admin]\n      summary: Manual ledger adjustment (admin only)\n      operationId: adminAdjustment\n      parameters:\n        - $ref: '#/components/parameters/IdempotencyKey'\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema: { $ref: '#/components/schemas/AdjustmentRequest' }\n      responses:\n        '200':\n          description: OK\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/AdjustmentResponse' }\n        '400': { $ref: '#/components/responses/ValidationError' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '403': { $ref: '#/components/responses/Forbidden' }\n  /v1/members/{id}/balance:\n    parameters:\n      - name: id\n        in: path\n        required: true\n        schema: { type: string, format: uuid }\n    get:\n      tags: [Balance]\n      summary: Current balance\n      operationId: getBalance\n      responses:\n        '200':\n          description: OK\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/BalanceDTO' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '404': { $ref: '#/components/responses/NotFound' }\n  /v1/redemptions:\n    post:\n      tags: [Redemptions]\n      summary: Burn points for an offer redemption\n      operationId: createRedemption\n      parameters:\n        - $ref: '#/components/parameters/IdempotencyKey'\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema: { $ref: '#/components/schemas/RedemptionRequest' }\n      responses:\n        '201':\n          description: Created\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/RedemptionResponse' }\n        '400': { $ref: '#/components/responses/ValidationError' }\n        '401': { $ref: '#/components/responses/Unauthorized' }\n        '403': { $ref: '#/components/responses/Forbidden' }\n        '404': { $ref: '#/components/responses/NotFound' }\n        '422':\n          description: Insufficient balance\n          content:\n            application/problem+json:\n              schema: { $ref: '#/components/schemas/Problem' }\ncomponents:\n  securitySchemes:\n    bearerAuth:\n      type: http\n      scheme: bearer\n      bearerFormat: JWT\n  parameters:\n    IdempotencyKey:\n      name: Idempotency-Key\n      in: header\n      required: true\n      schema: { type: string, maxLength: 200 }\n      description: Required on all write endpoints. Retention 24h per (tenantId, key).\n  responses:\n    ValidationError:\n      description: Validation error\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n    Unauthorized:\n      description: Unauthorized\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n    Forbidden:\n      description: Forbidden\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n    NotFound:\n      description: Not found\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n    Conflict:\n      description: Conflict (idempotency reuse)\n      content:\n        application/problem+json:\n          schema: { $ref: '#/components/schemas/Problem' }\n  schemas:\n    Problem:\n      type: object\n      required: [type, title, status, code]\n      properties:\n        type: { type: string }\n        title: { type: string }\n        status: { type: integer }\n        detail: { type: string }\n        code: { type: string }\n        instance: { type: string }\n    SkuLine:\n      type: object\n      required: [sku, amount]\n      properties:\n        sku: { type: string }\n        categoryId: { type: string }\n        amount: { type: integer, description: Minor currency units }\n    CreateTransactionRequest:\n      type: object\n      required: [memberId, channel, amount, currency, occurredAt]\n      properties:\n        memberId: { type: string, format: uuid }\n        channel:\n          type: string\n          enum: [pos, ecommerce, mobile, admin]\n        amount: { type: integer, minimum: 0, description: Minor units }\n        currency: { type: string, minLength: 3, maxLength: 3 }\n        skuList:\n          type: array\n          items: { $ref: '#/components/schemas/SkuLine' }\n        locationId: { type: string }\n        occurredAt: { type: string, format: date-time }\n    AppliedMultiplier:\n      type: object\n      properties:\n        source: { type: string }\n        multiplier: { type: number }\n        points: { type: integer }\n    CreateTransactionResponse:\n      type: object\n      required: [transactionId, pointsEarned, newBalance, tierId]\n      properties:\n        transactionId: { type: string, format: uuid }\n        pointsEarned: { type: integer }\n        newBalance: { type: integer }\n        tierId: { type: string }\n        appliedMultipliers:\n          type: array\n          items: { $ref: '#/components/schemas/AppliedMultiplier' }\n    VoidTransactionResponse:\n      type: object\n      required: [transactionId, pointsReversed, newBalance, negativeBalanceFlag]\n      properties:\n        transactionId: { type: string, format: uuid }\n        pointsReversed: { type: integer }\n        newBalance: { type: integer }\n        negativeBalanceFlag: { type: boolean }\n    AdjustmentRequest:\n      type: object\n      required: [delta, reasonCode]\n      properties:\n        delta: { type: integer, description: Non-zero }\n        reasonCode:\n          type: string\n          enum: [adjust, bonus]\n        notes: { type: string }\n    AdjustmentResponse:\n      type: object\n      required: [ledgerId, delta, newBalance]\n      properties:\n        ledgerId: { type: string, format: uuid }\n        delta: { type: integer }\n        newBalance: { type: integer }\n    BalanceDTO:\n      type: object\n      required: [balance, lastUpdated]\n      properties:\n        balance: { type: integer }\n        lastUpdated: { type: string, format: date-time }\n    RedemptionRequest:\n      type: object\n      required: [memberId, offerId, pointsToBurn]\n      properties:\n        memberId: { type: string, format: uuid }\n        offerId: { type: string }\n        pointsToBurn: { type: integer, minimum: 1 }\n        redemptionContext:\n          type: object\n          additionalProperties: true\n    RedemptionResponse:\n      type: object\n      required: [redemptionId, pointsUsed, newBalance]\n      properties:\n        redemptionId: { type: string, format: uuid }\n        pointsUsed: { type: integer }\n        newBalance: { type: integer }\n",
+    "$fxv#4": "<!--\n  API-scope inbound policy for loyalty-engine.\n  - Sets backend base URL\n  - Strips hop-by-hop headers\n  - Enforces Idempotency-Key header on POST /v1/transactions (and by extension\n    all POST endpoints on this API: /void, /adjustments, /redemptions).\n-->\n<policies>\n  <inbound>\n    <base />\n    <set-backend-service base-url=\"{{LOYALTY_ENGINE_BACKEND_URL}}\" />\n    <!-- Connection / Keep-Alive / Transfer-Encoding / Upgrade are restricted\n         by APIM and stripped automatically at the gateway. -->\n    <set-header name=\"Proxy-Authorization\" exists-action=\"delete\" />\n    <set-header name=\"Ocp-Apim-Subscription-Key\" exists-action=\"delete\" />\n\n    <choose>\n      <when condition=\"@(context.Request.Method == &quot;POST&quot; &amp;&amp; string.IsNullOrEmpty(context.Request.Headers.GetValueOrDefault(&quot;Idempotency-Key&quot;, &quot;&quot;)))\">\n        <return-response>\n          <set-status code=\"400\" reason=\"Bad Request\" />\n          <set-header name=\"Content-Type\" exists-action=\"override\">\n            <value>application/problem+json</value>\n          </set-header>\n          <set-body>{\"type\":\"about:blank\",\"title\":\"Idempotency-Key header required\",\"status\":400,\"code\":\"VALIDATION_ERROR\",\"detail\":\"All POST endpoints on loyalty-engine require a client-supplied Idempotency-Key header.\"}</set-body>\n        </return-response>\n      </when>\n    </choose>\n  </inbound>\n  <backend><base /></backend>\n  <outbound><base /></outbound>\n  <on-error><base /></on-error>\n</policies>\n",
+    "$fxv#5": "<!--\n  Product-scope rate limit.\n\n  NOTE: APIM Consumption tier does NOT support rate-limit-by-key; it only\n  supports the plain rate-limit policy which is gateway-wide per product.\n  In a higher tier we would partition by Ocp-Apim-Subscription-Key or the\n  tenant claim. Decision logged in /infra/apim/HANDOFF.md.\n-->\n<policies>\n  <inbound>\n    <base />\n    <rate-limit calls=\"1000\" renewal-period=\"60\" />\n  </inbound>\n  <backend><base /></backend>\n  <outbound><base /></outbound>\n  <on-error><base /></on-error>\n</policies>\n"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ApiManagement/service/namedValues",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', parameters('apimName'), 'B2C-JWKS-URI')]",
+      "properties": {
+        "displayName": "B2C_JWKS_URI",
+        "value": "[parameters('b2cJwksUri')]",
+        "secret": false
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/namedValues",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', parameters('apimName'), 'B2C-ISSUER')]",
+      "properties": {
+        "displayName": "B2C_ISSUER",
+        "value": "[parameters('b2cIssuer')]",
+        "secret": false
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/namedValues",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', parameters('apimName'), 'B2C-VALIDATE-JWT-ENABLED')]",
+      "properties": {
+        "displayName": "B2C_VALIDATE_JWT_ENABLED",
+        "value": "false",
+        "secret": false
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/namedValues",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', parameters('apimName'), 'MEMBER-SERVICE-BACKEND-URL')]",
+      "properties": {
+        "displayName": "MEMBER_SERVICE_BACKEND_URL",
+        "value": "[parameters('memberServiceBackendUrl')]",
+        "secret": false
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/namedValues",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', parameters('apimName'), 'LOYALTY-ENGINE-BACKEND-URL')]",
+      "properties": {
+        "displayName": "LOYALTY_ENGINE_BACKEND_URL",
+        "value": "[parameters('loyaltyEngineBackendUrl')]",
+        "secret": false
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/policies",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', parameters('apimName'), 'policy')]",
+      "properties": {
+        "format": "rawxml",
+        "value": "[variables('$fxv#0')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/namedValues', parameters('apimName'), 'B2C-ISSUER')]",
+        "[resourceId('Microsoft.ApiManagement/service/namedValues', parameters('apimName'), 'B2C-JWKS-URI')]",
+        "[resourceId('Microsoft.ApiManagement/service/namedValues', parameters('apimName'), 'B2C-VALIDATE-JWT-ENABLED')]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', parameters('apimName'), 'member-api')]",
+      "properties": {
+        "displayName": "Loyalty — Member Service",
+        "description": "Member enrollment, profile, lookup, GDPR, ledger",
+        "subscriptionRequired": true,
+        "path": "member",
+        "protocols": [
+          "https"
+        ],
+        "format": "openapi",
+        "value": "[variables('$fxv#1')]"
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/policies",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}/{2}', parameters('apimName'), 'member-api', 'policy')]",
+      "properties": {
+        "format": "rawxml",
+        "value": "[variables('$fxv#2')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimName'), 'member-api')]",
+        "[resourceId('Microsoft.ApiManagement/service/namedValues', parameters('apimName'), 'MEMBER-SERVICE-BACKEND-URL')]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', parameters('apimName'), 'loyalty-engine-api')]",
+      "properties": {
+        "displayName": "Loyalty — Engine",
+        "description": "Transactions, voids, redemptions, balance, admin adjustments",
+        "subscriptionRequired": true,
+        "path": "engine",
+        "protocols": [
+          "https"
+        ],
+        "format": "openapi",
+        "value": "[variables('$fxv#3')]"
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/policies",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}/{2}', parameters('apimName'), 'loyalty-engine-api', 'policy')]",
+      "properties": {
+        "format": "rawxml",
+        "value": "[variables('$fxv#4')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimName'), 'loyalty-engine-api')]",
+        "[resourceId('Microsoft.ApiManagement/service/namedValues', parameters('apimName'), 'LOYALTY-ENGINE-BACKEND-URL')]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/products",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', parameters('apimName'), 'loyalty-b2b')]",
+      "properties": {
+        "displayName": "Loyalty B2B",
+        "description": "B2B tenant access to the Loyalty Platform APIs (1000 req/min rate limit).",
+        "subscriptionRequired": true,
+        "approvalRequired": false,
+        "state": "published"
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/products/policies",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}/{2}', parameters('apimName'), 'loyalty-b2b', 'policy')]",
+      "properties": {
+        "format": "rawxml",
+        "value": "[variables('$fxv#5')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/products', parameters('apimName'), 'loyalty-b2b')]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/products/apis",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}/{2}', parameters('apimName'), 'loyalty-b2b', 'member-api')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimName'), 'member-api')]",
+        "[resourceId('Microsoft.ApiManagement/service/products', parameters('apimName'), 'loyalty-b2b')]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/products/apis",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}/{2}', parameters('apimName'), 'loyalty-b2b', 'loyalty-engine-api')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimName'), 'loyalty-engine-api')]",
+        "[resourceId('Microsoft.ApiManagement/service/products', parameters('apimName'), 'loyalty-b2b')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "apimGatewayUrl": {
+      "type": "string",
+      "value": "[format('https://{0}.azure-api.net', parameters('apimName'))]"
+    },
+    "memberApiPath": {
+      "type": "string",
+      "value": "member"
+    },
+    "engineApiPath": {
+      "type": "string",
+      "value": "engine"
+    },
+    "productName": {
+      "type": "string",
+      "value": "loyalty-b2b"
+    }
+  }
+}

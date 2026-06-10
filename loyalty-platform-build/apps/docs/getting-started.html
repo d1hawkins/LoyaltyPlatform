@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Start �� Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link active">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Quick Start
+        </div>
+
+        <h1>Quick Start Guide</h1>
+        <p class="subtitle">Enroll a member, record a transaction, and check their points balance in under 5 minutes.</p>
+
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>An APIM subscription key (see <a href="authentication.html">Authentication</a>)</li>
+          <li>A tenant ID (provided when your tenant is provisioned)</li>
+          <li><code>curl</code> or any HTTP client</li>
+        </ul>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Dev Mode</div>
+          For local development, all services support <code>SKIP_AUTH=true</code> mode. Send <code>X-Skip-Auth: true</code> through APIM, or set the header directly when calling services locally. See <a href="authentication.html#dev-mode">Authentication &gt; Dev Mode</a>.
+        </div>
+
+        <h2>Step 1: Enroll a Member</h2>
+        <p>Create a new loyalty member with their phone number and name.</p>
+
+        <pre><code class="language-bash">curl -X POST https://loyalty-dev-apim-5rdrqh.azure-api.net/member/v1/members \
+  -H "Content-Type: application/json" \
+  -H "Ocp-Apim-Subscription-Key: YOUR_SUBSCRIPTION_KEY" \
+  -H "X-Tenant-ID: YOUR_TENANT_ID" \
+  -H "X-Skip-Auth: true" \
+  -d '{
+    "phone": "+15555551234",
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "jane@example.com",
+    "enrolledChannel": "ecommerce"
+  }'</code></pre>
+
+        <p>Response (<code>201 Created</code>):</p>
+        <pre><code class="language-json">{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "tenantId": "YOUR_TENANT_ID",
+  "status": "active",
+  "tierId": "bronze-tier-id",
+  "tierName": "Bronze",
+  "pointsBalance": 0,
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane@example.com",
+  "phone": "+15555551234",
+  "enrolledChannel": "ecommerce",
+  "enrolledAt": "2026-04-10T12:00:00Z",
+  "createdAt": "2026-04-10T12:00:00Z",
+  "updatedAt": "2026-04-10T12:00:00Z"
+}</code></pre>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">Duplicate Detection</div>
+          If a member with the same phone or email already exists, you will receive a <code>409 DUPLICATE_MEMBER</code> error with the <code>existingMemberId</code> in the response body.
+        </div>
+
+        <h2>Step 2: Record a Transaction</h2>
+        <p>Award points for a purchase. Amounts are in minor currency units (cents for USD).</p>
+
+        <pre><code class="language-bash">curl -X POST https://loyalty-dev-apim-5rdrqh.azure-api.net/engine/v1/transactions \
+  -H "Content-Type: application/json" \
+  -H "Ocp-Apim-Subscription-Key: YOUR_SUBSCRIPTION_KEY" \
+  -H "X-Tenant-ID: YOUR_TENANT_ID" \
+  -H "X-Skip-Auth: true" \
+  -H "Idempotency-Key: order-12345" \
+  -d '{
+    "memberId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "channel": "ecommerce",
+    "amount": 4999,
+    "currency": "USD",
+    "skuList": [
+      { "sku": "LATTE-LG", "categoryId": "beverages", "amount": 4999 }
+    ],
+    "storeId": "DAISO-042",
+    "storeName": "Daiso Carrollton",
+    "registerId": "REG-01",
+    "associateId": "EMP-1001",
+    "associateName": "Jane Smith",
+    "sourceChannel": "in-store",
+    "sourceSystem": "square",
+    "orderRef": "ORD-2026-04-16-5523",
+    "metadata": { "campaign": "spring-sale" }
+  }'</code></pre>
+
+        <p>Response (<code>201 Created</code>) &mdash; per-dollar mode:</p>
+        <pre><code class="language-json">{
+  "transactionId": "txn-uuid-here",
+  "pointsEarned": 49,
+  "newBalance": 49,
+  "tierId": "bronze-tier-id",
+  "earnMode": "per-dollar",
+  "appliedMultipliers": [
+    { "source": "category:beverages", "multiplier": 2, "points": 49 }
+  ]
+}</code></pre>
+
+        <p>Response (<code>201 Created</code>) &mdash; per-visit mode (if the program is configured for per-visit earning):</p>
+        <pre><code class="language-json">{
+  "transactionId": "txn-uuid-here",
+  "pointsEarned": 10,
+  "newBalance": 10,
+  "tierId": "bronze-tier-id",
+  "earnMode": "per-visit",
+  "qualifiedVisit": true,
+  "visitCountToday": 1,
+  "appliedMultipliers": [
+    { "source": "tier:bronze", "multiplier": 1, "points": 10 }
+  ]
+}</code></pre>
+        <p>In per-visit mode, the <code>qualifiedVisit</code> field indicates whether this transaction met the minimum spend threshold to earn points. The <code>visitCountToday</code> field shows the member's qualifying visit count for the current day.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Idempotency</div>
+          Always include an <code>Idempotency-Key</code> header on write operations. Replaying the same key with the same body returns the original response. Using the same key with a different body returns <code>409 Conflict</code>. Keys expire after 24 hours.
+        </div>
+
+        <h2>Step 3: Check Balance</h2>
+        <pre><code class="language-bash">curl https://loyalty-dev-apim-5rdrqh.azure-api.net/engine/v1/members/a1b2c3d4-e5f6-7890-abcd-ef1234567890/balance \
+  -H "Ocp-Apim-Subscription-Key: YOUR_SUBSCRIPTION_KEY" \
+  -H "X-Tenant-ID: YOUR_TENANT_ID" \
+  -H "X-Skip-Auth: true"</code></pre>
+
+        <pre><code class="language-json">{
+  "balance": 49,
+  "lastUpdated": "2026-04-10T12:01:00Z"
+}</code></pre>
+
+        <h2>Step 4: Look Up a Member</h2>
+        <p>Find a member by phone number (the hot-path lookup for POS integrations):</p>
+
+        <pre><code class="language-bash">curl "https://loyalty-dev-apim-5rdrqh.azure-api.net/member/v1/members?phone=%2B15555551234" \
+  -H "Ocp-Apim-Subscription-Key: YOUR_SUBSCRIPTION_KEY" \
+  -H "X-Tenant-ID: YOUR_TENANT_ID" \
+  -H "X-Skip-Auth: true"</code></pre>
+
+        <pre><code class="language-json">{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "tierId": "bronze-tier-id",
+  "tierName": "Bronze",
+  "pointsBalance": 49,
+  "eligibleOffers": []
+}</code></pre>
+
+        <h2>Using the JavaScript SDK</h2>
+        <p>The same flow using the TypeScript SDK:</p>
+
+        <pre><code class="language-typescript">import { LoyaltyClient } from '@loyalty/loyalty-js-sdk';
+
+const client = new LoyaltyClient({
+  apiUrl: 'https://loyalty-dev-apim-5rdrqh.azure-api.net',
+  apiKey: 'YOUR_SUBSCRIPTION_KEY',
+  tenantId: 'YOUR_TENANT_ID',
+});
+
+// 1. Enroll
+const member = await client.enrollMember({
+  phone: '+15555551234',
+  firstName: 'Jane',
+  lastName: 'Doe',
+  email: 'jane@example.com',
+  enrolledChannel: 'ecommerce',
+});
+
+// 2. Record transaction
+const txn = await client.recordTransaction({
+  memberId: member.id,
+  channel: 'ecommerce',
+  amount: 4999,
+  currency: 'USD',
+  skuList: [{ sku: 'LATTE-LG', categoryId: 'beverages', amount: 4999 }],
+});
+
+console.log(`Points earned: ${txn.pointsEarned}, Balance: ${txn.newBalance}`);
+
+// 3. Check balance
+const { balance } = await client.getBalance(member.id);
+console.log(`Current balance: ${balance}`);</code></pre>
+
+        <h2>Next Steps</h2>
+        <div class="card-grid">
+          <a href="authentication.html" class="card" style="text-decoration:none;">
+            <h3>Authentication</h3>
+            <p>Set up B2C tokens for production or use dev-mode bypass.</p>
+          </a>
+          <a href="api-reference.html" class="card" style="text-decoration:none;">
+            <h3>API Reference</h3>
+            <p>Explore all endpoints with interactive Swagger UI.</p>
+          </a>
+          <a href="sdk.html" class="card" style="text-decoration:none;">
+            <h3>JavaScript SDK</h3>
+            <p>Use the typed client and pre-built widgets.</p>
+          </a>
+        </div>
+
+        <div class="next-page">
+          <a href="authentication.html">Next: Authentication &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

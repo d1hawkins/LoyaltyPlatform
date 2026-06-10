@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daiso Rewards — Earn Rewards on Every Visit</title>
+  <meta name="description" content="Join Daiso Rewards and earn points on every purchase at Daiso USA. Unlock tiers, exclusive offers, and members-only deals on your favorite Daiso products." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    /* smooth reveal animations */
+    .fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    /* gradient text */
+    .grad-text { background: linear-gradient(135deg, #EB1256, #ff4d4d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    /* glow ring on hero cards */
+    .glow { box-shadow: 0 0 40px rgba(235,18,86,0.15); }
+    /* details styling */
+    details summary { cursor: pointer; list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before { content: '+'; display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; margin-right: 0.75rem; border-radius: 9999px; background: rgba(235,18,86,0.15); color: #EB1256; font-weight: 600; flex-shrink: 0; }
+    details[open] summary::before { content: '−'; }
+    /* code block */
+    .code-block { background: #0f172a; border: 1px solid rgba(148,163,184,0.15); }
+    /* nav blur */
+    .nav-blur { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans antialiased">
+
+<!-- ─── NAV ──────────────────────────────────────────────────────────── -->
+<nav class="fixed top-0 inset-x-0 z-50 nav-blur bg-slate-950/80 border-b border-slate-800/60">
+  <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+    <a href="#" class="flex items-center gap-3 text-white font-bold text-lg tracking-tight">
+      <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" class="h-8 object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+      <span style="display:none;color:#EB1256;font-weight:900;font-size:1.5rem;letter-spacing:-0.03em;">DAISO</span>
+      Daiso Rewards
+    </a>
+    <div class="hidden md:flex items-center gap-8 text-sm text-slate-400">
+      <a href="#features" class="hover:text-white transition">Features</a>
+      <a href="#pricing" class="hover:text-white transition">Pricing</a>
+      <a href="https://loyaltydocs.z13.web.core.windows.net" class="hover:text-white transition">Docs</a>
+      <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" class="hover:text-white transition">API Reference</a>
+      <a href="https://loyaltyenroll.z13.web.core.windows.net" class="hover:text-white transition">My Account</a>
+    </div>
+    <a href="https://loyaltyenroll.z13.web.core.windows.net" class="hidden sm:inline-flex items-center gap-1.5 bg-[#EB1256] hover:bg-[#D41050] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">My Account</a>
+    <!-- mobile hamburger -->
+    <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="sm:hidden text-slate-300">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+  <!-- mobile menu -->
+  <div id="mobile-menu" class="hidden sm:hidden border-t border-slate-800 px-6 pb-4 space-y-3 text-sm">
+    <a href="#features" class="block text-slate-300 hover:text-white">Features</a>
+    <a href="#pricing" class="block text-slate-300 hover:text-white">Pricing</a>
+    <a href="https://loyaltydocs.z13.web.core.windows.net" class="block text-slate-300 hover:text-white">Docs</a>
+    <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" class="block text-slate-300 hover:text-white">API Reference</a>
+    <a href="https://loyaltyenroll.z13.web.core.windows.net" class="block text-slate-300 hover:text-white">My Account</a>
+    <a href="https://loyaltyenroll.z13.web.core.windows.net" class="block bg-[#EB1256] text-white text-center font-semibold py-2.5 rounded-lg">My Account</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─────────────────────────────────────────────────────────── -->
+<section class="relative overflow-hidden pt-32 pb-24 lg:pt-44 lg:pb-36">
+  <!-- gradient bg -->
+  <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-[#3a0005] to-[#8E0E3C]"></div>
+  <!-- decorative grid -->
+  <div class="absolute inset-0 opacity-[0.04]" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><rect width=%2260%22 height=%2260%22 fill=%22none%22 stroke=%22white%22 stroke-width=%220.5%22/></svg>')"></div>
+  <!-- radial glow -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-red-500/10 rounded-full blur-3xl"></div>
+
+  <div class="relative max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+    <!-- text -->
+    <div class="text-center lg:text-left">
+      <div class="inline-flex items-center gap-2 text-xs font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-full px-4 py-1.5 mb-6">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        Now Open to All Daiso Shoppers
+      </div>
+      <div class="mb-6">
+        <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso USA" class="h-16 sm:h-20 mx-auto lg:mx-0 object-contain mb-4 bg-white/10 backdrop-blur rounded-xl px-4 py-2" onerror="this.style.display='none'">
+      </div>
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6">
+        <span class="grad-text">Daiso Rewards</span><br/>Earn Rewards on Every Visit
+      </h1>
+      <p class="text-lg text-slate-400 max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed">
+        Earn 1 point for every $1 spent at Daiso stores. Unlock tiers, get exclusive offers, and enjoy members-only deals on your favorite Daiso products.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+        <a href="https://loyaltyonboardportal.z20.web.core.windows.net" class="inline-flex items-center justify-center gap-2 bg-[#EB1256] hover:bg-[#D41050] text-white font-semibold px-8 py-3.5 rounded-xl transition shadow-lg shadow-pink-600/25">
+          Join Daiso Rewards
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-5.5-5.5m5.5 5.5l-5.5 5.5"/></svg>
+        </a>
+        <a href="https://loyaltydocs.z13.web.core.windows.net" class="inline-flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold px-8 py-3.5 rounded-xl transition border border-slate-700">
+          Learn More
+        </a>
+      </div>
+    </div>
+    <!-- hero dashboard mockup -->
+    <div class="hidden lg:block relative">
+      <div class="absolute -inset-4 bg-gradient-to-r from-red-500/20 to-purple-500/20 rounded-3xl blur-2xl"></div>
+      <div class="relative bg-slate-800/80 border border-slate-700/60 rounded-2xl p-6 glow">
+        <!-- top bar -->
+        <div class="flex items-center gap-2 mb-5">
+          <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+          <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+          <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+          <span class="ml-3 text-xs text-slate-500 font-mono">rewards.daisousa.com</span>
+        </div>
+        <!-- stat cards -->
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          <div class="bg-slate-900/70 rounded-xl p-4 border border-slate-700/40">
+            <p class="text-xs text-slate-500 mb-1">Active Members</p>
+            <p class="text-xl font-bold text-white">24,891</p>
+            <p class="text-xs text-emerald-400 mt-1">+12.3%</p>
+          </div>
+          <div class="bg-slate-900/70 rounded-xl p-4 border border-slate-700/40">
+            <p class="text-xs text-slate-500 mb-1">Points Issued</p>
+            <p class="text-xl font-bold text-white">1.2M</p>
+            <p class="text-xs text-emerald-400 mt-1">+8.7%</p>
+          </div>
+          <div class="bg-slate-900/70 rounded-xl p-4 border border-slate-700/40">
+            <p class="text-xs text-slate-500 mb-1">Redemptions</p>
+            <p class="text-xl font-bold text-white">3,847</p>
+            <p class="text-xs text-emerald-400 mt-1">+15.1%</p>
+          </div>
+        </div>
+        <!-- mini chart placeholder -->
+        <div class="bg-slate-900/70 rounded-xl p-4 border border-slate-700/40 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium text-slate-300">Enrollment Trend</span>
+            <span class="text-xs text-slate-500">Last 30 days</span>
+          </div>
+          <svg viewBox="0 0 400 80" class="w-full h-16">
+            <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EB1256" stop-opacity="0.3"/><stop offset="1" stop-color="#EB1256" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0,60 Q30,55 60,50 T120,40 T180,42 T240,30 T300,25 T360,15 L400,10 L400,80 L0,80 Z" fill="url(#cg)"/>
+            <path d="M0,60 Q30,55 60,50 T120,40 T180,42 T240,30 T300,25 T360,15 L400,10" fill="none" stroke="#EB1256" stroke-width="2"/>
+          </svg>
+        </div>
+        <!-- tier badges -->
+        <div class="flex gap-2">
+          <span class="text-xs font-medium bg-amber-500/15 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-lg">Gold &middot; 4,201</span>
+          <span class="text-xs font-medium bg-slate-500/15 text-slate-300 border border-slate-500/20 px-3 py-1.5 rounded-lg">Silver &middot; 8,412</span>
+          <span class="text-xs font-medium bg-orange-500/15 text-orange-400 border border-orange-500/20 px-3 py-1.5 rounded-lg">Bronze &middot; 12,278</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SOCIAL PROOF ─────────────────────────────────────────────────── -->
+<section class="relative border-y border-slate-800/60 bg-slate-900/40 py-12">
+  <div class="max-w-7xl mx-auto px-6">
+    <p class="text-center text-xs font-semibold uppercase tracking-widest text-slate-500 mb-8">Daiso USA — Over 100 Stores Nationwide</p>
+    <!-- store highlights -->
+    <div class="flex flex-wrap items-center justify-center gap-x-12 gap-y-4 mb-10 text-slate-600">
+      <span class="text-lg font-bold tracking-tight">California</span>
+      <span class="text-lg font-bold tracking-tight">Texas</span>
+      <span class="text-lg font-bold tracking-tight">Washington</span>
+      <span class="text-lg font-bold tracking-tight">New York</span>
+      <span class="text-lg font-bold tracking-tight">Nevada</span>
+      <span class="text-lg font-bold tracking-tight">New Jersey</span>
+    </div>
+    <!-- stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto text-center">
+      <div>
+        <p class="text-3xl font-extrabold text-white">100+</p>
+        <p class="text-sm text-slate-500 mt-1">Daiso Stores</p>
+      </div>
+      <div>
+        <p class="text-3xl font-extrabold text-white">4,000+</p>
+        <p class="text-sm text-slate-500 mt-1">Products to Discover</p>
+      </div>
+      <div>
+        <p class="text-3xl font-extrabold text-white">$1.50</p>
+        <p class="text-sm text-slate-500 mt-1">Starting Price Point</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FEATURES GRID ────────────────────────────────────────────────── -->
+<section id="features" class="py-24 lg:py-32">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <p class="text-sm font-semibold uppercase tracking-widest text-red-400 mb-3">Daiso Rewards Benefits</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">Everything That Makes Daiso Rewards Special</h2>
+      <p class="text-slate-400 max-w-2xl mx-auto">Earn points on every Daiso purchase, unlock exclusive tiers, redeem rewards, and enjoy members-only offers across all Daiso USA locations.</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- 1 -->
+      <div class="group bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6 hover:border-blue-500/30 transition">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-red-500/10 text-red-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Earn Points</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Earn 1 point for every $1 spent at any Daiso USA store. Bonus points on seasonal promotions and special product categories. Full transaction enrichment: store, associate, and source tracking on every earn.</p>
+      </div>
+      <!-- 2 -->
+      <div class="group bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6 hover:border-purple-500/30 transition">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"/></svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Unlock Tiers</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Level up from Bronze to Silver, Gold, and Platinum. Higher tiers earn more points per dollar and unlock exclusive member benefits.</p>
+      </div>
+      <!-- 3 -->
+      <div class="group bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6 hover:border-emerald-500/30 transition">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Exclusive Offers</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Members-only deals on your favorite Daiso products. BOGO offers, percentage discounts, and special rewards tailored to your shopping habits.</p>
+      </div>
+      <!-- 4 -->
+      <div class="group bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6 hover:border-amber-500/30 transition">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Shop Anywhere</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Earn and redeem at any Daiso USA location, in-store or online. Full transaction traceability &mdash; store ID, register, associate, and source system tracked on every purchase.</p>
+      </div>
+      <!-- 5 -->
+      <div class="group bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6 hover:border-cyan-500/30 transition">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Finance Reports &amp; Analytics</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Points liability (ASC 606), breakage estimates, redemption reserves, revenue attribution, engagement funnels, and at-risk member detection &mdash; all built in.</p>
+      </div>
+      <!-- 6 -->
+      <div class="group bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6 hover:border-rose-500/30 transition">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Birthday Rewards</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Get a special birthday bonus every year. Double points during your birthday month and a surprise gift waiting at your local Daiso.</p>
+      </div>
+      <!-- 7 -->
+      <div class="group bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6 hover:border-indigo-500/30 transition">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/></svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Admin Portal</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Comprehensive reports: finance liability, marketing funnels, operations dashboards. Redeem rewards on any Daiso product across all categories.</p>
+      </div>
+      <!-- 8 -->
+      <div class="group bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6 hover:border-teal-500/30 transition">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-teal-500/10 text-teal-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Secure & Private</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Your personal information is protected with industry-leading security. CCPA compliant with full control over your data.</p>
+      </div>
+      <!-- 9 -->
+      <div class="group bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6 hover:border-pink-500/30 transition">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-pink-500/10 text-pink-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.303a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364L4.34 8.874"/></svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Marketing Integrations</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Sync members to ActiveCampaign and Klaviyo. Trigger automations on tier changes, points earned, and more. Drive win-back campaigns and measure loyalty ROI with built-in marketing tools.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW IT WORKS ─────────────────────────────────────────────────── -->
+<section class="py-24 lg:py-32 bg-slate-900/40 border-y border-slate-800/60">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <p class="text-sm font-semibold uppercase tracking-widest text-red-400 mb-3">Simple as 1-2-3</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">How Daiso Rewards Works</h2>
+      <p class="text-slate-400 max-w-xl mx-auto">Start earning rewards at Daiso in three easy steps.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- step 1 -->
+      <div class="relative text-center">
+        <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-[#EB1256] text-white text-xl font-bold mx-auto mb-5 shadow-lg shadow-pink-600/25">1</div>
+        <h3 class="text-white font-semibold text-lg mb-2">Sign Up</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Join Daiso Rewards in under a minute. Just your name, email, and phone number.</p>
+      </div>
+      <!-- step 2 -->
+      <div class="relative text-center">
+        <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-[#EB1256] text-white text-xl font-bold mx-auto mb-5 shadow-lg shadow-pink-600/25">2</div>
+        <h3 class="text-white font-semibold text-lg mb-2">Shop & Earn</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Earn points automatically every time you shop at Daiso. Show your member ID at checkout and watch your balance grow.</p>
+      </div>
+      <!-- step 3 -->
+      <div class="relative text-center">
+        <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-[#EB1256] text-white text-xl font-bold mx-auto mb-5 shadow-lg shadow-pink-600/25">3</div>
+        <h3 class="text-white font-semibold text-lg mb-2">Redeem Rewards</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Use your points for discounts, free products, and exclusive member offers. The more you shop, the more you save.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FEATURE DEEP DIVES ───────────────────────────────────────────── -->
+<section class="py-24 lg:py-32">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <p class="text-sm font-semibold uppercase tracking-widest text-red-400 mb-3">Deep Dive</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">Platform Details</h2>
+      <p class="text-slate-400 max-w-xl mx-auto">Explore the full depth of every subsystem.</p>
+    </div>
+    <div class="space-y-3">
+      <!-- Points & Rewards -->
+      <details class="group bg-slate-900/60 border border-slate-800/60 rounded-xl overflow-hidden">
+        <summary class="flex items-center px-6 py-5 text-white font-semibold hover:bg-slate-800/40 transition">Points &amp; Rewards</summary>
+        <div class="px-6 pb-6 pt-1">
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex items-start gap-2"><span class="text-red-400 mt-0.5">&#10003;</span>Base earn rate configurable per tenant</li>
+            <li class="flex items-start gap-2"><span class="text-red-400 mt-0.5">&#10003;</span>Category and SKU-level multipliers</li>
+            <li class="flex items-start gap-2"><span class="text-red-400 mt-0.5">&#10003;</span>Promotional multipliers with date windows</li>
+            <li class="flex items-start gap-2"><span class="text-red-400 mt-0.5">&#10003;</span>Points expiry with advance warnings (30d, 7d)</li>
+            <li class="flex items-start gap-2"><span class="text-red-400 mt-0.5">&#10003;</span>Manual adjustments with audit trail</li>
+            <li class="flex items-start gap-2"><span class="text-red-400 mt-0.5">&#10003;</span>Idempotent transactions (safe POS retry)</li>
+            <li class="flex items-start gap-2"><span class="text-red-400 mt-0.5">&#10003;</span><strong>Per-Visit Earn Mode:</strong> flat points per qualifying visit with configurable min spend threshold and max visits/day</li>
+          </ul>
+        </div>
+      </details>
+      <!-- Tier System -->
+      <details class="group bg-slate-900/60 border border-slate-800/60 rounded-xl overflow-hidden">
+        <summary class="flex items-center px-6 py-5 text-white font-semibold hover:bg-slate-800/40 transition">Tier System</summary>
+        <div class="px-6 pb-6 pt-1">
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">&#10003;</span>Up to 6 configurable tiers</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">&#10003;</span>Automatic promotion on rolling 12-month points</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">&#10003;</span>Annual demotion review with grace periods</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">&#10003;</span>Tier-specific benefits and multipliers</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">&#10003;</span>Admin override with reason codes</li>
+          </ul>
+        </div>
+      </details>
+      <!-- Offers & Rewards -->
+      <details class="group bg-slate-900/60 border border-slate-800/60 rounded-xl overflow-hidden">
+        <summary class="flex items-center px-6 py-5 text-white font-semibold hover:bg-slate-800/40 transition">Offers &amp; Rewards</summary>
+        <div class="px-6 pb-6 pt-1">
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#10003;</span>6 offer types: percent, fixed, BOGO, threshold, visit-based, and free item</li>
+            <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#10003;</span>Per-member redemption limits</li>
+            <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#10003;</span>Single-use codes for campaigns</li>
+            <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#10003;</span>Eligibility engine with real-time evaluation</li>
+            <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#10003;</span>Points-cost redemption</li>
+          </ul>
+        </div>
+      </details>
+      <!-- Channel Integration -->
+      <details class="group bg-slate-900/60 border border-slate-800/60 rounded-xl overflow-hidden">
+        <summary class="flex items-center px-6 py-5 text-white font-semibold hover:bg-slate-800/40 transition">Channel Integration</summary>
+        <div class="px-6 pb-6 pt-1">
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#10003;</span>POS API with &lt; 100ms member lookup</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#10003;</span>Offline resilience (out-of-order timestamp support)</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#10003;</span>JavaScript SDK with balance, offers, and tier widgets</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#10003;</span>Shopify and WooCommerce plugins</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#10003;</span>Consumer mobile API with dashboard endpoint</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#10003;</span><strong>Self-Checkout Kiosk:</strong> <a href="https://loyaltyselfcheckout.z13.web.core.windows.net" class="text-amber-300 underline" target="_blank">branded kiosk app</a> with phone keypad, item scanning, offer display, and points animation</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#10003;</span><strong>Customer Member Portal:</strong> <a href="https://loyaltyenroll.z13.web.core.windows.net" class="text-amber-300 underline" target="_blank">full dashboard</a> with points, tiers, collapsible transaction history, offers, and profile management</li>
+          </ul>
+        </div>
+      </details>
+      <!-- Analytics & Reporting -->
+      <details class="group bg-slate-900/60 border border-slate-800/60 rounded-xl overflow-hidden">
+        <summary class="flex items-center px-6 py-5 text-white font-semibold hover:bg-slate-800/40 transition">Analytics &amp; Reporting</summary>
+        <div class="px-6 pb-6 pt-1">
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span>Enrollment, transaction, and points economy dashboards</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span>Tier distribution and transition tracking</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span>Member retention cohort analysis</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span>Real-time KPI dashboard</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span>CSV/JSON bulk export API</li>
+          </ul>
+        </div>
+      </details>
+      <!-- Reporting & Analytics (NEW) -->
+      <details class="group bg-slate-900/60 border border-slate-800/60 rounded-xl overflow-hidden">
+        <summary class="flex items-center px-6 py-5 text-white font-semibold hover:bg-slate-800/40 transition">Reporting &amp; Analytics</summary>
+        <div class="px-6 pb-6 pt-1">
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Points Liability</strong>: ASC 606 / IFRS 15 compliant balance sheet reporting</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Breakage Estimates</strong>: Industry-standard 25% default, configurable per tenant</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Redemption Reserve</strong>: Monthly cash flow impact with cost-per-point tracking</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Revenue Attribution</strong>: Loyalty member spend lift vs baseline</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Engagement Funnel</strong>: Enrollment &rarr; purchase &rarr; repeat &rarr; tier upgrade conversion rates</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>At-Risk Detection</strong>: Auto-identify members with balance but no recent activity</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Tier Distribution</strong>: Real-time tier membership breakdown</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Offer Performance</strong>: Redemption rates, revenue impact, cost per redemption</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Transaction Traceability</strong>: Every transaction tagged with store, register, associate, source system, and order reference</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>CSV Export</strong>: All reports exportable for finance and compliance</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Visit Analytics</strong>: Qualified visits, visit conversion rate, daily trends (Operations tab)</li>
+            <li class="flex items-start gap-2"><span class="text-cyan-400 mt-0.5">&#10003;</span><strong>Power BI Ready</strong>: API-first design for BI tool integration</li>
+          </ul>
+        </div>
+      </details>
+      <!-- Security & Compliance -->
+      <details class="group bg-slate-900/60 border border-slate-800/60 rounded-xl overflow-hidden">
+        <summary class="flex items-center px-6 py-5 text-white font-semibold hover:bg-slate-800/40 transition">Security &amp; Compliance</summary>
+        <div class="px-6 pb-6 pt-1">
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5">&#10003;</span>Database-per-tenant isolation</li>
+            <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5">&#10003;</span>AES-256-GCM PII encryption at rest</li>
+            <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5">&#10003;</span>HMAC-SHA256 webhook signatures</li>
+            <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5">&#10003;</span>Rule-based fraud detection (velocity, location, balance drain)</li>
+            <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5">&#10003;</span>GDPR data deletion and export</li>
+            <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5">&#10003;</span>RBAC (Owner, Manager, Analyst)</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRICING ──────────────────────────────────────────────────────── -->
+<section id="pricing" class="py-24 lg:py-32 bg-slate-900/40 border-y border-slate-800/60">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <p class="text-sm font-semibold uppercase tracking-widest text-red-400 mb-3">Membership Tiers</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">Free to Join, Easy to Earn</h2>
+      <p class="text-slate-400 max-w-xl mx-auto">Daiso Rewards is completely free. The more you shop, the higher your tier and the bigger your rewards.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Bronze -->
+      <div class="bg-slate-900/80 border border-slate-800/60 rounded-2xl p-8 flex flex-col">
+        <h3 class="text-white font-semibold text-lg mb-1" style="color:#CD7F32">Bronze</h3>
+        <p class="text-sm text-slate-500 mb-5">Start earning from day one</p>
+        <div class="mb-6">
+          <span class="text-4xl font-extrabold text-white">Free</span>
+        </div>
+        <ul class="space-y-3 text-sm text-slate-400 mb-8 flex-1">
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>1 point per $1 spent</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Member-only offers</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Birthday bonus points</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Early access to sales</li>
+        </ul>
+        <a href="https://loyaltyenroll.z13.web.core.windows.net" class="block text-center bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-xl transition border border-slate-700">Join Now</a>
+      </div>
+      <!-- Gold -->
+      <div class="relative bg-slate-900/80 border-2 border-[#EB1256]/40 rounded-2xl p-8 flex flex-col shadow-xl shadow-pink-500/5">
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#EB1256] text-white text-xs font-semibold px-4 py-1 rounded-full">Most Rewarding</div>
+        <h3 class="text-white font-semibold text-lg mb-1" style="color:#FFD700">Gold</h3>
+        <p class="text-sm text-slate-500 mb-5">Earn 500+ points to unlock</p>
+        <div class="mb-6">
+          <span class="text-4xl font-extrabold text-white">2x</span>
+          <span class="text-slate-500 text-sm"> points</span>
+        </div>
+        <ul class="space-y-3 text-sm text-slate-400 mb-8 flex-1">
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>2x points on every purchase</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Exclusive Gold-only offers</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Free gift on tier upgrade</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Priority new product access</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Double birthday bonus</li>
+        </ul>
+        <a href="https://loyaltyenroll.z13.web.core.windows.net" class="block text-center bg-[#EB1256] hover:bg-[#D41050] text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-pink-600/25">Join Now</a>
+      </div>
+      <!-- Platinum -->
+      <div class="bg-slate-900/80 border border-slate-800/60 rounded-2xl p-8 flex flex-col">
+        <h3 class="text-white font-semibold text-lg mb-1" style="color:#E5E4E2">Platinum</h3>
+        <p class="text-sm text-slate-500 mb-5">Earn 2,000+ points to unlock</p>
+        <div class="mb-6">
+          <span class="text-4xl font-extrabold text-white">3x</span>
+          <span class="text-slate-500 text-sm"> points</span>
+        </div>
+        <ul class="space-y-3 text-sm text-slate-400 mb-8 flex-1">
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>3x points on every purchase</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>VIP exclusive offers</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Free shipping on online orders</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Quarterly surprise gift box</li>
+          <li class="flex items-start gap-2"><span class="text-emerald-400">&#10003;</span>Early access to Japan exclusives</li>
+        </ul>
+        <a href="https://loyaltyenroll.z13.web.core.windows.net" class="block text-center bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-xl transition border border-slate-700">Join Now</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── INTEGRATIONS ─────────────────────────────────────────────────── -->
+<section class="py-20">
+  <div class="max-w-5xl mx-auto px-6 text-center">
+    <p class="text-sm font-semibold uppercase tracking-widest text-red-400 mb-3">Product Categories</p>
+    <h2 class="text-3xl font-extrabold text-white mb-4">Earn Points Across Every Aisle</h2>
+    <p class="text-slate-400 max-w-2xl mx-auto mb-10">Daiso carries thousands of unique products from Japan. Earn points no matter what you buy.</p>
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <span class="bg-slate-900/80 border border-red-500/30 text-sm font-semibold text-red-300 px-6 py-3 rounded-xl">Kitchen & Dining</span>
+      <span class="bg-slate-900/80 border border-purple-500/30 text-sm font-semibold text-purple-300 px-6 py-3 rounded-xl">Stationery</span>
+      <span class="bg-slate-900/80 border border-emerald-500/30 text-sm font-semibold text-emerald-300 px-6 py-3 rounded-xl">Beauty & Health</span>
+      <span class="bg-slate-900/80 border border-cyan-500/30 text-sm font-semibold text-cyan-300 px-6 py-3 rounded-xl">Home & Storage</span>
+      <span class="bg-slate-900/80 border border-slate-800/60 text-sm font-semibold text-slate-300 px-6 py-3 rounded-xl">Snacks & Food</span>
+      <span class="bg-slate-900/80 border border-slate-800/60 text-sm font-semibold text-slate-300 px-6 py-3 rounded-xl">Electronics</span>
+      <span class="bg-slate-900/80 border border-slate-800/60 text-sm font-semibold text-slate-300 px-6 py-3 rounded-xl">Party Supplies</span>
+      <span class="bg-slate-900/80 border border-slate-800/60 text-sm font-semibold text-slate-300 px-6 py-3 rounded-xl">Seasonal Items</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DEVELOPER SECTION ────────────────────────────────────────────── -->
+<section class="py-24 lg:py-32 bg-slate-900/40 border-y border-slate-800/60">
+  <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-start">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-widest text-red-400 mb-3">For Developers</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">Powered by a Modern API</h2>
+      <p class="text-slate-400 mb-8 leading-relaxed">The Daiso Rewards platform is built API-first. Integrate with our POS systems, e-commerce, and mobile apps through a clean REST API and JavaScript SDK.</p>
+      <div class="flex flex-wrap gap-3">
+        <a href="https://loyaltydocs.z13.web.core.windows.net" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition border border-slate-700">API Docs</a>
+        <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition border border-slate-700">Swagger UI</a>
+        <a href="https://loyaltyposdemo.z13.web.core.windows.net" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition border border-slate-700">POS Demo</a>
+        <a href="https://github.com/d1hawkins/loyalty-platform" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition border border-slate-700">GitHub</a>
+      </div>
+    </div>
+    <div class="code-block rounded-xl p-5 overflow-x-auto">
+      <div class="flex items-center gap-2 mb-4 text-xs text-slate-500">
+        <span class="w-3 h-3 rounded-full bg-red-500/60"></span>
+        <span class="w-3 h-3 rounded-full bg-yellow-500/60"></span>
+        <span class="w-3 h-3 rounded-full bg-green-500/60"></span>
+        <span class="ml-2 font-mono">terminal</span>
+      </div>
+<pre class="text-sm font-mono leading-relaxed"><span class="text-slate-500"># Enroll a new member</span>
+<span class="text-emerald-400">curl</span> <span class="text-blue-300">-X POST</span> https://api.loyaltyplatform.io/members \
+  <span class="text-blue-300">-H</span> <span class="text-amber-300">"Authorization: Bearer $API_KEY"</span> \
+  <span class="text-blue-300">-d</span> <span class="text-amber-300">'{
+    "email": "jane@example.com",
+    "first_name": "Jane",
+    "last_name": "Smith"
+  }'</span>
+
+<span class="text-slate-500"># Record a transaction with enrichment</span>
+<span class="text-emerald-400">curl</span> <span class="text-blue-300">-X POST</span> https://api.loyaltyplatform.io/v1/transactions \
+  <span class="text-blue-300">-H</span> <span class="text-amber-300">"Authorization: Bearer $API_KEY"</span> \
+  <span class="text-blue-300">-d</span> <span class="text-amber-300">'{
+    "memberId": "mem_abc123",
+    "amount": 4500,
+    "storeId": "DAISO-042",
+    "associateId": "EMP-1001",
+    "sourceChannel": "in-store",
+    "orderRef": "ORD-2026-001"
+  }'</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ───────────────────────────────────────────────────────────── -->
+<section class="py-24 lg:py-32">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">Ready to Start Earning?</h2>
+    <p class="text-slate-400 max-w-xl mx-auto mb-10">Join Daiso Rewards today and start earning points on every visit to your favorite Daiso USA store.</p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="https://loyaltyenroll.z13.web.core.windows.net" class="inline-flex items-center justify-center gap-2 bg-[#EB1256] hover:bg-[#D41050] text-white font-semibold px-8 py-3.5 rounded-xl transition shadow-lg shadow-pink-600/25">
+        Join Daiso Rewards
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-5.5-5.5m5.5 5.5l-5.5 5.5"/></svg>
+      </a>
+      <a href="https://loyaltydocs.z13.web.core.windows.net" class="inline-flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold px-8 py-3.5 rounded-xl transition border border-slate-700">
+        Read the Docs
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────────────────────── -->
+<footer class="border-t border-slate-800/60 bg-slate-950 py-12">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+      <!-- brand -->
+      <div>
+        <a href="#" class="flex items-center gap-2 text-white font-bold text-lg tracking-tight mb-3">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" class="h-7 object-contain" onerror="this.style.display='none'">
+          Daiso Rewards
+        </a>
+        <p class="text-sm text-slate-500">Daiso USA Loyalty Program. Earn rewards on every visit.</p>
+      </div>
+      <!-- product -->
+      <div>
+        <h4 class="text-white font-semibold text-sm mb-3">Product</h4>
+        <ul class="space-y-2 text-sm text-slate-400">
+          <li><a href="#features" class="hover:text-white transition">Features</a></li>
+          <li><a href="#pricing" class="hover:text-white transition">Pricing</a></li>
+          <li><a href="https://loyaltyposdemo.z13.web.core.windows.net" class="hover:text-white transition">POS Demo</a></li>
+        </ul>
+      </div>
+      <!-- developers -->
+      <div>
+        <h4 class="text-white font-semibold text-sm mb-3">Developers</h4>
+        <ul class="space-y-2 text-sm text-slate-400">
+          <li><a href="https://loyaltydocs.z13.web.core.windows.net" class="hover:text-white transition">Documentation</a></li>
+          <li><a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" class="hover:text-white transition">API Reference</a></li>
+          <li><a href="https://github.com/d1hawkins/loyalty-platform" class="hover:text-white transition">GitHub</a></li>
+        </ul>
+      </div>
+      <!-- portals -->
+      <div>
+        <h4 class="text-white font-semibold text-sm mb-3">Portals</h4>
+        <ul class="space-y-2 text-sm text-slate-400">
+          <li><a href="https://loyaltyadminportal.z20.web.core.windows.net" class="hover:text-white transition">Admin Portal</a></li>
+          <li><a href="https://loyaltyonboardportal.z20.web.core.windows.net" class="hover:text-white transition">Onboarding</a></li>
+          <li><a href="https://loyaltyselfcheckout.z13.web.core.windows.net" class="hover:text-white transition">Self-Checkout Kiosk</a></li>
+          <li><a href="https://loyaltyenroll.z13.web.core.windows.net" class="hover:text-white transition">Member Portal</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-slate-800/60 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-xs text-slate-600">&copy; 2026 Daiso USA. All rights reserved. Daiso Rewards Program.</p>
+      <div class="flex items-center gap-2 text-xs text-slate-600">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm-1 15v-4H8l5-7v4h3l-5 7z"/></svg>
+        Built on Azure
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- scroll reveal -->
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }});
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

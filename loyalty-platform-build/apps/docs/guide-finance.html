@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Guide — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    @media print {
+      .sidebar, .sidebar-overlay, .top-bar, .mobile-menu-btn, .no-print { display: none !important; }
+      .main-content { margin-left: 0 !important; }
+      .content-area { max-width: 100% !important; padding: 0 !important; }
+    }
+    .toc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+    .toc h3 { margin-top: 0 !important; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.75rem; }
+    .toc ul { list-style: none; padding-left: 0; margin-bottom: 0; }
+    .toc li { margin-bottom: 0.375rem; }
+    .toc a { font-size: 0.875rem; color: #475569; text-decoration: none; }
+    .toc a:hover { color: var(--accent); }
+    .formula { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 0.375rem; padding: 0.75rem 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: #334155; margin-bottom: 1rem; text-align: center; }
+    .task-card { background: #fefce8; border: 1px solid #fde68a; border-radius: 0.5rem; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .task-card h4 { margin: 0 0 0.5rem 0; color: #92400e; font-size: 0.9375rem; }
+    .task-card ol, .task-card ul { padding-left: 1.25rem; color: #78350f; font-size: 0.875rem; margin-bottom: 0; }
+    .task-card li { margin-bottom: 0.25rem; }
+    .task-card p { margin-bottom: 0.5rem; color: #78350f; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link active">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="#" onclick="window.print();return false;" class="no-print">Print this guide</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Finance Guide
+        </div>
+
+        <h1>Finance User Guide</h1>
+        <p class="subtitle">Points liability reporting, reconciliation, compliance, and financial analysis for the Daiso Rewards program. For finance, accounting, and compliance teams.</p>
+
+        <div class="toc">
+          <h3>Table of Contents</h3>
+          <ul>
+            <li><a href="#liability">1. Points Liability (ASC 606 / IFRS 15)</a></li>
+            <li><a href="#points-flow">2. Points Flow Report</a></li>
+            <li><a href="#redemption-reserve">3. Redemption Reserve</a></li>
+            <li><a href="#revenue-attribution">4. Revenue Attribution</a></li>
+            <li><a href="#data-export">5. Data Export</a></li>
+            <li><a href="#compliance">6. Compliance</a></li>
+            <li><a href="#per-visit-liability">7. Per-Visit Liability</a></li>
+            <li><a href="#visit-conversion">8. Visit Conversion Metrics</a></li>
+            <li><a href="#transaction-traceability">9. Transaction Traceability</a></li>
+            <li><a href="#report-walkthrough">10. Report Walkthrough</a></li>
+            <li><a href="#common-tasks">11. Common Finance Tasks</a></li>
+          </ul>
+        </div>
+
+        <!-- 1. POINTS LIABILITY -->
+        <h2 id="liability">1. Points Liability (ASC 606 / IFRS 15)</h2>
+
+        <h3>What Is Points Liability?</h3>
+        <p>Under ASC 606 (US GAAP) and IFRS 15 (international), loyalty points represent a performance obligation. When a customer earns points, a portion of the transaction revenue must be deferred until those points are redeemed or expire. This deferred amount is the <strong>points liability</strong>.</p>
+
+        <div class="formula">
+          Net Liability = Outstanding Points &times; Point Value &times; (1 &minus; Breakage Rate)
+        </div>
+
+        <h3>Where to Find It</h3>
+        <p>Navigate to <strong>Admin Portal</strong> &rarr; <strong>Reports</strong> &rarr; <strong>Finance</strong> tab &rarr; <strong>Points Liability</strong> card.</p>
+
+        <h3>Fields Explained</h3>
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Description</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Outstanding Points</strong></td>
+              <td>Total unexpired, unredeemed points across all active members</td>
+              <td>2,450,000 points</td>
+            </tr>
+            <tr>
+              <td><strong>Point Value</strong></td>
+              <td>The monetary value of one point (based on your earn rate and redemption value)</td>
+              <td>$0.01 per point</td>
+            </tr>
+            <tr>
+              <td><strong>Gross Liability</strong></td>
+              <td>Outstanding Points &times; Point Value &mdash; the maximum possible cost</td>
+              <td>$24,500.00</td>
+            </tr>
+            <tr>
+              <td><strong>Breakage Estimate</strong></td>
+              <td>Percentage of points expected to expire without redemption</td>
+              <td>25% ($6,125.00)</td>
+            </tr>
+            <tr>
+              <td><strong>Net Liability</strong></td>
+              <td>Gross Liability &minus; Breakage &mdash; the amount to carry on the balance sheet</td>
+              <td>$18,375.00</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Breakage Rate</h3>
+        <p>Breakage is the percentage of points that are expected to go unredeemed (they expire or the member becomes inactive). The platform defaults to a <strong>25% breakage rate</strong>.</p>
+
+        <table>
+          <thead>
+            <tr><th>Industry</th><th>Typical Breakage</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Retail / General Merchandise</td><td>20&ndash;30%</td></tr>
+            <tr><td>Grocery</td><td>15&ndash;20%</td></tr>
+            <tr><td>Airlines / Hotels</td><td>10&ndash;15%</td></tr>
+            <tr><td>Credit Card Rewards</td><td>25&ndash;35%</td></tr>
+          </tbody>
+        </table>
+
+        <p>To adjust the breakage rate, navigate to <strong>Program Config</strong> &rarr; <strong>Finance Settings</strong> and update the breakage percentage. Consult your auditor before changing this value, as it directly impacts your reported liability.</p>
+
+        <h3>When to Report</h3>
+        <ul>
+          <li><strong>Monthly:</strong> Pull the liability report for internal management reporting and budget tracking</li>
+          <li><strong>Quarterly:</strong> Include net liability in your quarterly financial statements</li>
+          <li><strong>Annually:</strong> Full reconciliation with your external auditors, including breakage rate validation</li>
+        </ul>
+
+        <!-- 2. POINTS FLOW -->
+        <h2 id="points-flow">2. Points Flow Report</h2>
+
+        <p>The Points Flow report shows the movement of points through the system over a selected period.</p>
+
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Points Issued</strong></td><td>Total points earned from transactions and manual adjustments</td></tr>
+            <tr><td><strong>Points Redeemed</strong></td><td>Total points used for rewards and offers</td></tr>
+            <tr><td><strong>Points Expired</strong></td><td>Total points that reached their expiry date without redemption</td></tr>
+            <tr><td><strong>Points Voided</strong></td><td>Points reversed due to transaction voids or corrections</td></tr>
+            <tr><td><strong>Net Change</strong></td><td>Issued &minus; Redeemed &minus; Expired &minus; Voided = change in outstanding balance</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Using for Reconciliation</h3>
+        <p>To reconcile the points balance at month-end:</p>
+        <ol>
+          <li>Take the opening balance (outstanding points at start of month)</li>
+          <li>Add points issued during the month</li>
+          <li>Subtract points redeemed, expired, and voided</li>
+          <li>The result should equal the closing balance shown in the Points Liability report</li>
+        </ol>
+
+        <div class="formula">
+          Closing Balance = Opening Balance + Issued &minus; Redeemed &minus; Expired &minus; Voided
+        </div>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">Reconciliation Discrepancy</div>
+          If the calculated closing balance does not match the reported balance, check the <a href="guide-loyalty-admin.html#audit-log">Audit Log</a> for manual adjustments made during the period. Manual adjustments (goodwill credits, corrections) appear in the "Issued" column but are tagged separately in the detailed export.
+        </div>
+
+        <!-- 3. REDEMPTION RESERVE -->
+        <h2 id="redemption-reserve">3. Redemption Reserve</h2>
+
+        <h3>Monthly Cash Flow Impact</h3>
+        <p>The Redemption Reserve report estimates the monthly cash outflow from points redemptions:</p>
+        <ul>
+          <li><strong>This Month's Redemptions:</strong> Total monetary value of points redeemed</li>
+          <li><strong>Rolling 3-Month Average:</strong> Average monthly redemption value over the past 3 months</li>
+          <li><strong>Projected Next Month:</strong> Estimated redemption based on historical trends and upcoming expiries</li>
+        </ul>
+
+        <h3>Cost Per Point Redeemed</h3>
+        <p>This metric shows the actual cost to the business for each point that is redeemed. It accounts for the fact that not all points are equal &mdash; some are redeemed for percentage discounts, others for fixed amounts.</p>
+
+        <div class="formula">
+          Cost Per Point = Total Discount Value Given / Total Points Redeemed
+        </div>
+
+        <h3>Budget Forecasting</h3>
+        <p>Use the Redemption Reserve data to forecast loyalty program costs:</p>
+        <ol>
+          <li>Review the rolling 3-month average redemption value</li>
+          <li>Factor in planned promotions (double points events increase future redemptions)</li>
+          <li>Account for seasonality (holiday shopping increases both earning and redemption)</li>
+          <li>Apply the breakage rate to estimate what percentage of newly issued points will never be redeemed</li>
+        </ol>
+
+        <!-- 4. REVENUE ATTRIBUTION -->
+        <h2 id="revenue-attribution">4. Revenue Attribution</h2>
+
+        <h3>Measuring Loyalty ROI</h3>
+        <p>The Revenue Attribution report helps quantify the return on investment of the loyalty program:</p>
+
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>What It Measures</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Member Revenue</strong></td>
+              <td>Total revenue from transactions made by loyalty members</td>
+            </tr>
+            <tr>
+              <td><strong>Non-Member Revenue</strong></td>
+              <td>Total revenue from transactions without a loyalty member attached</td>
+            </tr>
+            <tr>
+              <td><strong>Member Revenue %</strong></td>
+              <td>Percentage of total revenue attributable to loyalty members</td>
+            </tr>
+            <tr>
+              <td><strong>Average Member Basket</strong></td>
+              <td>Average transaction value for loyalty members</td>
+            </tr>
+            <tr>
+              <td><strong>Average Non-Member Basket</strong></td>
+              <td>Average transaction value for non-members</td>
+            </tr>
+            <tr>
+              <td><strong>Spend Lift</strong></td>
+              <td>(Member Basket &minus; Non-Member Basket) / Non-Member Basket &mdash; the incremental spend driven by loyalty</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Average Basket Comparison</h3>
+        <p>Compare average basket size by tier to understand how loyalty engagement correlates with spending:</p>
+        <table>
+          <thead>
+            <tr><th>Segment</th><th>Avg Basket</th><th>Lift vs Non-Member</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Non-Member</td><td>$8.50</td><td>&mdash;</td></tr>
+            <tr><td>Bronze</td><td>$10.25</td><td>+21%</td></tr>
+            <tr><td>Silver</td><td>$14.80</td><td>+74%</td></tr>
+            <tr><td>Gold</td><td>$22.10</td><td>+160%</td></tr>
+            <tr><td>Platinum</td><td>$35.50</td><td>+318%</td></tr>
+          </tbody>
+        </table>
+        <p><em>Note: These are illustrative figures. Your actual data is in the Admin Portal reports.</em></p>
+
+        <!-- 5. DATA EXPORT -->
+        <h2 id="data-export">5. Data Export</h2>
+
+        <h3>Exporting Reports to CSV</h3>
+        <p>Every report in the Admin Portal includes an <strong>Export</strong> button that downloads the data as a CSV file. Exported files include:</p>
+        <ul>
+          <li>All visible columns with headers</li>
+          <li>The selected date range filter</li>
+          <li>A timestamp row showing when the export was generated</li>
+        </ul>
+
+        <h3>Connecting to Power BI / Excel</h3>
+        <p>For recurring reports, connect Power BI or Excel directly to the loyalty API:</p>
+        <ol>
+          <li>Generate a Read Only API key in the Admin Portal (see <a href="guide-loyalty-admin.html#api-keys">API Keys</a>)</li>
+          <li>In Power BI, use the <strong>Web</strong> data source connector</li>
+          <li>Enter the API endpoint URL with your date range parameters</li>
+          <li>Add the <code>Ocp-Apim-Subscription-Key</code> header with your API key</li>
+          <li>Set up a refresh schedule (daily or weekly)</li>
+        </ol>
+
+        <h3>API Endpoints for Automated Reporting</h3>
+        <p>Key API endpoints for financial reporting:</p>
+        <table>
+          <thead>
+            <tr><th>Endpoint</th><th>Data</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>GET /v1/admin/reports/liability</code></td><td>Current points liability snapshot</td></tr>
+            <tr><td><code>GET /v1/admin/reports/points-flow</code></td><td>Points issued/redeemed/expired by period</td></tr>
+            <tr><td><code>GET /v1/admin/reports/redemption-reserve</code></td><td>Monthly redemption cost and projections</td></tr>
+            <tr><td><code>GET /v1/admin/reports/revenue-attribution</code></td><td>Member vs non-member revenue breakdown</td></tr>
+          </tbody>
+        </table>
+        <p>See the <a href="api-reference.html">API Reference</a> for full endpoint documentation including query parameters and response schemas.</p>
+
+        <!-- 6. COMPLIANCE -->
+        <h2 id="compliance">6. Compliance</h2>
+
+        <h3>GDPR Data Handling</h3>
+        <p>The loyalty platform handles personally identifiable information (PII) with the following safeguards:</p>
+        <ul>
+          <li><strong>Encryption at Rest:</strong> All PII fields (name, email, phone) are encrypted using AES-256 in the database</li>
+          <li><strong>Encryption in Transit:</strong> All API communication uses TLS 1.2+</li>
+          <li><strong>Data Deletion:</strong> Members can request deletion through the Member Portal. Admins can process deletion requests via the Admin Portal. PII is anonymized while financial records (anonymized transaction data) are retained for accounting purposes.</li>
+          <li><strong>Data Export:</strong> Members can request a full export of their data in machine-readable format (JSON)</li>
+          <li><strong>Consent Management:</strong> Enrollment captures explicit opt-in consent. Communication preferences are member-controlled.</li>
+        </ul>
+
+        <h3>Audit Trail</h3>
+        <p>Every administrative action is logged with:</p>
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Actor</strong></td><td>The admin user who performed the action (email and user ID)</td></tr>
+            <tr><td><strong>Timestamp</strong></td><td>Exact date and time (UTC) of the action</td></tr>
+            <tr><td><strong>Entity</strong></td><td>What was changed (member, tier, offer, config)</td></tr>
+            <tr><td><strong>Action</strong></td><td>What was done (create, update, delete, adjust)</td></tr>
+            <tr><td><strong>Before State</strong></td><td>The entity's state before the change</td></tr>
+            <tr><td><strong>After State</strong></td><td>The entity's state after the change</td></tr>
+          </tbody>
+        </table>
+        <p>The audit log is immutable &mdash; entries cannot be edited or deleted. Export the log for compliance reviews using the <strong>Export</strong> button on the Audit Log page.</p>
+
+        <h3>Data Retention Policies</h3>
+        <ul>
+          <li><strong>Active Member Data:</strong> Retained for the lifetime of the member account</li>
+          <li><strong>Transaction Records:</strong> Retained for 7 years (financial compliance requirement)</li>
+          <li><strong>Audit Logs:</strong> Retained for 7 years</li>
+          <li><strong>Deleted Member Data:</strong> PII is anonymized immediately upon deletion. Anonymized records follow standard retention periods.</li>
+          <li><strong>API Logs:</strong> Retained for 90 days</li>
+        </ul>
+
+        <!-- 7. PER-VISIT LIABILITY -->
+        <h2 id="per-visit-liability">7. Per-Visit Liability</h2>
+
+        <h3>How Liability Differs in Per-Visit Mode</h3>
+        <p>In per-dollar mode, liability varies with transaction amounts &mdash; a $50 purchase creates more liability than a $5 purchase. In per-visit mode, every qualifying visit creates the same liability regardless of the transaction total (the flat points-per-visit amount).</p>
+
+        <div class="formula">
+          Per-Visit Liability = Qualifying Visits &times; Points Per Visit &times; Point Value &times; (1 &minus; Breakage Rate)
+        </div>
+
+        <h3>Advantages for Financial Forecasting</h3>
+        <ul>
+          <li><strong>Predictability:</strong> Each qualifying visit generates exactly the same liability. No need to estimate average transaction values.</li>
+          <li><strong>Simple budgeting:</strong> If you expect 10,000 qualifying visits per month and award 10 points per visit at $0.01/point, your gross monthly liability is exactly $1,000.</li>
+          <li><strong>Decoupled from revenue:</strong> Liability is driven by visit count, not revenue. Revenue can grow without proportionally increasing liability.</li>
+        </ul>
+
+        <h3>Monitoring Visit Qualification Rate</h3>
+        <p>Not all transactions qualify as visits (those below the minimum spend threshold do not earn points). The <strong>visit conversion rate</strong> in the Operations report shows what percentage of total transactions qualify. If the rate drops, it may indicate that the threshold needs adjustment.</p>
+
+        <!-- 8. VISIT CONVERSION METRICS -->
+        <h2 id="visit-conversion">8. Visit Conversion Metrics</h2>
+
+        <p>Navigate to <strong>Reports</strong> &rarr; <strong>Operations</strong> to find visit conversion metrics. These are particularly important for finance:</p>
+
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Finance Relevance</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Visit Conversion Rate</strong></td>
+              <td>What % of transactions create points liability? A higher rate means more liability per transaction but also higher member engagement.</td>
+            </tr>
+            <tr>
+              <td><strong>Qualified Visits (Daily / Monthly)</strong></td>
+              <td>Direct input to liability forecasting. Multiply by points-per-visit and point value for gross liability.</td>
+            </tr>
+            <tr>
+              <td><strong>Non-Qualifying Transactions</strong></td>
+              <td>Transactions below the minimum spend threshold. These create no points liability.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Adjusting the Threshold</h3>
+        <p>If the visit conversion rate is too high (above 95%), the minimum spend threshold may be too low and creating unnecessary liability on trivial transactions. If it's too low (below 60%), members may feel the program is unrewarding. The recommended target is 70&ndash;85%. Any threshold change should be coordinated with marketing and approved by finance, as it directly impacts future liability.</p>
+
+        <!-- 9. TRANSACTION TRACEABILITY -->
+        <h2 id="transaction-traceability">9. Transaction Traceability</h2>
+
+        <p>Every transaction now includes enrichment fields that enable full traceability for reconciliation and audit:</p>
+
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Reconciliation Use</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>storeId</code> / <code>storeName</code></td><td>Match transactions to store-level P&amp;L reports</td></tr>
+            <tr><td><code>registerId</code></td><td>Identify which terminal processed the transaction</td></tr>
+            <tr><td><code>associateId</code> / <code>associateName</code></td><td>Audit trail for who processed the transaction</td></tr>
+            <tr><td><code>sourceChannel</code></td><td>Segment liability by channel (in-store vs online vs self-checkout)</td></tr>
+            <tr><td><code>sourceSystem</code></td><td>Identify which POS system submitted the transaction (Square, Shopify, kiosk, etc.)</td></tr>
+            <tr><td><code>orderRef</code></td><td>Cross-reference with the POS system's order records for reconciliation</td></tr>
+            <tr><td><code>metadata</code></td><td>Custom tags for campaign tracking, promotional attribution, etc.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Using Order References for Reconciliation</h3>
+        <p>The <code>orderRef</code> field allows you to match loyalty transactions against your POS system's order records. When investigating a discrepancy:</p>
+        <ol>
+          <li>Export the Points Flow report for the period in question</li>
+          <li>Use the <code>orderRef</code> column to cross-reference each transaction against the POS settlement report</li>
+          <li>Filter by <code>storeId</code> to isolate store-level discrepancies</li>
+          <li>Use <code>sourceSystem</code> to identify which POS integration may have issues</li>
+        </ol>
+
+        <!-- 10. REPORT WALKTHROUGH -->
+        <h2 id="report-walkthrough">10. Report Walkthrough</h2>
+
+        <h3>Finance Tab Overview</h3>
+        <p>When you open <strong>Reports</strong> &rarr; <strong>Finance</strong>, you'll see four report cards:</p>
+        <ol>
+          <li><strong>Points Liability:</strong> The top-level card showing outstanding points, gross liability, breakage estimate, and net liability. This is your ASC 606 number. Use the date selector to view liability as of a specific date for period-end reporting.</li>
+          <li><strong>Points Flow:</strong> A table showing points issued, redeemed, expired, and voided for the selected period. Use "Group By" to switch between daily, weekly, and monthly views. The net change row reconciles opening and closing balances.</li>
+          <li><strong>Redemption Reserve:</strong> Shows this month's redemption cost, the rolling 3-month average, and the projected next month. Use this for cash flow forecasting.</li>
+          <li><strong>Revenue Attribution:</strong> Compares member vs non-member revenue, average basket sizes by tier, and the spend lift percentage. This is your core ROI metric.</li>
+        </ol>
+
+        <h3>Exporting for Period-End Close</h3>
+        <ol>
+          <li>Set the date range to the period being closed (e.g., Q1 2026)</li>
+          <li>Click <strong>Export</strong> on each card to download CSV files</li>
+          <li>Verify the Points Flow reconciliation: Opening + Issued - Redeemed - Expired - Voided = Closing</li>
+          <li>Attach the Points Liability and Points Flow CSVs to your period-end working papers</li>
+          <li>If using per-visit mode, also export the Operations &rarr; Qualified Visits report to document the volume driver for liability</li>
+        </ol>
+
+        <!-- 11. COMMON TASKS -->
+        <h2 id="common-tasks">11. Common Finance Tasks</h2>
+
+        <div class="task-card">
+          <h4>"Prepare the quarterly liability report"</h4>
+          <ol>
+            <li>Navigate to <strong>Reports</strong> &rarr; <strong>Finance</strong> &rarr; <strong>Points Liability</strong></li>
+            <li>Verify the outstanding points total matches your general ledger opening balance + net flow</li>
+            <li>Review the breakage rate &mdash; is 25% still appropriate based on actual redemption trends?</li>
+            <li>Compare the <strong>Points Flow Report</strong> for the quarter: issued, redeemed, expired, voided</li>
+            <li>Export both reports to CSV</li>
+            <li>Calculate: Opening Liability + (Points Issued &times; Point Value) &minus; (Points Redeemed &times; Point Value) &minus; (Points Expired &times; Point Value) = Closing Liability</li>
+            <li>The closing liability should match the Points Liability card. Document any variance notes for your auditor.</li>
+          </ol>
+        </div>
+
+        <div class="task-card">
+          <h4>"Investigate a disputed transaction"</h4>
+          <ol>
+            <li>Get the transaction ID, member phone number, or order reference from the customer</li>
+            <li>Navigate to <strong>Transactions</strong> in the Admin Portal and search by the identifier</li>
+            <li>Open the transaction detail to see: store, date/time, associate, items, points earned, and any applied offers</li>
+            <li>Check the <strong>Points Ledger</strong> on the member's profile to see the exact credit entry</li>
+            <li>Check the <strong>Audit Log</strong> for any manual adjustments related to this transaction</li>
+            <li>If the transaction was voided, the void entry appears in both the transaction list and the ledger</li>
+          </ol>
+        </div>
+
+        <div class="task-card">
+          <h4>"Calculate program ROI for a board presentation"</h4>
+          <p>Pull these reports to build a comprehensive ROI analysis:</p>
+          <ol>
+            <li><strong>Revenue Attribution:</strong> Member revenue vs non-member revenue, and spend lift percentage</li>
+            <li><strong>Points Liability:</strong> Net liability as the "cost" of the program</li>
+            <li><strong>Redemption Reserve:</strong> Monthly cash outflow from redemptions</li>
+            <li><strong>Tier Distribution:</strong> Show member progression as evidence of engagement</li>
+            <li><strong>Cohort Retention (from Marketing reports):</strong> Show that loyalty members return more often</li>
+          </ol>
+          <p>The ROI formula:</p>
+        </div>
+
+        <div class="formula">
+          ROI = (Incremental Member Revenue &minus; Program Cost) / Program Cost &times; 100%
+        </div>
+
+        <p>Where:</p>
+        <ul>
+          <li><strong>Incremental Member Revenue</strong> = (Member Avg Basket &minus; Non-Member Avg Basket) &times; Number of Member Transactions</li>
+          <li><strong>Program Cost</strong> = Net Liability Change + Redemption Cost + Platform Fees + Marketing Spend on Loyalty Campaigns</li>
+        </ul>
+
+        <div class="callout callout-success">
+          <div class="callout-title">Related Guides</div>
+          <ul>
+            <li><a href="guide-loyalty-admin.html">Loyalty Admin Guide</a> &mdash; Managing members, tiers, and program configuration</li>
+            <li><a href="guide-marketing-admin.html">Marketing Admin Guide</a> &mdash; Campaign performance and engagement reports</li>
+            <li><a href="guide-loyalty-admin.html#audit-log">Audit Log documentation</a> &mdash; Detailed guide on filtering and exporting audit data</li>
+          </ul>
+        </div>
+
+        <div class="next-page">
+          <a href="guide-member.html">Next: Member Guide &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

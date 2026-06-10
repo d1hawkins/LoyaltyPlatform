@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Admin Guide — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    @media print {
+      .sidebar, .sidebar-overlay, .top-bar, .mobile-menu-btn, .no-print { display: none !important; }
+      .main-content { margin-left: 0 !important; }
+      .content-area { max-width: 100% !important; padding: 0 !important; }
+    }
+    .toc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+    .toc h3 { margin-top: 0 !important; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.75rem; }
+    .toc ul { list-style: none; padding-left: 0; margin-bottom: 0; }
+    .toc li { margin-bottom: 0.375rem; }
+    .toc a { font-size: 0.875rem; color: #475569; text-decoration: none; }
+    .toc a:hover { color: var(--accent); }
+    .best-practice { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .best-practice strong { color: #166534; }
+    .best-practice p { margin-bottom: 0; color: #15803d; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link active">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="#" onclick="window.print();return false;" class="no-print">Print this guide</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Marketing Admin Guide
+        </div>
+
+        <h1>Marketing Admin User Guide</h1>
+        <p class="subtitle">Create campaigns, manage offers, connect marketing tools, and analyze program performance. For marketing team members and campaign managers.</p>
+
+        <div class="toc">
+          <h3>Table of Contents</h3>
+          <ul>
+            <li><a href="#funnel">1. Understanding the Loyalty Funnel</a></li>
+            <li><a href="#offers">2. Creating Offers for Campaigns</a></li>
+            <li><a href="#multipliers">3. Promotional Multipliers</a></li>
+            <li><a href="#integrations">4. Marketing Integrations</a></li>
+            <li><a href="#reports">5. Reports for Marketing</a></li>
+            <li><a href="#earn-mode-guidance">6. Per-Visit vs Per-Dollar Guidance</a></li>
+            <li><a href="#visit-campaigns">7. Visit-Based Campaign Offers</a></li>
+            <li><a href="#visit-analytics">8. Visit Analytics</a></li>
+            <li><a href="#klaviyo-setup">9. Klaviyo Integration</a></li>
+            <li><a href="#at-risk-visits">10. At-Risk Members &amp; Visit Data</a></li>
+            <li><a href="#best-practices">11. Best Practices</a></li>
+          </ul>
+        </div>
+
+        <!-- 1. FUNNEL -->
+        <h2 id="funnel">1. Understanding the Loyalty Funnel</h2>
+
+        <p>The loyalty funnel tracks how customers progress through the program. Understanding each stage helps you identify where to focus your campaigns.</p>
+
+        <table>
+          <thead>
+            <tr><th>Stage</th><th>Definition</th><th>Key Metric</th><th>Campaign Goal</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Enrollment</strong></td>
+              <td>Customer creates a loyalty account</td>
+              <td>New members per week</td>
+              <td>Drive sign-ups at checkout, online, and via marketing</td>
+            </tr>
+            <tr>
+              <td><strong>First Purchase</strong></td>
+              <td>New member makes their first transaction with the loyalty card</td>
+              <td>Activation rate (% of new members who transact within 30 days)</td>
+              <td>Welcome offer, first-purchase bonus</td>
+            </tr>
+            <tr>
+              <td><strong>Repeat Purchase</strong></td>
+              <td>Member returns for a second or third purchase</td>
+              <td>30-day repeat rate</td>
+              <td>Visit-based punch cards, category promotions</td>
+            </tr>
+            <tr>
+              <td><strong>Tier Upgrade</strong></td>
+              <td>Member earns enough points to move up a tier</td>
+              <td>Upgrade rate per month</td>
+              <td>Tier-progress emails, "almost there" nudges</td>
+            </tr>
+            <tr>
+              <td><strong>Redemption</strong></td>
+              <td>Member redeems points or an offer</td>
+              <td>Redemption rate</td>
+              <td>Offer awareness, expiry reminders</td>
+            </tr>
+            <tr>
+              <td><strong>Advocacy</strong></td>
+              <td>Member refers friends or shares on social media</td>
+              <td>Referral count</td>
+              <td>Referral bonus offers</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Where to Find This</div>
+          The engagement funnel is visualized in <strong>Admin Portal</strong> &rarr; <strong>Reports</strong> &rarr; <strong>Marketing</strong> tab. Each stage shows the conversion rate to the next stage, so you can quickly spot drop-off points.
+        </div>
+
+        <!-- 2. OFFERS -->
+        <h2 id="offers">2. Creating Offers for Campaigns</h2>
+
+        <h3>Percentage Discounts for Seasonal Sales</h3>
+        <p>Use percentage discounts for broad seasonal campaigns (Back to School, Holiday, Spring Cleaning).</p>
+        <ol>
+          <li>Navigate to <strong>Offers</strong> &rarr; <strong>Create Offer</strong></li>
+          <li>Select type: <strong>Percentage Discount</strong></li>
+          <li>Set discount: e.g., <code>15%</code></li>
+          <li>Set minimum purchase: e.g., <code>$10.00</code></li>
+          <li>Optional: Set a maximum discount cap (e.g., $5 max discount)</li>
+          <li>Set date range to match your campaign period</li>
+          <li>Set eligibility: All tiers, all channels</li>
+          <li>Click <strong>Publish</strong></li>
+        </ol>
+
+        <h3>Visit-Based Punch Cards</h3>
+        <p>Visit-based offers are the most effective tool for driving purchase frequency. They work like a digital punch card.</p>
+        <ol>
+          <li>Select type: <strong>Visit-Based</strong></li>
+          <li>Set visits required: e.g., <code>5</code></li>
+          <li>Set minimum spend per visit: e.g., <code>$5.00</code></li>
+          <li>Set reward: e.g., <code>$5.00 off</code> or <code>500 bonus points</code></li>
+          <li>Optional: Restrict to specific stores or product categories</li>
+          <li>Click <strong>Publish</strong></li>
+        </ol>
+        <p>Members see their progress toward the offer in the Member Portal and at checkout on the Self-Checkout kiosk.</p>
+
+        <h3>Threshold Rewards</h3>
+        <p>Encourage higher spending by rewarding members who reach a spending threshold within a time period.</p>
+        <ol>
+          <li>Select type: <strong>Threshold Reward</strong></li>
+          <li>Set threshold: e.g., <code>$200</code> spent in a calendar month</li>
+          <li>Set reward: e.g., <code>500 bonus points</code></li>
+          <li>Set the evaluation period (monthly, quarterly)</li>
+          <li>Click <strong>Publish</strong></li>
+        </ol>
+
+        <h3>Targeting by Tier, Channel, and Store</h3>
+        <p>Every offer supports targeting filters:</p>
+        <table>
+          <thead>
+            <tr><th>Filter</th><th>Options</th><th>Use Case</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Tier</strong></td><td>Any combination of Bronze, Silver, Gold, Platinum</td><td>Exclusive Gold/Platinum offers to reward top members</td></tr>
+            <tr><td><strong>Channel</strong></td><td>In-store, Online, All</td><td>Online-only flash sales, in-store weekend specials</td></tr>
+            <tr><td><strong>Store</strong></td><td>All stores, or select specific locations</td><td>Grand opening offers for new stores, store-specific clearance</td></tr>
+            <tr><td><strong>Enrollment Channel</strong></td><td>POS, Web, Kiosk, E-Commerce</td><td>Target members based on how they joined</td></tr>
+          </tbody>
+        </table>
+
+        <!-- 3. MULTIPLIERS -->
+        <h2 id="multipliers">3. Promotional Multipliers</h2>
+
+        <h3>Double Points Events</h3>
+        <p>Double (or triple) points events are a powerful way to drive traffic during specific periods.</p>
+        <ol>
+          <li>Navigate to <strong>Program Config</strong> &rarr; <strong>Promotional Multipliers</strong></li>
+          <li>Click <strong>Add Multiplier</strong></li>
+          <li>Name it: e.g., "Double Points Weekend"</li>
+          <li>Set multiplier value: <code>2</code></li>
+          <li>Set start and end dates/times</li>
+          <li>Select applicable stores (all or specific)</li>
+          <li>Click <strong>Save</strong></li>
+        </ol>
+        <p>The multiplier activates and deactivates automatically. No manual intervention needed at start/end time.</p>
+
+        <h3>Category Bonuses</h3>
+        <p>Award extra points for specific product categories to drive sales in targeted departments:</p>
+        <ul>
+          <li>Navigate to <strong>Program Config</strong> &rarr; <strong>Category Multipliers</strong></li>
+          <li>Set multipliers for each category:
+            <ul>
+              <li>Beauty &amp; Cosmetics: <code>3x</code></li>
+              <li>Kitchen &amp; Dining: <code>2x</code></li>
+              <li>Seasonal Items: <code>2.5x</code></li>
+              <li>Stationery: <code>1.5x</code></li>
+            </ul>
+          </li>
+          <li>Category multipliers are always active until you change them</li>
+        </ul>
+
+        <h3>Store-Specific Promotions</h3>
+        <p>Running a grand opening or want to boost traffic at an underperforming location? Create a store-specific multiplier:</p>
+        <ul>
+          <li>Same process as a double points event, but select only the target store(s)</li>
+          <li>Combine with a store-specific offer for maximum impact</li>
+          <li>Example: "3x points at our new Carrollton location for the grand opening week"</li>
+        </ul>
+
+        <!-- 4. INTEGRATIONS -->
+        <h2 id="integrations">4. Marketing Integrations</h2>
+
+        <h3>Connecting ActiveCampaign</h3>
+        <ol>
+          <li>Navigate to <strong>Integrations</strong> in the Admin Portal sidebar</li>
+          <li>Find <strong>ActiveCampaign</strong> and click <strong>Connect</strong></li>
+          <li>Enter your ActiveCampaign API URL (e.g., <code>https://yourcompany.api-us1.com</code>)</li>
+          <li>Enter your ActiveCampaign API key (found in Settings &rarr; Developer)</li>
+          <li>Click <strong>Test Connection</strong> to verify</li>
+          <li>Select which fields to sync:
+            <ul>
+              <li>Member ID</li>
+              <li>Email and phone</li>
+              <li>Current tier name</li>
+              <li>Points balance</li>
+              <li>Enrollment date</li>
+              <li>Last transaction date</li>
+              <li>Member status</li>
+            </ul>
+          </li>
+          <li>Click <strong>Enable Sync</strong></li>
+        </ol>
+        <p>Once connected, member data syncs automatically. New enrollments create contacts in ActiveCampaign. Tier changes and point balance updates refresh the contact fields.</p>
+
+        <h3>Connecting Klaviyo</h3>
+        <ol>
+          <li>Navigate to <strong>Integrations</strong> and click <strong>Connect</strong> next to <strong>Klaviyo</strong></li>
+          <li>Enter your Klaviyo Private API Key (found in Account &rarr; Settings &rarr; API Keys)</li>
+          <li>Click <strong>Test Connection</strong></li>
+          <li>Map loyalty fields to Klaviyo profile properties</li>
+          <li>Click <strong>Enable Sync</strong></li>
+        </ol>
+
+        <h3>Setting Up Automation Triggers</h3>
+        <p>Use loyalty events to trigger marketing automation flows in ActiveCampaign or Klaviyo:</p>
+        <table>
+          <thead>
+            <tr><th>Event</th><th>Automation Idea</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>member.enrolled</code></td><td><strong>Welcome Series:</strong> 3-email sequence introducing the program, benefits, and first-purchase offer</td></tr>
+            <tr><td><code>tier.upgraded</code></td><td><strong>Tier Celebration:</strong> Congratulations email with new benefits and an exclusive offer</td></tr>
+            <tr><td><code>points.expiring</code></td><td><strong>Expiry Warning:</strong> Reminder at 30 days and 7 days before expiry with a CTA to shop</td></tr>
+            <tr><td>No purchase in 60 days</td><td><strong>Win-Back Campaign:</strong> "We miss you" email with a bonus points offer</td></tr>
+            <tr><td><code>transaction.completed</code></td><td><strong>Post-Purchase:</strong> Thank you email with points balance update and next-tier progress</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Custom Fields Synced</h3>
+        <p>The following fields are synced to your marketing platform as custom properties:</p>
+        <ul>
+          <li><code>loyalty_tier</code> &mdash; Current tier name (Bronze, Silver, Gold, Platinum)</li>
+          <li><code>loyalty_points</code> &mdash; Current points balance</li>
+          <li><code>loyalty_member_id</code> &mdash; Unique member ID</li>
+          <li><code>loyalty_status</code> &mdash; active, suspended, or closed</li>
+          <li><code>loyalty_enrolled_date</code> &mdash; When they joined</li>
+          <li><code>loyalty_last_transaction</code> &mdash; Date of most recent purchase</li>
+          <li><code>loyalty_lifetime_points</code> &mdash; Total points ever earned</li>
+        </ul>
+
+        <h3>Using Merge Tags in Email Templates</h3>
+        <p>Reference these synced fields in your email templates:</p>
+        <ul>
+          <li>ActiveCampaign: <code>%LOYALTY_TIER%</code>, <code>%LOYALTY_POINTS%</code></li>
+          <li>Klaviyo: <code>{{ person.loyalty_tier }}</code>, <code>{{ person.loyalty_points }}</code></li>
+        </ul>
+        <p>Example: <em>"Hi {{ first_name }}, you're a {{ person.loyalty_tier }} member with {{ person.loyalty_points }} points. You're only 200 points away from Gold!"</em></p>
+
+        <!-- 5. REPORTS -->
+        <h2 id="reports">5. Reports for Marketing</h2>
+
+        <p>Navigate to <strong>Reports</strong> &rarr; <strong>Marketing</strong> tab in the Admin Portal.</p>
+
+        <h3>Engagement Funnel</h3>
+        <p>The engagement funnel shows conversion rates between each stage of the loyalty journey:</p>
+        <ul>
+          <li><strong>Enrolled &rarr; First Purchase:</strong> What percentage of new members make a purchase within 30 days?</li>
+          <li><strong>First Purchase &rarr; Repeat:</strong> What percentage come back for a second purchase?</li>
+          <li><strong>Repeat &rarr; Tier Upgrade:</strong> What percentage earn enough to move up a tier?</li>
+          <li><strong>Active &rarr; Redemption:</strong> What percentage of active members redeem offers or points?</li>
+        </ul>
+        <p>Low conversion at any stage indicates where your campaigns should focus. For example, a low first-purchase rate means your welcome offer needs improvement.</p>
+
+        <h3>At-Risk Members</h3>
+        <p>Members who haven't transacted in 60+ days are flagged as "at-risk." This report shows:</p>
+        <ul>
+          <li>Total at-risk members by tier</li>
+          <li>Points balance at risk (points these members hold)</li>
+          <li>Last transaction date distribution</li>
+        </ul>
+        <p>Click <strong>Export</strong> to download the at-risk member list as a CSV. Import this into ActiveCampaign or Klaviyo to run a targeted win-back campaign.</p>
+
+        <h3>Tier Distribution</h3>
+        <p>A bar chart showing how many members are in each tier. A healthy program has a pyramid shape &mdash; many Bronze, fewer Silver, even fewer Gold, and a small Platinum segment. If the distribution is flat, your tier thresholds may be too low.</p>
+
+        <h3>Offer Performance</h3>
+        <p>For each offer, view:</p>
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>What It Tells You</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Redemption Rate</strong></td><td>% of issued offers actually used &mdash; below 5% means the offer isn't compelling enough</td></tr>
+            <tr><td><strong>Total Discount Given</strong></td><td>The cost of the offer to the business</td></tr>
+            <tr><td><strong>Average Basket Size</strong></td><td>Whether the offer drives incremental spend</td></tr>
+            <tr><td><strong>Revenue Attributed</strong></td><td>Total revenue from transactions where this offer was applied</td></tr>
+            <tr><td><strong>ROI</strong></td><td>Revenue attributed divided by total discount given</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Cohort Retention</h3>
+        <p>Track how members enrolled in a given month behave over time:</p>
+        <ul>
+          <li>Month 1 retention: % of enrollees who return within 30 days</li>
+          <li>Month 3 retention: % still active after 90 days</li>
+          <li>Month 6 retention: % still active after 180 days</li>
+        </ul>
+        <p>Use this to measure the long-term impact of program changes. If you changed the welcome offer in March, compare March cohort retention against February.</p>
+
+        <!-- 6. PER-VISIT VS PER-DOLLAR GUIDANCE -->
+        <h2 id="earn-mode-guidance">6. Per-Visit vs Per-Dollar Guidance</h2>
+
+        <p>The platform supports two earn modes. As a marketing admin, you may be asked to recommend which mode suits the merchant best.</p>
+
+        <table>
+          <thead>
+            <tr><th>Factor</th><th>Per-Dollar</th><th>Per-Visit</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Average transaction value</strong></td>
+              <td>Good when baskets vary widely ($10 &ndash; $100+)</td>
+              <td>Ideal when most baskets are similar ($5 &ndash; $20)</td>
+            </tr>
+            <tr>
+              <td><strong>Customer motivation</strong></td>
+              <td>Encourages spending more per visit</td>
+              <td>Encourages visiting more often</td>
+            </tr>
+            <tr>
+              <td><strong>Simplicity</strong></td>
+              <td>Members must calculate points from receipt total</td>
+              <td>"Earn 10 points every time you visit" &mdash; instant understanding</td>
+            </tr>
+            <tr>
+              <td><strong>Financial predictability</strong></td>
+              <td>Liability scales with revenue</td>
+              <td>Liability is flat per visit &mdash; easier to forecast</td>
+            </tr>
+            <tr>
+              <td><strong>Recommended for Daiso</strong></td>
+              <td>&mdash;</td>
+              <td>Per-visit is recommended. Most Daiso transactions are $5&ndash;$15 and the goal is to increase visit frequency.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="best-practice">
+          <strong>Recommendation for Daiso</strong>
+          <p>Use per-visit mode with a $5 minimum spend threshold and 10 points per visit. This keeps the program simple for customers ("visit and earn"), drives frequency over basket size, and gives finance a predictable cost per acquisition.</p>
+        </div>
+
+        <!-- 7. VISIT-BASED CAMPAIGN OFFERS -->
+        <h2 id="visit-campaigns">7. Visit-Based Campaign Offers</h2>
+
+        <p>Visit-based offers are the most powerful tool for driving repeat traffic. They create a "punch card" mechanic that customers intuitively understand.</p>
+
+        <h3>Campaign Examples</h3>
+        <table>
+          <thead>
+            <tr><th>Campaign</th><th>Configuration</th><th>Goal</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>5 Visits = $5 Off</strong></td>
+              <td>Visits: 5, Min spend: $5, Reward: $5 fixed, All stores</td>
+              <td>Drive repeat visits for all members</td>
+            </tr>
+            <tr>
+              <td><strong>3 Visits This Week = Free Item</strong></td>
+              <td>Visits: 3, Min spend: $3, Reward: Free item (max $5), Date range: 7 days</td>
+              <td>Short-term traffic burst</td>
+            </tr>
+            <tr>
+              <td><strong>10 Visits = 500 Bonus Points</strong></td>
+              <td>Visits: 10, Min spend: $5, Reward: 500 points, Per-day counting</td>
+              <td>Long-term engagement for tier progression</td>
+            </tr>
+            <tr>
+              <td><strong>Grand Opening: 3 Visits = $10 Off</strong></td>
+              <td>Visits: 3, Min spend: $5, Reward: $10 fixed, Store: New location only</td>
+              <td>Drive traffic to a new store</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Qualification Rules</h3>
+        <p>When creating visit-based campaign offers, configure these qualification rules to control exactly what counts as a visit:</p>
+        <ul>
+          <li><strong>Minimum Spend:</strong> Set the floor (e.g., $5). Transactions below this amount do not count toward visit progress.</li>
+          <li><strong>Minimum Items:</strong> Optionally require a minimum number of items per transaction.</li>
+          <li><strong>Channels:</strong> Restrict to in-store, online, self-checkout, or any combination.</li>
+          <li><strong>Stores:</strong> All stores or specific locations.</li>
+          <li><strong>Counting Mode:</strong> Choose <strong>Per-Transaction</strong> (every qualifying transaction counts) or <strong>Per-Day</strong> (only the first qualifying transaction per day counts). Per-day mode prevents gaming by making multiple small purchases in a single visit.</li>
+        </ul>
+
+        <!-- 8. VISIT ANALYTICS -->
+        <h2 id="visit-analytics">8. Visit Analytics</h2>
+
+        <p>Navigate to <strong>Reports</strong> &rarr; <strong>Operations</strong> tab to access visit analytics.</p>
+
+        <h3>Key Metrics</h3>
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>What It Tells You</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Qualified Visits</strong></td>
+              <td>Number of transactions that met the minimum spend threshold</td>
+              <td>If low compared to total transactions, consider lowering the threshold</td>
+            </tr>
+            <tr>
+              <td><strong>Visit Conversion Rate</strong></td>
+              <td>% of total transactions that qualify as visits</td>
+              <td>Target 70&ndash;85%. Below 60% means your threshold is too high. Above 95% means it's too low to be meaningful.</td>
+            </tr>
+            <tr>
+              <td><strong>Daily Visit Trend</strong></td>
+              <td>Chart of qualified visits per day over the past 30/60/90 days</td>
+              <td>Spot the impact of promotions, seasonal trends, and campaign performance</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Optimizing the Minimum Spend Threshold</h3>
+        <p>Use the visit conversion rate to tune the minimum spend threshold:</p>
+        <ol>
+          <li>Pull the current visit conversion rate from the Operations report</li>
+          <li>If it's below 60%, the threshold is excluding too many transactions. Lower it by $1&ndash;$2 increments.</li>
+          <li>If it's above 95%, the threshold isn't differentiating behavior. Raise it by $1&ndash;$2 increments.</li>
+          <li>The sweet spot is 70&ndash;85% &mdash; most transactions qualify, but small impulse purchases don't.</li>
+          <li>After adjusting, monitor the daily visit trend for 1&ndash;2 weeks to confirm the impact.</li>
+        </ol>
+
+        <!-- 9. KLAVIYO INTEGRATION -->
+        <h2 id="klaviyo-setup">9. Klaviyo Integration</h2>
+
+        <p>Klaviyo is supported alongside ActiveCampaign. Here's a step-by-step guide for connecting Klaviyo:</p>
+
+        <h3>Setup</h3>
+        <ol>
+          <li>Navigate to <strong>Integrations</strong> in the Admin Portal sidebar</li>
+          <li>Find <strong>Klaviyo</strong> and click <strong>Connect</strong></li>
+          <li>Enter your Klaviyo Private API Key (found in Klaviyo &rarr; Account &rarr; Settings &rarr; API Keys)</li>
+          <li>Click <strong>Test Connection</strong> to verify</li>
+          <li>Map loyalty fields to Klaviyo profile properties:
+            <ul>
+              <li><code>loyalty_tier</code> &rarr; Klaviyo custom property</li>
+              <li><code>loyalty_points</code> &rarr; Klaviyo custom property</li>
+              <li><code>loyalty_member_id</code> &rarr; Klaviyo custom property</li>
+              <li><code>loyalty_status</code> &rarr; Klaviyo custom property</li>
+              <li><code>loyalty_enrolled_date</code> &rarr; Klaviyo custom property</li>
+              <li><code>loyalty_last_transaction</code> &rarr; Klaviyo custom property</li>
+              <li><code>loyalty_lifetime_points</code> &rarr; Klaviyo custom property</li>
+            </ul>
+          </li>
+          <li>Click <strong>Enable Sync</strong></li>
+        </ol>
+
+        <h3>Events Tracked in Klaviyo</h3>
+        <p>The following loyalty events are sent to Klaviyo as tracked events. Use them to trigger flows:</p>
+        <table>
+          <thead>
+            <tr><th>Event Name</th><th>Triggered When</th><th>Flow Idea</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Loyalty Member Enrolled</code></td><td>New member signs up</td><td>Welcome series with program overview and first-visit incentive</td></tr>
+            <tr><td><code>Loyalty Tier Upgraded</code></td><td>Member reaches a new tier</td><td>Congratulations email with new tier benefits</td></tr>
+            <tr><td><code>Loyalty Points Earned</code></td><td>Member earns points from a transaction</td><td>Post-purchase thank you with balance update</td></tr>
+            <tr><td><code>Loyalty Points Expiring</code></td><td>Points approaching expiry (30 days, 7 days)</td><td>Urgency email with link to member portal</td></tr>
+            <tr><td><code>Loyalty Offer Redeemed</code></td><td>Member uses an offer</td><td>Follow-up cross-sell campaign</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Klaviyo Merge Tags</h3>
+        <p>Reference synced fields in your Klaviyo email templates:</p>
+        <ul>
+          <li><code>{{ person.loyalty_tier }}</code></li>
+          <li><code>{{ person.loyalty_points }}</code></li>
+          <li><code>{{ person.loyalty_lifetime_points }}</code></li>
+        </ul>
+        <p>Example: <em>"Hi {{ first_name }}, you're a {{ person.loyalty_tier }} member with {{ person.loyalty_points }} points. You're only 200 points away from Gold!"</em></p>
+
+        <!-- 10. AT-RISK MEMBERS & VISIT DATA -->
+        <h2 id="at-risk-visits">10. At-Risk Members &amp; Visit Data</h2>
+
+        <p>Visit data significantly improves at-risk detection. In per-visit mode, the system tracks not just "when did the member last transact" but also "how has their visit frequency changed over time."</p>
+
+        <h3>Enhanced At-Risk Signals</h3>
+        <ul>
+          <li><strong>No transactions in 60+ days:</strong> Standard inactivity flag (works in both earn modes)</li>
+          <li><strong>Visit frequency decline:</strong> In per-visit mode, if a member's rolling 30-day visit count drops below 50% of their historical average, they're flagged as "declining."</li>
+          <li><strong>Unqualified visits:</strong> If a member is transacting but consistently below the minimum spend threshold, they're not earning points and may feel disengaged.</li>
+        </ul>
+
+        <h3>Win-Back Strategy with Visit Data</h3>
+        <ol>
+          <li>Export the at-risk member list from <strong>Reports</strong> &rarr; <strong>Marketing</strong> &rarr; <strong>At-Risk Members</strong></li>
+          <li>Segment by visit frequency decline vs total inactivity</li>
+          <li>For declining members: send a visit-based offer ("Complete 3 visits this month, get $5 off") to re-establish the habit</li>
+          <li>For inactive members: send a stronger incentive ("We miss you! $5 off your next visit, no minimum")</li>
+          <li>Import into Klaviyo or ActiveCampaign for automated flow delivery</li>
+        </ol>
+
+        <!-- 11. BEST PRACTICES -->
+        <h2 id="best-practices">11. Best Practices</h2>
+
+        <div class="best-practice">
+          <strong>Set points expiry to 12 months minimum</strong>
+          <p>Short expiry windows (3&ndash;6 months) frustrate customers and increase churn. Industry benchmarks show 12&ndash;18 months as the sweet spot &mdash; long enough that members feel safe accumulating, short enough to drive a sense of urgency.</p>
+        </div>
+
+        <div class="best-practice">
+          <strong>Visit-based offers drive frequency better than points-only programs</strong>
+          <p>A "5 visits = $5 off" punch card is more intuitive and motivating than "earn 500 points for a reward." Members can easily track their progress and it encourages them to come back specifically to advance their punch card.</p>
+        </div>
+
+        <div class="best-practice">
+          <strong>Make tier benefits feel meaningful</strong>
+          <p>Don't just increase the earn rate at each tier. Add tangible benefits: early access to sales, exclusive products, birthday rewards, free shipping, or VIP event invitations. Members should feel a real difference when they advance.</p>
+        </div>
+
+        <div class="best-practice">
+          <strong>Send points-expiry warnings at 30 and 7 days</strong>
+          <p>Expiry reminder emails recover 15&ndash;20% of at-risk points. Members often didn't realize they had points about to expire. A simple "You have 350 points expiring in 7 days" with a link to the member portal drives redemption visits.</p>
+        </div>
+
+        <div class="best-practice">
+          <strong>Test one variable at a time</strong>
+          <p>When running promotions, change one variable (discount amount, duration, target tier) and compare results against the previous period. Running multiple changes simultaneously makes it impossible to know what worked.</p>
+        </div>
+
+        <div class="best-practice">
+          <strong>Use category multipliers strategically</strong>
+          <p>Apply higher multipliers to categories with good margins or excess inventory, not your best sellers. The goal is to influence behavior, not reward behavior that would happen anyway.</p>
+        </div>
+
+        <div class="best-practice">
+          <strong>Review the at-risk report weekly</strong>
+          <p>Catching lapsed members early (60 days) is far more effective than trying to win them back after 6 months. Set a weekly calendar reminder to export the at-risk list and queue a win-back campaign.</p>
+        </div>
+
+        <div class="callout callout-success">
+          <div class="callout-title">Related Guides</div>
+          <ul>
+            <li><a href="guide-loyalty-admin.html">Loyalty Admin Guide</a> &mdash; Full admin capabilities including member management and program config</li>
+            <li><a href="guide-finance.html">Finance Guide</a> &mdash; Understanding the financial impact of your campaigns</li>
+            <li><a href="integrations.html">E-Commerce Integrations</a> &mdash; Connecting Shopify and WooCommerce</li>
+          </ul>
+        </div>
+
+        <div class="next-page">
+          <a href="guide-finance.html">Next: Finance Guide &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

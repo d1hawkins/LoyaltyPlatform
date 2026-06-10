@@ -1,0 +1,338 @@
+openapi: 3.0.3
+info:
+  title: Loyalty Platform — Member Service
+  description: |
+    Member enrollment, profile, lookup, status, GDPR export/delete, and ledger
+    pagination for the Loyalty Platform. Multi-tenant. All endpoints under
+    `/v1/members` require bearer-JWT auth (or `X-Skip-Auth: true` in dev APIM only).
+    Tenant is resolved from the JWT `tid` / `extension_tenantId` claim and
+    forwarded to the backend as `X-Tenant-ID`.
+  version: "1.0.0"
+  contact:
+    name: Loyalty Platform Team
+servers:
+  - url: https://loyalty-dev-apim-5rdrqh.azure-api.net/member
+    description: Dev APIM gateway (member-service API)
+security:
+  - bearerAuth: []
+tags:
+  - name: Members
+  - name: GDPR
+  - name: Ledger
+paths:
+  /v1/members:
+    post:
+      tags: [Members]
+      summary: Enroll a new member
+      operationId: enrollMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollMemberRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberDTO'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: Duplicate member
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Problem'
+                  - type: object
+                    properties:
+                      existingMemberId: { type: string, format: uuid }
+    get:
+      tags: [Members]
+      summary: Lookup member by phone or email (POS hot path)
+      operationId: lookupMember
+      parameters:
+        - in: query
+          name: phone
+          schema: { type: string }
+          description: Either `phone` or `email` is required.
+        - in: query
+          name: email
+          schema: { type: string, format: email }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberSummaryDTO'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/members/{id}:
+    parameters:
+      - $ref: '#/components/parameters/MemberIdPath'
+    get:
+      tags: [Members]
+      summary: Get member by id
+      operationId: getMember
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MemberDTO' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Members]
+      summary: Update member profile
+      operationId: patchMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PatchMemberRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MemberDTO' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [GDPR]
+      summary: GDPR soft-delete
+      operationId: deleteMember
+      responses:
+        '204': { description: Deleted }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/members/{id}/status:
+    parameters:
+      - $ref: '#/components/parameters/MemberIdPath'
+    post:
+      tags: [Members]
+      summary: Change member status
+      operationId: changeMemberStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StatusChangeRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MemberDTO' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422':
+          description: Invalid status transition
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Problem'
+                  - type: object
+                    properties:
+                      from: { type: string }
+                      to: { type: string }
+  /v1/members/{id}/export:
+    parameters:
+      - $ref: '#/components/parameters/MemberIdPath'
+    get:
+      tags: [GDPR]
+      summary: GDPR data export
+      operationId: exportMember
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MemberExportDTO' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/members/{id}/ledger:
+    parameters:
+      - $ref: '#/components/parameters/MemberIdPath'
+    get:
+      tags: [Ledger]
+      summary: Paginated points ledger
+      operationId: getLedger
+      parameters:
+        - in: query
+          name: after
+          schema: { type: string }
+          description: Opaque cursor = base64url(ledger_id)
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LedgerPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    MemberIdPath:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Forbidden (tenant mismatch)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      description: RFC 7807 problem+json
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        instance: { type: string }
+    EnrollMemberRequest:
+      type: object
+      required: [phone, firstName, lastName, enrolledChannel]
+      properties:
+        email: { type: string, format: email }
+        phone: { type: string }
+        firstName: { type: string, minLength: 1, maxLength: 100 }
+        lastName:  { type: string, minLength: 1, maxLength: 100 }
+        dateOfBirth: { type: string, format: date }
+        enrolledChannel:
+          type: string
+          enum: [pos, ecommerce, mobile, admin]
+    PatchMemberRequest:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        communicationPrefs:
+          type: object
+          additionalProperties: true
+    StatusChangeRequest:
+      type: object
+      required: [status, reason]
+      properties:
+        status:
+          type: string
+          enum: [active, suspended, closed]
+        reason: { type: string }
+    MemberDTO:
+      type: object
+      required: [id, tenantId, status, tierId, tierName, pointsBalance, firstName, lastName, phone, enrolledChannel, enrolledAt, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        tenantId: { type: string, format: uuid }
+        status: { type: string, enum: [active, suspended, closed] }
+        tierId: { type: string }
+        tierName: { type: string }
+        pointsBalance: { type: integer }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        dateOfBirth: { type: string, format: date }
+        enrolledChannel: { type: string }
+        enrolledAt: { type: string, format: date-time }
+        communicationPrefs:
+          type: object
+          additionalProperties: true
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    MemberSummaryDTO:
+      type: object
+      required: [id, firstName, lastName, tierId, tierName, pointsBalance, eligibleOffers]
+      properties:
+        id: { type: string, format: uuid }
+        firstName: { type: string }
+        lastName: { type: string }
+        tierId: { type: string }
+        tierName: { type: string }
+        pointsBalance: { type: integer }
+        eligibleOffers:
+          type: array
+          items: { type: object }
+    LedgerEntryDTO:
+      type: object
+      required: [id, memberId, delta, balanceAfter, reason, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        memberId: { type: string, format: uuid }
+        transactionId: { type: string, format: uuid }
+        delta: { type: integer }
+        balanceAfter: { type: integer }
+        reason: { type: string }
+        note: { type: string }
+        createdAt: { type: string, format: date-time }
+    LedgerPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/LedgerEntryDTO' }
+        nextCursor: { type: string }
+    MemberExportDTO:
+      type: object
+      required: [profile, ledgerSummary, transactions]
+      properties:
+        profile: { $ref: '#/components/schemas/MemberDTO' }
+        ledgerSummary:
+          type: object
+          properties:
+            count: { type: integer }
+            balance: { type: integer }
+        transactions:
+          type: object
+          properties:
+            note: { type: string }

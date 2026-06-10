@@ -1,0 +1,49 @@
+name: Run Migrations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/tenant-migrations/**'
+      - 'infra/control-plane/migrations/**'
+      - '.github/workflows/migrations.yml'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  migrate:
+    name: Apply SQL migrations (control-plane + daiso-test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.26.1 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Apply control-plane migrations
+        working-directory: scripts
+        env:
+          SQL_SERVER: loyalty-dev-sql-5rdrqhw.database.windows.net
+          CONTROL_PLANE_DB: control-plane
+          KEY_VAULT_NAME: loyalty-dev-kv-5rdrqh
+        run: pnpm tsx sql-runner.ts --target control-plane
+
+      - name: Apply daiso-test tenant migrations
+        working-directory: scripts
+        env:
+          SQL_SERVER: loyalty-dev-sql-5rdrqhw.database.windows.net
+          KEY_VAULT_NAME: loyalty-dev-kv-5rdrqh
+        run: pnpm tsx sql-runner.ts --target tenant --tenant-slug daiso-test

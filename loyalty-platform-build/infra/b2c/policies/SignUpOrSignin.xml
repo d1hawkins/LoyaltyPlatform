@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrustFrameworkPolicy
+  xmlns="http://schemas.microsoft.com/online/cpim/schemas/2013/06"
+  PolicySchemaVersion="0.3.0.0"
+  TenantId="{B2C_TENANT_NAME}.onmicrosoft.com"
+  PolicyId="B2C_1A_SignUpOrSignin"
+  PublicPolicyUri="http://{B2C_TENANT_NAME}.onmicrosoft.com/B2C_1A_SignUpOrSignin">
+
+  <BasePolicy>
+    <TenantId>{B2C_TENANT_NAME}.onmicrosoft.com</TenantId>
+    <PolicyId>B2C_1A_TrustFrameworkExtensions</PolicyId>
+  </BasePolicy>
+
+  <RelyingParty>
+    <DefaultUserJourney ReferenceId="SignUpOrSignIn" />
+    <TechnicalProfile Id="PolicyProfile">
+      <DisplayName>PolicyProfile</DisplayName>
+      <Protocol Name="OpenIdConnect" />
+      <OutputClaims>
+        <OutputClaim ClaimTypeReferenceId="objectId" PartnerClaimType="sub" />
+        <OutputClaim ClaimTypeReferenceId="tenantId" PartnerClaimType="extension_tenantId" />
+        <OutputClaim ClaimTypeReferenceId="memberId" PartnerClaimType="extension_memberId" />
+        <OutputClaim ClaimTypeReferenceId="email" />
+      </OutputClaims>
+      <SubjectNamingInfo ClaimType="sub" />
+    </TechnicalProfile>
+  </RelyingParty>
+</TrustFrameworkPolicy>

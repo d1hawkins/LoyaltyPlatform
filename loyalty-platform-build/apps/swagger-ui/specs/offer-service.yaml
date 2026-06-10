@@ -1,0 +1,454 @@
+openapi: 3.0.3
+info:
+  title: Loyalty Platform — Offer Service
+  description: |
+    Offer catalog, eligibility engine, redemption workflow, and code management
+    for the Loyalty Platform. Multi-tenant. Admin/manager endpoints require the
+    `admin` or `manager` role claim on the JWT.
+  version: "1.0.0"
+  contact:
+    name: Loyalty Platform Team
+servers:
+  - url: https://offer-service.blackgrass-225d994b.eastus.azurecontainerapps.io
+    description: Dev Container App
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+tags:
+  - name: Offers
+    description: Offer CRUD operations
+  - name: Eligibility
+    description: Personalized eligible offers
+  - name: Redemptions
+    description: Offer redemption and reversal
+  - name: Codes
+    description: Offer code generation and listing
+paths:
+  /v1/offers:
+    get:
+      tags: [Offers]
+      summary: List offers for the tenant
+      operationId: listOffers
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [percent, fixed, bogo, threshold]
+        - in: query
+          name: active
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferListResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    post:
+      tags: [Offers]
+      summary: Create an offer (admin/manager)
+      operationId: createOffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOfferRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/offers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/OfferIdPath'
+    get:
+      tags: [Offers]
+      summary: Get a single offer
+      operationId: getOffer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [Offers]
+      summary: Update an offer (admin/manager)
+      operationId: updateOffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOfferRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [Offers]
+      summary: Soft-deactivate an offer (admin/manager)
+      operationId: deleteOffer
+      responses:
+        '204':
+          description: Deactivated
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/members/{memberId}/offers:
+    parameters:
+      - name: memberId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Eligibility]
+      summary: Get eligible offers for a member
+      operationId: getEligibleOffers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EligibleOfferListResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/redemptions:
+    post:
+      tags: [Redemptions]
+      summary: Redeem an offer for a member
+      operationId: createRedemption
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRedemptionRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedemptionResponse'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422':
+          description: Not eligible
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Problem'
+                  - type: object
+                    properties:
+                      reasons:
+                        type: array
+                        items: { type: string }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/redemptions/{id}/reverse:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [Redemptions]
+      summary: Reverse a completed redemption
+      operationId: reverseRedemption
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reversed: { type: boolean }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/offers/{id}/generate-codes:
+    parameters:
+      - $ref: '#/components/parameters/OfferIdPath'
+    post:
+      tags: [Codes]
+      summary: Bulk-generate unique codes for an offer (admin/manager)
+      operationId: generateCodes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateCodesRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateCodesResponse'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/offers/{id}/codes:
+    parameters:
+      - $ref: '#/components/parameters/OfferIdPath'
+    get:
+      tags: [Codes]
+      summary: List codes for an offer
+      operationId: listOfferCodes
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [available, assigned, redeemed, expired]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferCodeListResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Ocp-Apim-Subscription-Key
+  parameters:
+    OfferIdPath:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    InternalError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      description: RFC 7807 problem+json
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        instance: { type: string }
+    TargetingJson:
+      type: object
+      properties:
+        requiredTiers:
+          type: array
+          items: { type: string }
+        excludedTiers:
+          type: array
+          items: { type: string }
+        minPointsBalance: { type: integer }
+        requiredStatus: { type: string }
+    Offer:
+      type: object
+      required: [offerId, name, type, value, validFrom, validTo, isActive, createdAt, updatedAt]
+      properties:
+        offerId: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        type: { type: string, enum: [percent, fixed, bogo, threshold] }
+        value: { type: number }
+        minPurchase: { type: number, nullable: true }
+        pointsCost: { type: integer, nullable: true }
+        conditionsJson: { type: object, nullable: true }
+        targetingJson:
+          allOf:
+            - $ref: '#/components/schemas/TargetingJson'
+          nullable: true
+        validFrom: { type: string, format: date-time }
+        validTo: { type: string, format: date-time }
+        maxRedemptions: { type: integer, nullable: true }
+        currentRedemptions: { type: integer }
+        perMemberLimit: { type: integer }
+        isStackable: { type: boolean }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreateOfferRequest:
+      type: object
+      required: [name, type, value, validFrom, validTo]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 2000 }
+        type: { type: string, enum: [percent, fixed, bogo, threshold] }
+        value: { type: number, exclusiveMinimum: true, minimum: 0 }
+        minPurchase: { type: number }
+        pointsCost: { type: integer }
+        conditionsJson: { type: object }
+        targetingJson: { $ref: '#/components/schemas/TargetingJson' }
+        validFrom: { type: string, format: date-time }
+        validTo: { type: string, format: date-time }
+        maxRedemptions: { type: integer }
+        perMemberLimit: { type: integer, default: 1 }
+        isStackable: { type: boolean, default: false }
+        isActive: { type: boolean, default: true }
+    UpdateOfferRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 2000 }
+        type: { type: string, enum: [percent, fixed, bogo, threshold] }
+        value: { type: number }
+        minPurchase: { type: number }
+        pointsCost: { type: integer }
+        conditionsJson: { type: object }
+        targetingJson: { $ref: '#/components/schemas/TargetingJson' }
+        validFrom: { type: string, format: date-time }
+        validTo: { type: string, format: date-time }
+        maxRedemptions: { type: integer }
+        perMemberLimit: { type: integer }
+        isStackable: { type: boolean }
+        isActive: { type: boolean }
+    OfferListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Offer' }
+    EligibleOffer:
+      allOf:
+        - $ref: '#/components/schemas/Offer'
+        - type: object
+          properties:
+            eligibility:
+              type: object
+              properties:
+                eligible: { type: boolean }
+                reasons:
+                  type: array
+                  items: { type: string }
+    EligibleOfferListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/EligibleOffer' }
+    CreateRedemptionRequest:
+      type: object
+      required: [memberId, offerId, channel]
+      properties:
+        memberId: { type: string, format: uuid }
+        offerId: { type: string, format: uuid }
+        channel: { type: string, enum: [pos, ecommerce, mobile, admin] }
+        redemptionCode: { type: string }
+    RedemptionResponse:
+      type: object
+      required: [redemptionId, discountValue, pointsUsed, newBalance]
+      properties:
+        redemptionId: { type: string, format: uuid }
+        discountValue: { type: number }
+        pointsUsed: { type: integer }
+        newBalance: { type: integer }
+    GenerateCodesRequest:
+      type: object
+      required: [count, prefix]
+      properties:
+        count: { type: integer, minimum: 1 }
+        prefix: { type: string }
+    GenerateCodesResponse:
+      type: object
+      required: [codes, count]
+      properties:
+        codes:
+          type: array
+          items: { type: string }
+        count: { type: integer }
+    OfferCode:
+      type: object
+      properties:
+        code: { type: string }
+        status: { type: string, enum: [available, assigned, redeemed, expired] }
+        memberId: { type: string, format: uuid, nullable: true }
+    OfferCodeListResponse:
+      type: object
+      required: [codes]
+      properties:
+        codes:
+          type: array
+          items: { $ref: '#/components/schemas/OfferCode' }

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Errors &amp; Rate Limits — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link active">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Errors &amp; Rate Limits
+        </div>
+
+        <h1>Errors &amp; Rate Limits</h1>
+        <p class="subtitle">All errors follow the RFC 7807 Problem Details standard. Rate limits are enforced at the APIM gateway level.</p>
+
+        <h2>RFC 7807 Error Format</h2>
+        <p>Every error response uses the <code>application/problem+json</code> content type and follows the <a href="https://www.rfc-editor.org/rfc/rfc7807" target="_blank">RFC 7807</a> structure:</p>
+
+        <pre><code class="language-json">{
+  "type": "about:blank",
+  "title": "Validation Error",
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "detail": "\"phone\" is required",
+  "instance": "/member/v1/members"
+}</code></pre>
+
+        <p>Some errors include additional context fields:</p>
+        <pre><code class="language-json">{
+  "type": "about:blank",
+  "title": "Duplicate Member",
+  "status": 409,
+  "code": "DUPLICATE_MEMBER",
+  "detail": "A member with this phone number already exists",
+  "existingMemberId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}</code></pre>
+
+        <h2>Error Code Reference</h2>
+
+        <h3>General Errors</h3>
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Code</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>400</td><td><code>VALIDATION_ERROR</code></td><td>Request body failed Zod validation, bad phone format, or missing required headers</td></tr>
+            <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Missing or invalid Bearer token (or missing X-Tenant-ID/X-User-ID in dev mode)</td></tr>
+            <tr><td>403</td><td><code>FORBIDDEN</code></td><td>Insufficient role permissions (Admin API RBAC)</td></tr>
+            <tr><td>403</td><td><code>TENANT_MISMATCH</code></td><td>Resource belongs to a different tenant</td></tr>
+            <tr><td>404</td><td><code>NOT_FOUND</code></td><td>Requested resource does not exist</td></tr>
+            <tr><td>409</td><td><code>CONFLICT</code></td><td>Idempotency key reused with different request body</td></tr>
+            <tr><td>429</td><td><code>RATE_LIMIT</code></td><td>Too many requests -- see Rate Limiting below</td></tr>
+            <tr><td>500</td><td><code>SERVER_ERROR</code></td><td>Internal server error</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Member Service Errors</h3>
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Code</th><th>Description</th><th>Extra Fields</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>404</td><td><code>MEMBER_NOT_FOUND</code></td><td>Member ID or lookup miss</td><td>--</td></tr>
+            <tr><td>404</td><td><code>TENANT_NOT_FOUND</code></td><td>Tenant lookup miss</td><td>--</td></tr>
+            <tr><td>409</td><td><code>DUPLICATE_MEMBER</code></td><td>Email or phone already enrolled</td><td><code>existingMemberId</code></td></tr>
+            <tr><td>422</td><td><code>INVALID_STATUS_TRANSITION</code></td><td>Illegal status change (e.g. closed to active)</td><td><code>from</code>, <code>to</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Loyalty Engine Errors</h3>
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Code</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>403</td><td><code>MEMBER_NOT_ACTIVE</code></td><td>Member is suspended or closed</td></tr>
+            <tr><td>403</td><td><code>VOID_WINDOW_EXPIRED</code></td><td>Transaction is outside the void window (default 168h)</td></tr>
+            <tr><td>403</td><td><code>TRANSACTION_BLOCKED_FRAUD</code></td><td>Fraud detection blocked the transaction</td></tr>
+            <tr><td>409</td><td><code>ALREADY_VOIDED</code></td><td>Transaction has already been voided</td></tr>
+            <tr><td>422</td><td><code>INSUFFICIENT_BALANCE</code></td><td>Not enough points for redemption</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Offer Service Errors</h3>
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Code</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>409</td><td><code>CODE_ALREADY_USED</code></td><td>Redemption code has already been redeemed</td></tr>
+            <tr><td>422</td><td><code>NOT_ELIGIBLE</code></td><td>Member does not meet offer eligibility criteria (includes <code>reasons</code> array)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>SDK Error Classes</h2>
+        <p>The JavaScript SDK maps HTTP errors to typed exceptions:</p>
+
+        <table>
+          <thead>
+            <tr><th>Class</th><th>HTTP Status</th><th>Code</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ValidationError</code></td><td>400</td><td><code>VALIDATION_ERROR</code></td></tr>
+            <tr><td><code>UnauthorizedError</code></td><td>401</td><td><code>UNAUTHORIZED</code></td></tr>
+            <tr><td><code>ForbiddenError</code></td><td>403</td><td><code>FORBIDDEN</code></td></tr>
+            <tr><td><code>NotFoundError</code></td><td>404</td><td><code>NOT_FOUND</code></td></tr>
+            <tr><td><code>ConflictError</code></td><td>409</td><td><code>CONFLICT</code></td></tr>
+            <tr><td><code>RateLimitError</code></td><td>429</td><td><code>RATE_LIMIT</code></td></tr>
+            <tr><td><code>ServerError</code></td><td>5xx</td><td><code>SERVER_ERROR</code></td></tr>
+            <tr><td><code>TimeoutError</code></td><td>--</td><td><code>TIMEOUT</code></td></tr>
+          </tbody>
+        </table>
+
+        <pre><code class="language-typescript">import { LoyaltyError, RateLimitError } from '@loyalty/loyalty-js-sdk';
+
+try {
+  await client.recordTransaction({ ... });
+} catch (err) {
+  if (err instanceof RateLimitError) {
+    // err.retryAfterMs tells you when to retry
+    await sleep(err.retryAfterMs);
+    // SDK also handles retries automatically (maxRetries: 2)
+  }
+}</code></pre>
+
+        <h2>Rate Limiting</h2>
+
+        <h3>APIM Gateway Limits</h3>
+        <table>
+          <thead>
+            <tr><th>Scope</th><th>Limit</th><th>Window</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Per subscription key</td><td>1,000 requests</td><td>1 minute</td></tr>
+          </tbody>
+        </table>
+
+        <p>When rate-limited, the gateway returns:</p>
+        <pre><code class="language-json">{
+  "statusCode": 429,
+  "message": "Rate limit is exceeded. Try again in X seconds."
+}</code></pre>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Consumption Tier</div>
+          The current APIM deployment uses the Consumption tier, which applies rate limits per gateway instance. For more granular per-tenant rate limiting, upgrade to the Developer or Premium tier.
+        </div>
+
+        <h3>SDK Retry Behavior</h3>
+        <p>The JavaScript SDK automatically retries on 429 and 5xx responses:</p>
+        <ul>
+          <li>Default: 2 retries with exponential backoff (500ms, 1000ms)</li>
+          <li>Configurable via <code>maxRetries</code> in the client constructor</li>
+          <li>Non-retriable errors (400, 401, 403, 404, 409, 422) are thrown immediately</li>
+        </ul>
+
+        <h2>Idempotency</h2>
+        <p>All write endpoints on the Loyalty Engine require an <code>Idempotency-Key</code> header.</p>
+
+        <table>
+          <thead>
+            <tr><th>Behavior</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Same key + same body</td><td>Returns the original response (replay)</td></tr>
+            <tr><td>Same key + different body</td><td><code>409 Conflict</code></td></tr>
+            <tr><td>Key expiry</td><td>24 hours</td></tr>
+            <tr><td>Scope</td><td>Per-tenant (isolated across tenants)</td></tr>
+            <tr><td>Failed requests</td><td>Key is NOT stored on failure, allowing safe retry</td></tr>
+          </tbody>
+        </table>
+
+        <pre><code class="language-bash"># Idempotent transaction -- safe to retry
+curl -X POST https://loyalty-dev-apim-5rdrqh.azure-api.net/engine/v1/transactions \
+  -H "Content-Type: application/json" \
+  -H "Ocp-Apim-Subscription-Key: YOUR_KEY" \
+  -H "X-Tenant-ID: YOUR_TENANT_ID" \
+  -H "Idempotency-Key: order-12345" \
+  -H "X-Skip-Auth: true" \
+  -d '{ "memberId": "...", "channel": "pos", "amount": 1500, "currency": "USD" }'</code></pre>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">Missing Idempotency-Key</div>
+          Submitting a POST to <code>/engine/v1/transactions</code> without the <code>Idempotency-Key</code> header will return <code>400 VALIDATION_ERROR</code> at the APIM gateway level before the request reaches the backend.
+        </div>
+
+        <h2>Correlation IDs</h2>
+        <p>Every request through APIM receives a <code>X-Correlation-ID</code> header in the response. Include this ID when contacting support for faster debugging.</p>
+
+        <div class="next-page">
+          <a href="integrations.html">Next: E-Commerce Integrations &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

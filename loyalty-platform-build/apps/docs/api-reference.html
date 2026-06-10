@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Reference — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link active">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> API Reference
+        </div>
+
+        <h1>API Reference</h1>
+        <p class="subtitle">Complete endpoint documentation for all Loyalty Platform services.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Interactive API Explorer</div>
+          Try endpoints live with <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>. Base URL: <code>https://loyalty-dev-apim-5rdrqh.azure-api.net</code>
+        </div>
+
+        <!-- MEMBER SERVICE -->
+        <h2>Member Service</h2>
+        <p>Enrollment, profile management, lookup, and GDPR operations. All endpoints under <code>/member/v1/members</code>.</p>
+
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-path">/member/v1/members</span></h3>
+        <p>Enroll a new loyalty member.</p>
+        <pre><code class="language-json">{
+  "phone": "+15555551234",
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane@example.com",
+  "dateOfBirth": "1990-05-15",
+  "enrolledChannel": "pos | ecommerce | mobile | admin"
+}</code></pre>
+        <p>Returns <code>201</code> with full <code>MemberDTO</code>. Returns <code>409 DUPLICATE_MEMBER</code> if phone or email already enrolled.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/member/v1/members/:id</span></h3>
+        <p>Get a member by ID. Returns full <code>MemberDTO</code> with decrypted PII.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/member/v1/members?phone={phone}</span></h3>
+        <p>POS hot-path lookup by phone number. Returns <code>MemberSummaryDTO</code>. Target: p99 &lt; 100ms at 500 RPS.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/member/v1/members?email={email}</span></h3>
+        <p>Lookup by email. Returns <code>MemberSummaryDTO</code>.</p>
+
+        <h3><span class="method-badge method-patch">PATCH</span> <span class="endpoint-path">/member/v1/members/:id</span></h3>
+        <p>Update member profile fields: <code>firstName</code>, <code>lastName</code>, <code>email</code>, <code>phone</code>, <code>communicationPrefs</code>. Updating email or phone triggers re-encryption and duplicate check.</p>
+
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-path">/member/v1/members/:id/status</span></h3>
+        <p>Transition member status.</p>
+        <pre><code class="language-json">{
+  "status": "active | suspended | closed",
+  "reason": "explanation"
+}</code></pre>
+        <p>Valid transitions: active &rarr; suspended/closed, suspended &rarr; active/closed. Closed is terminal.</p>
+
+        <h3><span class="method-badge method-delete">DELETE</span> <span class="endpoint-path">/member/v1/members/:id</span></h3>
+        <p>GDPR soft delete. Sets <code>is_deleted=1</code>, invalidates caches, publishes <code>member.deleted</code>. Returns <code>204</code>.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/member/v1/members/:id/export</span></h3>
+        <p>GDPR data export as JSON. Returns profile, ledger summary, and transaction reference.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/member/v1/members/:id/ledger?after=&amp;limit=</span></h3>
+        <p>Paginated points ledger. Default limit 50, max 200. Cursor-based pagination via <code>after</code> parameter.</p>
+        <pre><code class="language-json">{
+  "items": [
+    {
+      "id": "ledger-uuid",
+      "memberId": "member-uuid",
+      "transactionId": "txn-uuid",
+      "delta": 25,
+      "balanceAfter": 125,
+      "reason": "earn",
+      "createdAt": "2026-04-10T12:00:00Z"
+    }
+  ],
+  "nextCursor": "base64-encoded-cursor"
+}</code></pre>
+
+        <!-- LOYALTY ENGINE -->
+        <h2>Loyalty Engine</h2>
+        <p>Transaction processing, points calculation, and the immutable ledger. All write endpoints require <code>Idempotency-Key</code>.</p>
+
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-path">/engine/v1/transactions</span></h3>
+        <p>Record an earn transaction. Amounts in minor currency units (cents). Includes transaction enrichment fields for full traceability.</p>
+        <pre><code class="language-json">{
+  "memberId": "uuid",
+  "channel": "pos | ecommerce | mobile | admin",
+  "amount": 2500,
+  "currency": "USD",
+  "skuList": [
+    { "sku": "COFFEE-12", "categoryId": "beverages", "amount": 2500 }
+  ],
+  "locationId": "store-42",
+  "occurredAt": "2026-04-10T10:00:00Z",
+  "storeId": "DAISO-042",
+  "storeName": "Daiso Carrollton",
+  "registerId": "REG-01",
+  "associateId": "EMP-1001",
+  "associateName": "Jane Smith",
+  "sourceChannel": "in-store | online | self-checkout",
+  "sourceSystem": "square | shopify | kiosk | custom",
+  "orderRef": "ORD-2026-04-10-1234",
+  "metadata": { "campaign": "spring-sale" }
+}</code></pre>
+        <p><strong>Enrichment fields:</strong> <code>storeId</code>, <code>storeName</code>, <code>registerId</code>, <code>associateId</code>, <code>associateName</code>, <code>sourceChannel</code>, <code>sourceSystem</code>, <code>orderRef</code>, and <code>metadata</code> are all optional but recommended for full traceability. They are stored with the transaction and available in reports, exports, and the admin transaction detail view.</p>
+        <p>Response <code>201</code> (per-dollar mode):</p>
+        <pre><code class="language-json">{
+  "transactionId": "uuid",
+  "pointsEarned": 25,
+  "newBalance": 125,
+  "tierId": "silver",
+  "earnMode": "per-dollar",
+  "appliedMultipliers": [
+    { "source": "category:beverages", "multiplier": 2, "points": 25 }
+  ]
+}</code></pre>
+        <p>Response <code>201</code> (per-visit mode):</p>
+        <pre><code class="language-json">{
+  "transactionId": "uuid",
+  "pointsEarned": 10,
+  "newBalance": 135,
+  "tierId": "silver",
+  "earnMode": "per-visit",
+  "qualifiedVisit": true,
+  "visitCountToday": 1,
+  "appliedMultipliers": [
+    { "source": "tier:silver", "multiplier": 1.25, "points": 12 }
+  ]
+}</code></pre>
+        <p>When <code>earnMode</code> is <code>"per-visit"</code>, the response includes <code>qualifiedVisit</code> (whether this transaction met the minimum spend threshold) and <code>visitCountToday</code> (how many qualifying visits this member has made today). If the member has exceeded <code>maxVisitsPerDay</code>, <code>qualifiedVisit</code> will be <code>false</code> and <code>pointsEarned</code> will be <code>0</code>.</p>
+
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-path">/engine/v1/transactions/:id/void</span></h3>
+        <p>Reverse a transaction within the void window (default 168h).</p>
+        <pre><code class="language-json">{ "reason": "customer return" }</code></pre>
+        <p>Response includes <code>pointsReversed</code>, <code>newBalance</code>, and <code>negativeBalanceFlag</code>.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/engine/v1/members/:id/balance</span></h3>
+        <p>Get current points balance. Served from Redis cache (300s TTL).</p>
+        <pre><code class="language-json">{
+  "balance": 125,
+  "lastUpdated": "2026-04-10T10:00:00Z"
+}</code></pre>
+
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-path">/engine/v1/members/:id/adjustments</span></h3>
+        <p>Manual points adjustment (admin only). Positive or negative delta.</p>
+        <pre><code class="language-json">{
+  "delta": 500,
+  "reasonCode": "adjust | bonus",
+  "notes": "goodwill credit"
+}</code></pre>
+
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-path">/engine/v1/redemptions</span></h3>
+        <p>Burn points for an offer redemption.</p>
+        <pre><code class="language-json">{
+  "memberId": "uuid",
+  "offerId": "offer-1",
+  "pointsToBurn": 200,
+  "redemptionContext": {}
+}</code></pre>
+
+        <!-- OFFER SERVICE -->
+        <h2>Offer Service</h2>
+        <p>Offer catalog, eligibility engine, and code management.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/offers</span></h3>
+        <p>List all offers. Filter with <code>?type=percent|fixed|bogo|threshold|visit-based|free-item</code> and <code>?active=true|false</code>.</p>
+
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-path">/v1/offers</span></h3>
+        <p>Create an offer (admin/manager). Supports targeting rules via <code>targetingJson</code>.</p>
+        <p><strong>Visit-based offer fields:</strong></p>
+        <pre><code class="language-json">{
+  "type": "visit-based",
+  "name": "5 Visits = $5 Off",
+  "reward": { "type": "fixed", "amount": 500 },
+  "visitRules": {
+    "visitsRequired": 5,
+    "minSpendPerVisit": 500,
+    "minItemsPerVisit": 1,
+    "qualifyingChannels": ["in-store", "self-checkout"],
+    "qualifyingStores": ["all"],
+    "countingMode": "per-transaction | per-day"
+  },
+  "eligibility": {
+    "tiers": ["all"],
+    "startDate": "2026-05-01",
+    "endDate": "2026-06-30"
+  }
+}</code></pre>
+        <p><strong>Free item offer fields:</strong></p>
+        <pre><code class="language-json">{
+  "type": "free-item",
+  "name": "Free Storage Bin",
+  "reward": {
+    "type": "free-item",
+    "sku": "STORAGE-BIN-M",
+    "maxValue": 500
+  },
+  "visitRules": {
+    "visitsRequired": 5,
+    "minSpendPerVisit": 500
+  }
+}</code></pre>
+        <p>Both <code>sku</code> and <code>maxValue</code> are optional. If <code>sku</code> is omitted, the member can choose any item. If <code>maxValue</code> is omitted, any item value is accepted.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/members/:memberId/offers</span></h3>
+        <p>Get personalized eligible offers for a member. Sorted by redeemability, then expiry.</p>
+
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-path">/v1/redemptions</span></h3>
+        <p>Redeem an offer. Validates eligibility, deducts points if applicable, increments redemption counters.</p>
+        <pre><code class="language-json">{
+  "memberId": "uuid",
+  "offerId": "uuid",
+  "channel": "pos",
+  "redemptionCode": "DAISO-XXXX-YYYYYY"  // optional — required for code-bound visit offers
+}</code></pre>
+        <p><strong>Code-Bound Validation:</strong> For visit-based offers that issued a coupon code, the <code>redemptionCode</code> field is required. The system validates:</p>
+        <ul>
+          <li>The code exists and matches the offer</li>
+          <li>The code is assigned to the requesting member (member binding)</li>
+          <li>The code has not already been used (single-use enforcement)</li>
+        </ul>
+        <p><strong>Error Responses:</strong></p>
+        <ul>
+          <li><code>422 INVALID_CODE</code> &mdash; Code does not exist</li>
+          <li><code>422 CODE_OFFER_MISMATCH</code> &mdash; Code belongs to a different offer</li>
+          <li><code>403 CODE_MEMBER_MISMATCH</code> &mdash; Code is bound to a different member</li>
+          <li><code>409 CODE_ALREADY_USED</code> &mdash; Code has already been redeemed</li>
+          <li><code>422 CODE_EXPIRED</code> &mdash; Code has expired</li>
+          <li><code>422 CODE_REQUIRED</code> &mdash; Visit-based offer requires a coupon code</li>
+        </ul>
+
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-path">/v1/offers/:id/generate-codes</span></h3>
+        <p>Bulk-generate unique redemption codes (admin/manager).</p>
+        <pre><code class="language-json">{
+  "count": 100,
+  "prefix": "SUMMER"
+}</code></pre>
+
+        <!-- ANALYTICS SERVICE -->
+        <h2>Analytics Service &mdash; Reporting Endpoints</h2>
+        <p>Eight new reporting endpoints under <code>/v1/analytics/reports</code> for finance and marketing analytics.</p>
+
+        <h3>Finance Reports</h3>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/analytics/reports/liability</span></h3>
+        <p>Points liability report for balance sheet recognition (ASC 606 / IFRS 15). Returns gross liability, breakage estimate, net liability, breakage rate, and cost per point.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/analytics/reports/points-flow?from=&amp;to=&amp;groupBy=day</span></h3>
+        <p>Points issuance and redemption flow. Daily/weekly/monthly breakdown of points issued, redeemed, expired, voided, and net change.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/analytics/reports/redemption-reserve</span></h3>
+        <p>Redemption reserve (monthly). Breakdown of redemptions with count, points used, discount value, and cost per point.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/analytics/reports/revenue-attribution?from=&amp;to=</span></h3>
+        <p>Revenue attribution. Daily transaction volume, spend, avg basket, and spend per member for loyalty ROI analysis.</p>
+
+        <h3>Marketing Reports</h3>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/analytics/reports/engagement-funnel</span></h3>
+        <p>Member engagement funnel. Conversion rates from enrollment through first purchase, repeat, frequent, tier upgrade, and redemption.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/analytics/reports/at-risk-members?daysInactive=60&amp;minBalance=1&amp;limit=50</span></h3>
+        <p>At-risk members. Members with positive balance who haven't transacted in a configurable window. Used for win-back campaigns.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/analytics/reports/tier-distribution</span></h3>
+        <p>Tier distribution. Member count and percentage at each tier level.</p>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/analytics/reports/offer-performance?from=&amp;to=</span></h3>
+        <p>Offer performance. Per-offer metrics including redemption count, rate, and revenue impact.</p>
+
+        <h3>Operations Reports</h3>
+
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-path">/v1/analytics/reports/visit-analytics?from=&amp;to=&amp;groupBy=day</span></h3>
+        <p>Visit analytics for per-visit earn mode. Returns qualified visits, total transactions, visit conversion rate, and daily/weekly/monthly trends.</p>
+        <pre><code class="language-json">{
+  "qualifiedVisits": 8420,
+  "totalTransactions": 11200,
+  "conversionRate": 0.7518,
+  "avgPointsPerVisit": 10,
+  "dailyTrend": [
+    { "date": "2026-04-20", "qualifiedVisits": 312, "totalTransactions": 415, "rate": 0.752 },
+    { "date": "2026-04-21", "qualifiedVisits": 298, "totalTransactions": 401, "rate": 0.743 }
+  ]
+}</code></pre>
+
+        <!-- ADMIN API -->
+        <h2>Admin API</h2>
+        <p>30+ endpoints for program config, tiers, webhooks, API keys, feature flags, branding, and audit. All under <code>/v1/admin</code>. See <a href="authentication.html">Authentication</a> for RBAC roles.</p>
+
+        <h3>Earn Mode in Program Config</h3>
+        <p>The <code>PUT /v1/admin/program</code> endpoint accepts earn mode configuration:</p>
+        <pre><code class="language-json">{
+  "earnMode": "per-dollar | per-visit",
+  "earnRate": {
+    "pointsPerDollar": 1,
+    "rounding": "floor | ceiling | nearest"
+  },
+  "visitEarnConfig": {
+    "pointsPerVisit": 10,
+    "minSpendThreshold": 500,
+    "maxVisitsPerDay": 3
+  }
+}</code></pre>
+        <p>When <code>earnMode</code> is <code>"per-dollar"</code>, the <code>earnRate</code> fields are used. When <code>"per-visit"</code>, the <code>visitEarnConfig</code> fields are used. Switching modes does not affect existing points balances.</p>
+
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Path</th><th>Min Role</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="method-badge method-get">GET</span></td><td><code>/v1/admin/program</code></td><td>manager</td></tr>
+            <tr><td><span class="method-badge method-put">PUT</span></td><td><code>/v1/admin/program</code></td><td>manager</td></tr>
+            <tr><td><span class="method-badge method-get">GET</span></td><td><code>/v1/admin/tiers</code></td><td>analyst</td></tr>
+            <tr><td><span class="method-badge method-post">POST</span></td><td><code>/v1/admin/tiers</code></td><td>owner</td></tr>
+            <tr><td><span class="method-badge method-get">GET</span></td><td><code>/v1/admin/members/search</code></td><td>analyst</td></tr>
+            <tr><td><span class="method-badge method-post">POST</span></td><td><code>/v1/admin/members/:id/points-adjust</code></td><td>manager</td></tr>
+            <tr><td><span class="method-badge method-get">GET</span></td><td><code>/v1/admin/webhooks</code></td><td>manager</td></tr>
+            <tr><td><span class="method-badge method-post">POST</span></td><td><code>/v1/admin/webhooks</code></td><td>manager</td></tr>
+            <tr><td><span class="method-badge method-post">POST</span></td><td><code>/v1/admin/webhooks/:id/test</code></td><td>manager</td></tr>
+            <tr><td><span class="method-badge method-get">GET</span></td><td><code>/v1/admin/apikeys</code></td><td>owner</td></tr>
+            <tr><td><span class="method-badge method-post">POST</span></td><td><code>/v1/admin/apikeys</code></td><td>owner</td></tr>
+            <tr><td><span class="method-badge method-get">GET</span></td><td><code>/v1/admin/audit</code></td><td>analyst</td></tr>
+            <tr><td><span class="method-badge method-get">GET</span></td><td><code>/v1/admin/feature-flags</code></td><td>manager</td></tr>
+            <tr><td><span class="method-badge method-put">PUT</span></td><td><code>/v1/admin/branding</code></td><td>manager</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Service URLs</h2>
+        <table>
+          <thead>
+            <tr><th>Service</th><th>Direct URL</th><th>APIM Path</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Member Service</td><td><code>https://loyalty-dev-member-service.azurewebsites.net</code></td><td><code>/member/*</code></td></tr>
+            <tr><td>Loyalty Engine</td><td><code>https://loyalty-dev-loyalty-engine.azurewebsites.net</code></td><td><code>/engine/*</code></td></tr>
+            <tr><td>Offer Service</td><td>Container App</td><td><code>/v1/offers</code></td></tr>
+            <tr><td>Admin API</td><td>Container App</td><td><code>/v1/admin/*</code></td></tr>
+            <tr><td>Analytics Service</td><td>Container App</td><td><code>/v1/analytics/*</code></td></tr>
+          </tbody>
+        </table>
+
+        <div class="next-page">
+          <a href="sdk.html">Next: JavaScript SDK &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

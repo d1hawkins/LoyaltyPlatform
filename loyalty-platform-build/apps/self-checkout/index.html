@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Daiso Self-Checkout</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
+    body { margin: 0; overflow: hidden; background: #f8fafc; }
+
+    /* Animations */
+    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(235,18,86,0.4); } 50% { box-shadow: 0 0 0 20px rgba(235,18,86,0); } }
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideInLeft { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes countRollUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes checkmark { 0% { stroke-dashoffset: 100; } 100% { stroke-dashoffset: 0; } }
+    @keyframes checkCircle { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+    @keyframes dimScreen { 0% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+    .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .slide-in-right { animation: slideInRight 0.4s ease-out; }
+    .slide-in-left { animation: slideInLeft 0.4s ease-out; }
+    .slide-in-up { animation: slideInUp 0.4s ease-out; }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    .count-roll { animation: countRollUp 0.5s ease-out; }
+    .float-anim { animation: float 3s ease-in-out infinite; }
+
+    .check-circle { animation: checkCircle 0.6s ease-out forwards; }
+    .check-mark { stroke-dasharray: 100; stroke-dashoffset: 100; animation: checkmark 0.4s ease-out 0.4s forwards; }
+
+    .confetti-piece {
+      position: fixed; top: -20px; width: 12px; height: 12px;
+      animation: confetti-fall 3s ease-in forwards;
+    }
+
+    /* Tier badges */
+    .tier-bronze { background: linear-gradient(135deg, #CD7F32, #a06428); color: white; }
+    .tier-silver { background: linear-gradient(135deg, #C0C0C0, #969696); color: #333; }
+    .tier-gold { background: linear-gradient(135deg, #FFD700, #c8a900); color: #333; }
+    .tier-platinum { background: linear-gradient(135deg, #E5E4E2, #b8b7b5); color: #333; }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+    /* Dim overlay */
+    #dim-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100;
+      display: none; align-items: center; justify-content: center;
+      animation: dimScreen 0.5s ease-out;
+    }
+    #dim-overlay.active { display: flex; }
+
+    /* Step container */
+    .step { display: none; width: 100%; height: 100vh; position: absolute; top: 0; left: 0; }
+    .step.active { display: flex; flex-direction: column; }
+  </style>
+</head>
+<body>
+
+<!-- Dim overlay for inactivity -->
+<div id="dim-overlay" onclick="wakeUp()">
+  <div class="text-white text-center">
+    <p class="text-4xl font-bold mb-4">Tap anywhere to continue</p>
+    <p class="text-xl opacity-70">Screen will reset shortly</p>
+  </div>
+</div>
+
+<!-- Confetti container -->
+<div id="confetti-container" class="fixed inset-0 pointer-events-none z-50"></div>
+
+<!-- Toast container -->
+<div id="toast-container" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 space-y-2"></div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- STEP 1: WELCOME / IDLE                             -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="step-1" class="step active">
+  <div class="flex-1 flex flex-col items-center justify-center px-8" style="background: linear-gradient(180deg, #fff 0%, #fef2f5 100%);">
+    <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" class="h-20 object-contain mb-8 float-anim" onerror="this.outerHTML='<div class=\'text-5xl font-black mb-8 float-anim\' style=\'color:#EB1256\'>DAISO</div>'">
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-3 text-center">Welcome to Daiso!</h1>
+    <p class="text-xl text-gray-500 mb-12 text-center">Fast, easy self-checkout</p>
+    <button onclick="goToStep(2)" class="px-16 py-6 rounded-2xl text-white text-2xl font-bold shadow-xl pulse-glow transition-transform active:scale-95" style="background: #EB1256;">
+      Tap to Start
+    </button>
+  </div>
+  <div class="py-4 text-center bg-white border-t border-gray-200">
+    <p class="text-sm text-gray-400">Powered by <span class="font-semibold" style="color:#EB1256;">Daiso Rewards</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- STEP 2: IDENTIFY MEMBER                            -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="step-2" class="step">
+  <!-- Header -->
+  <div class="flex-shrink-0 px-6 py-4 bg-white border-b border-gray-200 flex items-center justify-between">
+    <button onclick="goToStep(1)" class="flex items-center gap-2 text-gray-500 text-lg font-medium px-4 py-2 rounded-xl hover:bg-gray-100 active:bg-gray-200 transition min-h-[48px]">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Back
+    </button>
+    <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" class="h-8 object-contain" onerror="this.outerHTML='<span class=\'font-black text-xl\' style=\'color:#EB1256\'>DAISO</span>'">
+  </div>
+
+  <!-- Main identification area -->
+  <div id="identify-main" class="flex-1 flex flex-col items-center justify-center px-6 py-8 overflow-y-auto">
+    <h2 class="text-3xl font-bold text-gray-900 mb-2 text-center">Earn rewards on this purchase!</h2>
+    <p class="text-lg text-gray-500 mb-8 text-center">How would you like to identify yourself?</p>
+
+    <!-- Option cards -->
+    <div class="w-full max-w-lg space-y-4" id="identify-options">
+      <!-- Scan QR -->
+      <button onclick="showQrScanner()" class="w-full bg-white rounded-2xl shadow-md border-2 border-gray-100 p-6 flex items-center gap-5 transition-all active:scale-[0.98] active:shadow-lg hover:border-pink-200 min-h-[80px]">
+        <span class="text-4xl">📱</span>
+        <div class="text-left">
+          <p class="text-xl font-bold text-gray-900">Scan Member QR</p>
+          <p class="text-sm text-gray-500">Hold your QR code to the scanner</p>
+        </div>
+        <svg class="w-6 h-6 text-gray-400 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+
+      <!-- Phone number -->
+      <button onclick="showPhoneKeypad()" class="w-full bg-white rounded-2xl shadow-md border-2 border-gray-100 p-6 flex items-center gap-5 transition-all active:scale-[0.98] active:shadow-lg hover:border-pink-200 min-h-[80px]">
+        <span class="text-4xl">📞</span>
+        <div class="text-left">
+          <p class="text-xl font-bold text-gray-900">Enter Phone Number</p>
+          <p class="text-sm text-gray-500">Look up your rewards account</p>
+        </div>
+        <svg class="w-6 h-6 text-gray-400 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+
+      <!-- Skip -->
+      <button onclick="skipIdentification()" class="w-full bg-gray-100 rounded-2xl border-2 border-gray-200 p-5 flex items-center gap-5 transition-all active:scale-[0.98] hover:bg-gray-150 min-h-[60px]">
+        <span class="text-3xl">⏭️</span>
+        <div class="text-left">
+          <p class="text-lg font-semibold text-gray-600">Skip — Checkout without rewards</p>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- QR Scanner sub-view (hidden by default) -->
+  <div id="qr-scanner-view" class="flex-1 flex-col items-center justify-center px-6 py-8" style="display:none;">
+    <div class="w-full max-w-md mx-auto text-center">
+      <div class="bg-gray-900 rounded-2xl p-8 mb-6 flex flex-col items-center justify-center" style="min-height: 240px;">
+        <svg class="w-20 h-20 text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4h4V2H2v6h2V4zm16 0v4h2V2h-6v2h4zM4 20v-4H2v6h6v-2H4zm16 0h-4v2h6v-6h-2v4z"/>
+          <rect x="7" y="7" width="10" height="10" rx="1" stroke-width="1.5"/>
+        </svg>
+        <p class="text-gray-400 text-lg">Hold QR code to scanner</p>
+        <p class="text-gray-600 text-sm mt-2">Camera view placeholder</p>
+      </div>
+      <p class="text-gray-500 mb-4">Demo mode: enter a member ID below</p>
+      <div class="flex gap-3">
+        <input id="qr-member-id" type="text" placeholder="Member ID or phone" class="flex-1 px-4 py-4 border-2 border-gray-300 rounded-xl text-lg text-center focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none">
+        <button onclick="lookupFromQr()" class="px-8 py-4 rounded-xl text-white text-lg font-bold active:scale-95 transition" style="background:#EB1256;">Go</button>
+      </div>
+      <button onclick="hideQrScanner()" class="mt-6 text-gray-500 text-lg font-medium underline py-2 min-h-[48px]">Back to options</button>
+    </div>
+  </div>
+
+  <!-- Phone keypad sub-view (hidden by default) -->
+  <div id="phone-keypad-view" class="flex-1 flex-col items-center px-6 py-6" style="display:none;">
+    <div class="w-full max-w-sm mx-auto">
+      <p class="text-center text-gray-500 text-lg mb-3">Enter your phone number</p>
+      <div class="bg-white rounded-2xl border-2 border-gray-200 px-6 py-4 mb-5 text-center">
+        <p id="phone-display" class="text-3xl font-bold text-gray-900 tracking-wider min-h-[44px]">&nbsp;</p>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mb-5" id="keypad-grid">
+        <!-- Populated by JS -->
+      </div>
+      <p id="phone-error" class="text-red-500 text-center text-sm mb-3" style="display:none;"></p>
+      <button onclick="hidePhoneKeypad()" class="w-full text-gray-500 text-lg font-medium underline py-2 min-h-[48px]">Back to options</button>
+    </div>
+  </div>
+
+  <!-- Enrollment modal sub-view -->
+  <div id="enroll-view" class="flex-1 flex-col items-center justify-center px-6 py-8" style="display:none;">
+    <div class="w-full max-w-md mx-auto">
+      <h3 class="text-2xl font-bold text-gray-900 mb-2 text-center">Join Daiso Rewards</h3>
+      <p class="text-gray-500 text-center mb-6">Quick sign-up — start earning points today!</p>
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-gray-500 font-medium mb-1 block">First Name</label>
+            <input id="enroll-first" type="text" class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl text-lg focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none">
+          </div>
+          <div>
+            <label class="text-sm text-gray-500 font-medium mb-1 block">Last Name</label>
+            <input id="enroll-last" type="text" class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl text-lg focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="text-sm text-gray-500 font-medium mb-1 block">Email</label>
+          <input id="enroll-email" type="email" class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl text-lg focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none">
+        </div>
+        <div>
+          <label class="text-sm text-gray-500 font-medium mb-1 block">Phone</label>
+          <input id="enroll-phone" type="tel" class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl text-lg focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none">
+        </div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button onclick="hideEnrollView()" class="px-6 py-4 bg-gray-200 text-gray-700 rounded-xl text-lg font-semibold active:bg-gray-300 transition min-h-[60px]">Cancel</button>
+        <button onclick="enrollMember()" class="flex-1 py-4 text-white rounded-xl text-lg font-bold active:scale-95 transition min-h-[60px]" style="background:#EB1256;">Join Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member welcome flash -->
+  <div id="member-welcome" class="flex-1 flex-col items-center justify-center px-6" style="display:none;">
+    <div class="text-center slide-in-up">
+      <div class="text-6xl mb-4">👋</div>
+      <h2 id="welcome-name" class="text-3xl font-bold text-gray-900 mb-2"></h2>
+      <span id="welcome-tier" class="inline-block px-4 py-2 rounded-full text-sm font-bold uppercase mb-4"></span>
+      <p class="text-lg text-gray-500">Let's start scanning!</p>
+    </div>
+  </div>
+
+  <!-- Not found sub-view -->
+  <div id="not-found-view" class="flex-1 flex-col items-center justify-center px-6" style="display:none;">
+    <div class="text-center w-full max-w-md mx-auto">
+      <div class="text-5xl mb-4">🔍</div>
+      <h3 class="text-2xl font-bold text-gray-900 mb-2">No account found</h3>
+      <p class="text-gray-500 mb-8">We couldn't find a rewards account with that info.</p>
+      <div class="space-y-3">
+        <button onclick="showEnrollView()" class="w-full py-5 rounded-2xl text-white text-xl font-bold active:scale-95 transition min-h-[60px]" style="background:#EB1256;">Join Now — It's Free!</button>
+        <button onclick="skipIdentification()" class="w-full py-4 rounded-2xl bg-gray-200 text-gray-700 text-lg font-semibold active:bg-gray-300 transition min-h-[60px]">Continue without rewards</button>
+        <button onclick="backToIdentifyOptions()" class="w-full py-3 text-gray-500 text-lg font-medium underline min-h-[48px]">Try again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- STEP 3: SCAN ITEMS                                 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="step-3" class="step">
+  <!-- Header -->
+  <div class="flex-shrink-0 px-5 py-3 bg-white border-b border-gray-200 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <h2 class="text-xl font-bold text-gray-900">Scan your items</h2>
+      <span id="item-count-badge" class="px-3 py-1 rounded-full text-sm font-bold text-white" style="background:#EB1256; display:none;">0</span>
+    </div>
+    <div id="member-badge-header" class="flex items-center gap-2" style="display:none;">
+      <span id="header-member-name" class="text-sm font-medium text-gray-700"></span>
+      <span id="header-tier-badge" class="px-2 py-0.5 rounded-full text-xs font-bold uppercase"></span>
+    </div>
+  </div>
+
+  <!-- Item list (top section) -->
+  <div class="flex-shrink-0 bg-white border-b border-gray-200" style="height: 35vh; min-height: 200px;">
+    <div id="cart-empty-state" class="flex flex-col items-center justify-center h-full text-gray-400">
+      <svg class="w-16 h-16 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4m1.6 8l-1.35-6.75M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+      <p class="text-lg">Tap products below to add</p>
+    </div>
+    <div id="cart-items-list" class="h-full overflow-y-auto px-4 py-2" style="display:none;">
+      <!-- Cart items rendered here -->
+    </div>
+  </div>
+
+  <!-- Product grid -->
+  <div class="flex-shrink-0 px-4 py-3 bg-gray-50 border-b border-gray-200">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Products</p>
+    <div class="grid grid-cols-4 gap-2" id="product-grid-sco">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- Bottom summary + actions -->
+  <div class="flex-1 flex flex-col bg-white px-5 py-4">
+    <!-- Offer card -->
+    <div id="offer-card-area" class="mb-3" style="display:none;">
+      <div id="offer-card-content" class="rounded-2xl p-4 border-2 border-dashed" style="border-color:#EB1256; background: #fef2f5;">
+        <!-- Offer content rendered here -->
+      </div>
+    </div>
+
+    <!-- Totals -->
+    <div class="space-y-1 text-lg mb-3">
+      <div class="flex justify-between text-gray-500"><span>Subtotal</span><span id="sco-subtotal" class="font-medium text-gray-700">$0.00</span></div>
+      <div class="flex justify-between text-gray-500"><span>Tax (8.5%)</span><span id="sco-tax" class="text-gray-700">$0.00</span></div>
+      <div id="sco-discount-row" class="flex justify-between text-green-600" style="display:none;"><span>Discount</span><span id="sco-discount">-$0.00</span></div>
+      <div class="flex justify-between text-2xl font-extrabold text-gray-900 border-t-2 border-gray-200 pt-2 mt-2">
+        <span>TOTAL</span><span id="sco-total">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Points preview -->
+    <div id="points-preview" class="bg-pink-50 rounded-xl px-4 py-3 mb-3 flex items-center justify-between" style="display:none;">
+      <span class="text-gray-700 font-medium">Points you'll earn</span>
+      <span id="points-preview-value" class="text-xl font-bold" style="color:#EB1256;">+0</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-auto space-y-3">
+      <button id="btn-pay-now" onclick="goToStep(4)" disabled class="w-full py-5 rounded-2xl text-white text-2xl font-bold shadow-lg transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed" style="background: #16a34a; min-height: 80px;">
+        PAY NOW — $0.00
+      </button>
+      <button onclick="startOver()" class="w-full py-3 text-gray-500 text-base font-medium min-h-[48px]">
+        ← Start Over
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- STEP 4: PAYMENT (SIMULATED)                        -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="step-4" class="step">
+  <div class="flex-1 flex flex-col items-center justify-center px-8" style="background: linear-gradient(180deg, #fff 0%, #f0fdf4 100%);">
+    <div id="payment-processing" class="text-center">
+      <div class="mb-8">
+        <svg class="w-24 h-24 mx-auto animate-spin text-gray-300" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+      <h2 class="text-3xl font-bold text-gray-900 mb-2">Processing payment...</h2>
+      <p class="text-lg text-gray-500">Please wait</p>
+    </div>
+    <div id="payment-error" class="text-center" style="display:none;">
+      <div class="text-6xl mb-6">⚠️</div>
+      <h2 class="text-3xl font-bold text-gray-900 mb-2">Payment failed</h2>
+      <p id="payment-error-msg" class="text-lg text-gray-500 mb-8"></p>
+      <div class="space-y-3 w-full max-w-sm">
+        <button onclick="retryPayment()" class="w-full py-4 rounded-2xl text-white text-xl font-bold active:scale-95 transition" style="background:#EB1256;">Try Again</button>
+        <button onclick="goToStep(3)" class="w-full py-3 text-gray-500 text-lg font-medium underline">Back to Cart</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- STEP 5: RECEIPT / THANK YOU                        -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="step-5" class="step">
+  <div class="flex-1 flex flex-col items-center justify-center px-6 py-8 overflow-y-auto" style="background: linear-gradient(180deg, #fff 0%, #f0fdf4 100%);">
+    <!-- Checkmark -->
+    <div class="mb-6 check-circle">
+      <svg class="w-28 h-28" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="45" fill="#16a34a" opacity="0.15"/>
+        <circle cx="50" cy="50" r="45" fill="none" stroke="#16a34a" stroke-width="3"/>
+        <path class="check-mark" d="M30 52 L44 66 L70 36" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h2 class="text-3xl font-bold text-gray-900 mb-2 text-center">Thank you for shopping at Daiso!</h2>
+
+    <!-- Points earned (member) -->
+    <div id="receipt-points" class="my-6 text-center" style="display:none;">
+      <p class="text-5xl font-black mb-2 count-roll" style="color:#EB1256;" id="receipt-points-value"></p>
+      <p id="receipt-balance-text" class="text-lg text-gray-600"></p>
+    </div>
+
+    <!-- Tier upgrade -->
+    <div id="receipt-tier-upgrade" class="w-full max-w-md rounded-2xl p-5 text-center mb-4" style="display:none; background: linear-gradient(135deg, #FFD700, #c8a900);">
+      <p class="text-2xl font-bold text-gray-900">🎉 Congratulations!</p>
+      <p id="receipt-tier-text" class="text-lg text-gray-800"></p>
+    </div>
+
+    <!-- Non-member CTA -->
+    <div id="receipt-join-cta" class="w-full max-w-md bg-pink-50 rounded-2xl p-6 text-center mb-4" style="display:none;">
+      <p class="text-xl font-bold text-gray-900 mb-2">Join Daiso Rewards</p>
+      <p class="text-gray-600 mb-4">Earn points on every visit!</p>
+      <div class="bg-white rounded-xl p-4 inline-block">
+        <p class="text-sm text-gray-500">Scan to join or visit</p>
+        <p class="text-lg font-bold" style="color:#EB1256;">rewards.daiso.com</p>
+      </div>
+    </div>
+
+    <!-- Receipt summary -->
+    <div id="receipt-summary" class="w-full max-w-md bg-white rounded-2xl shadow-md p-5 mb-6">
+      <h3 class="font-bold text-gray-900 mb-3 text-lg">Receipt</h3>
+      <div id="receipt-items-list" class="space-y-1 mb-3 text-sm text-gray-700 border-b border-gray-200 pb-3">
+        <!-- items -->
+      </div>
+      <div class="space-y-1 text-sm">
+        <div class="flex justify-between text-gray-500"><span>Subtotal</span><span id="receipt-subtotal"></span></div>
+        <div class="flex justify-between text-gray-500"><span>Tax</span><span id="receipt-tax"></span></div>
+        <div id="receipt-discount-row" class="flex justify-between text-green-600" style="display:none;"><span>Discount</span><span id="receipt-discount"></span></div>
+        <div class="flex justify-between font-bold text-lg text-gray-900 border-t border-gray-200 pt-2 mt-2"><span>Total</span><span id="receipt-total"></span></div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400 space-y-0.5">
+        <p id="receipt-datetime"></p>
+        <p id="receipt-store"></p>
+        <p id="receipt-register"></p>
+        <p id="receipt-txn-id"></p>
+      </div>
+    </div>
+
+    <!-- Countdown + done -->
+    <div class="text-center">
+      <p class="text-gray-400 mb-3">Returning to start in <span id="countdown-value" class="font-bold">10</span>s</p>
+      <button onclick="goToStep(1)" class="px-12 py-4 rounded-2xl text-white text-xl font-bold active:scale-95 transition min-h-[60px]" style="background:#EB1256;">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ENROLLMENT MODAL (overlay)                         -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="enroll-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-40" style="display:none;">
+  <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-6 slide-in-up">
+    <h3 class="text-2xl font-bold mb-4">Quick Enrollment</h3>
+    <div class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-sm text-gray-500 font-medium">First Name</label>
+          <input id="modal-enroll-first" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-lg focus:border-pink-500 outline-none">
+        </div>
+        <div>
+          <label class="text-sm text-gray-500 font-medium">Last Name</label>
+          <input id="modal-enroll-last" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-lg focus:border-pink-500 outline-none">
+        </div>
+      </div>
+      <div>
+        <label class="text-sm text-gray-500 font-medium">Email</label>
+        <input id="modal-enroll-email" type="email" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-lg focus:border-pink-500 outline-none">
+      </div>
+      <div>
+        <label class="text-sm text-gray-500 font-medium">Phone</label>
+        <input id="modal-enroll-phone" type="tel" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-lg focus:border-pink-500 outline-none">
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button onclick="hideEnrollModal()" class="px-5 py-3 bg-gray-200 text-gray-700 rounded-xl text-lg font-semibold">Cancel</button>
+      <button onclick="enrollFromModal()" class="flex-1 py-3 text-white rounded-xl text-lg font-bold" style="background:#EB1256;">Enroll</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIGURATION
+// ══════════════════════════════════════════════════════
+const params = new URLSearchParams(location.search);
+const CONFIG = {
+  memberService: params.get('api') || 'https://loyalty-dev-member-service.azurewebsites.net',
+  loyaltyEngine: params.get('engine') || 'https://loyalty-dev-loyalty-engine.azurewebsites.net',
+  offerService: params.get('offers') || 'https://loyalty-dev-offer-service.azurewebsites.net',
+  adminApi: params.get('admin') || 'https://loyalty-dev-admin-api.azurewebsites.net',
+  tenantId: params.get('tenant') || '273684b8-4d97-48b0-afb8-cfe831555bc8',
+  storeId: params.get('store') || 'DAISO-042',
+  storeName: params.get('storeName') || 'Daiso Carrollton',
+  registerId: params.get('register') || 'SCO-01',
+};
+
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'x-tenant-id': CONFIG.tenantId,
+  'x-user-id': 'self-checkout-' + CONFIG.registerId,
+  'x-user-role': 'owner',
+};
+
+// ══════════════════════════════════════════════════════
+// PRODUCT CATALOG
+// ══════════════════════════════════════════════════════
+const PRODUCTS = [
+  { name: 'Ceramic Mug', price: 1.50, sku: 'MUG-001', icon: '🍵' },
+  { name: 'Stationery Set', price: 1.50, sku: 'STA-001', icon: '✏️' },
+  { name: 'Bento Box', price: 3.00, sku: 'BEN-001', icon: '🍱' },
+  { name: 'Face Mask Pack', price: 1.50, sku: 'FAC-001', icon: '🧴', category: 'beauty' },
+  { name: 'Storage Bins', price: 1.50, sku: 'STO-001', icon: '📦' },
+  { name: 'Kitchen Towels', price: 1.50, sku: 'KIT-001', icon: '🧻' },
+  { name: 'Snack Box', price: 3.00, sku: 'SNK-001', icon: '🍬', category: 'food' },
+  { name: 'Phone Case', price: 1.50, sku: 'PHO-001', icon: '📱' },
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let currentStep = 1;
+let cart = [];
+let currentMember = null;
+let currentOffers = [];
+let appliedOffer = null;
+let appliedDiscount = 0;
+let lastTransactionId = null;
+let phoneDigits = '';
+let countdownInterval = null;
+let inactivityTimer = null;
+let dimTimer = null;
+
+// ══════════════════════════════════════════════════════
+// UTILITY
+// ══════════════════════════════════════════════════════
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+async function apiFetch(baseUrl, path, options = {}) {
+  const url = `${baseUrl}${path}`;
+  const method = options.method || 'GET';
+  try {
+    const fetchOpts = { method, headers: { ...HEADERS, ...options.extraHeaders } };
+    if (options.body) fetchOpts.body = JSON.stringify(options.body);
+    const res = await fetch(url, fetchOpts);
+    const data = res.status !== 204 ? await res.json().catch(() => null) : null;
+    if (!res.ok) throw { status: res.status, data };
+    return data;
+  } catch (err) {
+    if (err.status) throw err;
+    throw err;
+  }
+}
+
+function toast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600', warn: 'bg-yellow-500 text-gray-900' };
+  const div = document.createElement('div');
+  div.className = `px-6 py-3 rounded-xl text-white text-lg font-semibold shadow-xl slide-in-up ${colors[type] || colors.info}`;
+  div.textContent = message;
+  container.appendChild(div);
+  setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.3s'; setTimeout(() => div.remove(), 300); }, 3000);
+}
+
+function normalizePhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('1') && digits.length === 11) return '+' + digits;
+  if (digits.length === 10) return '+1' + digits;
+  return '+' + digits;
+}
+
+function formatPhoneDisplay(digits) {
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6,10)}`;
+}
+
+// ══════════════════════════════════════════════════════
+// INACTIVITY TIMER
+// ══════════════════════════════════════════════════════
+function resetInactivity() {
+  // Hide dim overlay if shown
+  document.getElementById('dim-overlay').classList.remove('active');
+
+  clearTimeout(dimTimer);
+  clearTimeout(inactivityTimer);
+
+  if (currentStep === 1) return; // Don't set timer on welcome screen
+
+  dimTimer = setTimeout(() => {
+    document.getElementById('dim-overlay').classList.add('active');
+  }, 30000); // dim after 30s
+
+  inactivityTimer = setTimeout(() => {
+    goToStep(1);
+  }, 60000); // reset after 60s
+}
+
+function wakeUp() {
+  document.getElementById('dim-overlay').classList.remove('active');
+  resetInactivity();
+}
+
+document.addEventListener('touchstart', resetInactivity);
+document.addEventListener('click', resetInactivity);
+document.addEventListener('keydown', resetInactivity);
+
+// ══════════════════════════════════════════════════════
+// STEP NAVIGATION
+// ══════════════════════════════════════════════════════
+function goToStep(step) {
+  // Clear countdown if leaving step 5
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+
+  // Hide all steps
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+
+  // Reset state on step 1
+  if (step === 1) {
+    resetAllState();
+  }
+
+  // Show target step
+  const target = document.getElementById(`step-${step}`);
+  if (target) target.classList.add('active');
+  currentStep = step;
+
+  // Step-specific init
+  if (step === 2) initStep2();
+  if (step === 3) renderStep3();
+  if (step === 4) processPayment();
+  if (step === 5) initStep5();
+
+  resetInactivity();
+}
+
+function resetAllState() {
+  cart = [];
+  currentMember = null;
+  currentOffers = [];
+  appliedOffer = null;
+  appliedDiscount = 0;
+  lastTransactionId = null;
+  phoneDigits = '';
+  clearTimeout(dimTimer);
+  clearTimeout(inactivityTimer);
+  document.getElementById('dim-overlay').classList.remove('active');
+}
+
+// ══════════════════════════════════════════════════════
+// STEP 2: IDENTIFY MEMBER
+// ══════════════════════════════════════════════════════
+function initStep2() {
+  backToIdentifyOptions();
+  phoneDigits = '';
+  document.getElementById('phone-display').textContent = '\u00a0';
+  document.getElementById('phone-error').style.display = 'none';
+  document.getElementById('qr-member-id').value = '';
+}
+
+function showSubView(viewId) {
+  // Hide all sub-views in step 2
+  ['identify-main', 'qr-scanner-view', 'phone-keypad-view', 'enroll-view', 'member-welcome', 'not-found-view'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; }
+  });
+  const target = document.getElementById(viewId);
+  if (target) { target.style.display = 'flex'; }
+}
+
+function backToIdentifyOptions() { showSubView('identify-main'); }
+
+function showQrScanner() { showSubView('qr-scanner-view'); }
+function hideQrScanner() { showSubView('identify-main'); }
+
+function showPhoneKeypad() {
+  showSubView('phone-keypad-view');
+  phoneDigits = '';
+  renderPhoneDisplay();
+  renderKeypad();
+}
+function hidePhoneKeypad() { showSubView('identify-main'); }
+
+function showEnrollView() { showSubView('enroll-view'); }
+function hideEnrollView() { showSubView('identify-main'); }
+
+function skipIdentification() {
+  currentMember = null;
+  goToStep(3);
+}
+
+// Phone keypad
+function renderKeypad() {
+  const grid = document.getElementById('keypad-grid');
+  const keys = ['1','2','3','4','5','6','7','8','9','⌫','0','✓'];
+  grid.innerHTML = keys.map(key => {
+    if (key === '⌫') {
+      return `<button onclick="keypadPress('backspace')" class="bg-gray-200 rounded-2xl text-2xl font-bold text-gray-700 active:bg-gray-300 transition flex items-center justify-center" style="min-height:80px;">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l7-7h11a1 1 0 011 1v12a1 1 0 01-1 1H10l-7-7z"/></svg>
+      </button>`;
+    }
+    if (key === '✓') {
+      return `<button id="keypad-submit" onclick="keypadPress('submit')" class="rounded-2xl text-2xl font-bold text-white active:opacity-80 transition flex items-center justify-center disabled:opacity-30" style="min-height:80px; background:#EB1256;" disabled>
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+      </button>`;
+    }
+    return `<button onclick="keypadPress('${key}')" class="bg-white border-2 border-gray-200 rounded-2xl text-3xl font-bold text-gray-900 active:bg-gray-100 active:border-gray-300 transition flex items-center justify-center" style="min-height:80px;">${key}</button>`;
+  }).join('');
+}
+
+function keypadPress(key) {
+  if (key === 'backspace') {
+    phoneDigits = phoneDigits.slice(0, -1);
+  } else if (key === 'submit') {
+    if (phoneDigits.length === 10) lookupByPhone();
+    return;
+  } else {
+    if (phoneDigits.length < 10) phoneDigits += key;
+  }
+  renderPhoneDisplay();
+}
+
+function renderPhoneDisplay() {
+  document.getElementById('phone-display').textContent = formatPhoneDisplay(phoneDigits) || '\u00a0';
+  const submitBtn = document.getElementById('keypad-submit');
+  if (submitBtn) submitBtn.disabled = phoneDigits.length !== 10;
+}
+
+// Member lookup
+async function lookupByPhone() {
+  const phone = normalizePhone(phoneDigits);
+  document.getElementById('phone-error').style.display = 'none';
+  try {
+    const data = await apiFetch(CONFIG.memberService, `/v1/members?phone=${encodeURIComponent(phone)}`);
+    const member = Array.isArray(data) ? data[0] : (data.data ? data.data[0] : data);
+    if (!member || (Array.isArray(data) && data.length === 0) || (data.data && data.data.length === 0)) {
+      showSubView('not-found-view');
+      return;
+    }
+    await onMemberFound(member);
+  } catch (err) {
+    document.getElementById('phone-error').textContent = 'Lookup failed. Please try again.';
+    document.getElementById('phone-error').style.display = 'block';
+  }
+}
+
+async function lookupFromQr() {
+  const input = document.getElementById('qr-member-id').value.trim();
+  if (!input) return;
+
+  try {
+    let member;
+    // Try as member ID first (UUID-like)
+    if (input.includes('-') && input.length > 20) {
+      const data = await apiFetch(CONFIG.memberService, `/v1/members/${input}`);
+      member = data;
+    } else {
+      // Try as phone
+      const phone = normalizePhone(input);
+      const data = await apiFetch(CONFIG.memberService, `/v1/members?phone=${encodeURIComponent(phone)}`);
+      member = Array.isArray(data) ? data[0] : (data.data ? data.data[0] : data);
+    }
+    if (!member || (Array.isArray(member) && member.length === 0)) {
+      showSubView('not-found-view');
+      return;
+    }
+    await onMemberFound(member);
+  } catch (err) {
+    showSubView('not-found-view');
+  }
+}
+
+async function onMemberFound(member) {
+  currentMember = member;
+
+  // Fetch balance in background
+  fetchBalance(member.id);
+
+  // Show welcome flash
+  showSubView('member-welcome');
+  const tier = (member.tier || 'bronze').toLowerCase();
+  document.getElementById('welcome-name').textContent = `Welcome back, ${member.firstName}!`;
+  const tierBadge = document.getElementById('welcome-tier');
+  tierBadge.textContent = tier.charAt(0).toUpperCase() + tier.slice(1) + ' ' + (tier === 'gold' ? '⭐' : tier === 'platinum' ? '💎' : tier === 'silver' ? '🥈' : '🥉');
+  tierBadge.className = `inline-block px-4 py-2 rounded-full text-sm font-bold uppercase tier-${tier}`;
+
+  // Fetch offers in background
+  fetchOffers(member.id);
+
+  // Auto-advance after 1.5s
+  setTimeout(() => goToStep(3), 1500);
+}
+
+async function fetchBalance(memberId) {
+  try {
+    const data = await apiFetch(CONFIG.loyaltyEngine, `/v1/members/${memberId}/balance`);
+    if (data && data.balance !== undefined && currentMember) {
+      currentMember.pointsBalance = data.balance;
+    }
+  } catch (err) { /* fallback to member data */ }
+}
+
+async function fetchOffers(memberId) {
+  try {
+    const data = await apiFetch(CONFIG.offerService, `/v1/members/${memberId}/offers`);
+    currentOffers = Array.isArray(data) ? data : (data.items || data.data || []);
+  } catch (err) {
+    currentOffers = [];
+  }
+}
+
+// Enrollment
+async function enrollMember() {
+  const first = document.getElementById('enroll-first').value.trim();
+  const last = document.getElementById('enroll-last').value.trim();
+  const email = document.getElementById('enroll-email').value.trim();
+  const rawPhone = document.getElementById('enroll-phone').value.trim();
+
+  if (!first || !last || !rawPhone) {
+    toast('Please fill in required fields', 'warn');
+    return;
+  }
+  const phoneDigits = rawPhone.replace(/\D/g, '');
+  if (phoneDigits.length < 10) { toast('Enter a valid 10-digit phone number', 'warn'); return; }
+  const phone = normalizePhone(rawPhone);
+
+  try {
+    const data = await apiFetch(CONFIG.memberService, '/v1/members', {
+      method: 'POST',
+      body: {
+        firstName: first,
+        lastName: last,
+        email: email || undefined,
+        phone: normalizePhone(phone),
+        enrollmentSource: 'self-checkout',
+        enrollmentStore: CONFIG.storeId,
+      },
+    });
+    toast('Welcome to Daiso Rewards!', 'success');
+    await onMemberFound(data);
+  } catch (err) {
+    toast('Enrollment failed. Please try again.', 'error');
+  }
+}
+
+async function enrollFromModal() {
+  const first = document.getElementById('modal-enroll-first').value.trim();
+  const last = document.getElementById('modal-enroll-last').value.trim();
+  const email = document.getElementById('modal-enroll-email').value.trim();
+  const phone = document.getElementById('modal-enroll-phone').value.trim();
+
+  if (!first || !last || !phone) {
+    toast('Please fill in required fields', 'warn');
+    return;
+  }
+
+  try {
+    const data = await apiFetch(CONFIG.memberService, '/v1/members', {
+      method: 'POST',
+      body: {
+        firstName: first,
+        lastName: last,
+        email: email || undefined,
+        phone: normalizePhone(phone),
+        enrollmentSource: 'self-checkout',
+        enrollmentStore: CONFIG.storeId,
+      },
+    });
+    hideEnrollModal();
+    toast('Welcome to Daiso Rewards!', 'success');
+    currentMember = data;
+    renderStep3();
+  } catch (err) {
+    toast('Enrollment failed', 'error');
+  }
+}
+
+function showEnrollModal() { document.getElementById('enroll-modal').style.display = 'flex'; }
+function hideEnrollModal() { document.getElementById('enroll-modal').style.display = 'none'; }
+
+// ══════════════════════════════════════════════════════
+// STEP 3: SCAN / SHOP
+// ══════════════════════════════════════════════════════
+function renderStep3() {
+  renderProductGrid();
+  renderCartList();
+  updateTotals();
+  renderOfferCard();
+  renderMemberBadge();
+}
+
+function renderProductGrid() {
+  const grid = document.getElementById('product-grid-sco');
+  grid.innerHTML = PRODUCTS.map((p, i) => `
+    <button onclick="addToCart(${i})" class="bg-white border-2 border-gray-200 rounded-xl p-3 text-center active:scale-95 active:border-pink-300 transition flex flex-col items-center" style="min-height:90px;">
+      <span class="text-3xl mb-1">${p.icon}</span>
+      <span class="text-xs font-semibold text-gray-800 leading-tight">${p.name}</span>
+      <span class="text-sm font-bold mt-1" style="color:#EB1256;">$${p.price.toFixed(2)}</span>
+    </button>
+  `).join('');
+}
+
+function addToCart(idx) {
+  const product = PRODUCTS[idx];
+  const existing = cart.find(item => item.sku === product.sku);
+  if (existing) { existing.qty++; } else { cart.push({ ...product, qty: 1 }); }
+  renderCartList();
+  updateTotals();
+  renderOfferCard();
+  toast(`Added ${product.name}`, 'info');
+}
+
+function updateQty(sku, delta) {
+  const item = cart.find(i => i.sku === sku);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.sku !== sku);
+  renderCartList();
+  updateTotals();
+  renderOfferCard();
+}
+
+function removeItem(sku) {
+  cart = cart.filter(i => i.sku !== sku);
+  if (appliedOffer) { appliedOffer = null; appliedDiscount = 0; }
+  renderCartList();
+  updateTotals();
+  renderOfferCard();
+}
+
+function renderCartList() {
+  const emptyState = document.getElementById('cart-empty-state');
+  const itemsList = document.getElementById('cart-items-list');
+  const badge = document.getElementById('item-count-badge');
+  const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
+
+  if (cart.length === 0) {
+    emptyState.style.display = 'flex';
+    itemsList.style.display = 'none';
+    badge.style.display = 'none';
+  } else {
+    emptyState.style.display = 'none';
+    itemsList.style.display = 'block';
+    badge.style.display = 'inline-block';
+    badge.textContent = totalItems;
+
+    itemsList.innerHTML = cart.map(item => `
+      <div class="flex items-center py-3 border-b border-gray-100 last:border-0">
+        <span class="text-2xl mr-3 flex-shrink-0">${item.icon}</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-gray-900 text-base truncate">${item.name}</p>
+          <p class="text-sm text-gray-500">$${item.price.toFixed(2)} each</p>
+        </div>
+        <div class="flex items-center gap-1 mx-3 flex-shrink-0">
+          <button onclick="updateQty('${item.sku}', -1)" class="w-10 h-10 rounded-full bg-gray-100 text-gray-700 text-xl font-bold flex items-center justify-center active:bg-gray-200 transition">&minus;</button>
+          <span class="w-8 text-center font-bold text-lg">${item.qty}</span>
+          <button onclick="updateQty('${item.sku}', 1)" class="w-10 h-10 rounded-full bg-gray-100 text-gray-700 text-xl font-bold flex items-center justify-center active:bg-gray-200 transition">+</button>
+        </div>
+        <span class="font-bold text-gray-900 text-lg w-16 text-right flex-shrink-0">$${(item.price * item.qty).toFixed(2)}</span>
+        <button onclick="removeItem('${item.sku}')" class="ml-2 w-8 h-8 rounded-full text-red-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition text-xl flex-shrink-0">&times;</button>
+      </div>
+    `).join('');
+  }
+}
+
+function getSubtotal() { return cart.reduce((sum, item) => sum + item.price * item.qty, 0); }
+
+function updateTotals() {
+  const subtotal = getSubtotal();
+  const tax = subtotal * 0.085;
+  const total = Math.max(0, subtotal + tax - appliedDiscount);
+
+  document.getElementById('sco-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('sco-tax').textContent = `$${tax.toFixed(2)}`;
+  document.getElementById('sco-total').textContent = `$${total.toFixed(2)}`;
+
+  if (appliedDiscount > 0) {
+    document.getElementById('sco-discount-row').style.display = 'flex';
+    document.getElementById('sco-discount').textContent = `-$${appliedDiscount.toFixed(2)}`;
+  } else {
+    document.getElementById('sco-discount-row').style.display = 'none';
+  }
+
+  // Pay button
+  const payBtn = document.getElementById('btn-pay-now');
+  payBtn.disabled = cart.length === 0;
+  payBtn.textContent = `PAY NOW — $${total.toFixed(2)}`;
+
+  // Points preview
+  const pointsPreview = document.getElementById('points-preview');
+  if (currentMember && cart.length > 0) {
+    pointsPreview.style.display = 'flex';
+    // Estimate: 1 point per dollar spent (round down)
+    const estimatedPoints = Math.floor(subtotal);
+    document.getElementById('points-preview-value').textContent = `+${estimatedPoints}`;
+  } else {
+    pointsPreview.style.display = 'none';
+  }
+}
+
+function renderMemberBadge() {
+  const badge = document.getElementById('member-badge-header');
+  if (currentMember) {
+    badge.style.display = 'flex';
+    document.getElementById('header-member-name').textContent = currentMember.firstName;
+    const tier = (currentMember.tier || 'bronze').toLowerCase();
+    const tierBadge = document.getElementById('header-tier-badge');
+    tierBadge.textContent = tier;
+    tierBadge.className = `px-2 py-0.5 rounded-full text-xs font-bold uppercase tier-${tier}`;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderOfferCard() {
+  const area = document.getElementById('offer-card-area');
+  const content = document.getElementById('offer-card-content');
+
+  if (!currentMember || currentOffers.length === 0 || cart.length === 0) {
+    area.style.display = 'none';
+    return;
+  }
+
+  // Show first eligible non-applied offer
+  const offer = appliedOffer
+    ? currentOffers.find(o => (o.offerId || o.id) === appliedOffer.id)
+    : currentOffers.find(o => o.eligibility?.eligible !== false);
+
+  if (!offer) { area.style.display = 'none'; return; }
+
+  const id = offer.offerId || offer.id;
+  const name = offer.name || offer.title || 'Special Offer';
+  const type = offer.type || 'fixed';
+  const value = offer.value || 0;
+  const valueDisplay = type === 'percent' ? `${value}% off` : `$${value.toFixed(2)} off`;
+
+  area.style.display = 'block';
+
+  if (appliedOffer && appliedOffer.id === id) {
+    content.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold text-green-700">Offer Applied!</p>
+          <p class="text-lg font-bold text-gray-900">${name} — ${valueDisplay}</p>
+        </div>
+        <span class="text-3xl">✅</span>
+      </div>
+    `;
+    content.style.borderColor = '#16a34a';
+    content.style.background = '#f0fdf4';
+  } else {
+    content.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold" style="color:#EB1256;">Available Offer</p>
+          <p class="text-lg font-bold text-gray-900">${name} — ${valueDisplay}</p>
+        </div>
+        <button onclick="applyOffer('${id}', '${name.replace(/'/g, "\\'")}', '${type}', ${value})" class="px-5 py-3 rounded-xl text-white font-bold text-base active:scale-95 transition" style="background:#EB1256;">
+          TAP TO APPLY
+        </button>
+      </div>
+    `;
+    content.style.borderColor = '#EB1256';
+    content.style.background = '#fef2f5';
+  }
+}
+
+function applyOffer(id, name, type, value) {
+  if (cart.length === 0) { toast('Add items first', 'warn'); return; }
+
+  const subtotal = getSubtotal();
+  let discount = 0;
+  if (type === 'percent') {
+    discount = Math.round(subtotal * (value / 100) * 100) / 100;
+  } else if (type === 'bogo') {
+    const cheapest = Math.min(...cart.map(c => c.price));
+    discount = cheapest;
+  } else {
+    discount = value;
+  }
+
+  // Find the offer object to capture any assigned code
+  const offerObj = currentOffers.find(o => (o.offerId || o.id) === id);
+  appliedOffer = { id, name, type, value, code: offerObj?.code || null };
+  appliedDiscount = discount;
+
+  updateTotals();
+  renderOfferCard();
+  toast(`${name} applied! Saving $${discount.toFixed(2)}`, 'success');
+}
+
+function startOver() {
+  goToStep(1);
+}
+
+// ══════════════════════════════════════════════════════
+// STEP 4: PAYMENT
+// ══════════════════════════════════════════════════════
+async function processPayment() {
+  document.getElementById('payment-processing').style.display = 'block';
+  document.getElementById('payment-error').style.display = 'none';
+
+  // Simulate 2s processing delay
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
+  const subtotal = getSubtotal();
+  const tax = subtotal * 0.085;
+  const total = Math.max(0, subtotal + tax - appliedDiscount);
+  const idempotencyKey = uuidv4();
+  const previousTier = currentMember ? (currentMember.tier || 'bronze').toLowerCase() : null;
+
+  const payload = {
+    memberId: currentMember?.id,
+    channel: 'pos',
+    amount: Math.round(total * 100),
+    currency: 'USD',
+    skuList: cart.map(item => ({
+      sku: item.sku,
+      name: item.name,
+      quantity: item.qty,
+      unitPrice: item.price,
+      ...(item.category ? { category: item.category } : {}),
+    })),
+    storeId: CONFIG.storeId,
+    storeName: CONFIG.storeName,
+    registerId: CONFIG.registerId,
+    sourceChannel: 'in-store',
+    sourceSystem: 'self-checkout',
+    orderRef: `SCO-${Date.now()}`,
+    metadata: { kiosk: true },
+  };
+
+  if (!currentMember) {
+    // No member — skip loyalty engine, go to receipt
+    lastTransactionId = `LOCAL-${Date.now()}`;
+    goToStep(5);
+    return;
+  }
+
+  try {
+    const data = await apiFetch(CONFIG.loyaltyEngine, '/v1/transactions', {
+      method: 'POST',
+      body: payload,
+      extraHeaders: { 'Idempotency-Key': idempotencyKey },
+    });
+
+    lastTransactionId = data.id || data.transactionId;
+    const pointsEarned = data.pointsEarned || data.points || 0;
+    const newBalance = data.newBalance || data.balance || (currentMember.pointsBalance || 0) + pointsEarned;
+    const newTier = data.tier || data.newTier || currentMember.tier;
+
+    currentMember.pointsBalance = newBalance;
+    currentMember._pointsEarned = pointsEarned;
+    currentMember._previousTier = previousTier;
+    currentMember._newTier = (newTier || 'bronze').toLowerCase();
+
+    if (newTier) currentMember.tier = newTier;
+
+    // Redeem offer if applied
+    if (appliedOffer) {
+      try {
+        const scoRedeemBody = {
+            memberId: currentMember.id,
+            offerId: appliedOffer.id,
+            channel: 'pos',
+          };
+        if (appliedOffer.code) scoRedeemBody.redemptionCode = appliedOffer.code;
+        await apiFetch(CONFIG.offerService, '/v1/redemptions', {
+          method: 'POST',
+          body: scoRedeemBody,
+          extraHeaders: { 'Idempotency-Key': `redeem-${appliedOffer.id}-${Date.now()}` },
+        });
+      } catch (err) { /* non-critical */ }
+    }
+
+    goToStep(5);
+  } catch (err) {
+    document.getElementById('payment-processing').style.display = 'none';
+    document.getElementById('payment-error').style.display = 'block';
+    document.getElementById('payment-error-msg').textContent = err.data?.message || 'Something went wrong. Please try again.';
+  }
+}
+
+function retryPayment() {
+  goToStep(4);
+}
+
+// ══════════════════════════════════════════════════════
+// STEP 5: RECEIPT / THANK YOU
+// ══════════════════════════════════════════════════════
+function initStep5() {
+  const subtotal = getSubtotal();
+  const tax = subtotal * 0.085;
+  const total = Math.max(0, subtotal + tax - appliedDiscount);
+
+  // Points section
+  const pointsSection = document.getElementById('receipt-points');
+  const tierUpgrade = document.getElementById('receipt-tier-upgrade');
+  const joinCta = document.getElementById('receipt-join-cta');
+
+  if (currentMember) {
+    const pointsEarned = currentMember._pointsEarned || Math.floor(subtotal);
+    const balance = currentMember.pointsBalance || 0;
+    const tier = (currentMember.tier || 'bronze').toLowerCase();
+
+    pointsSection.style.display = 'block';
+    joinCta.style.display = 'none';
+
+    // Animate points counting up
+    animatePointsCounter(pointsEarned);
+    document.getElementById('receipt-balance-text').textContent =
+      `Your balance: ${balance.toLocaleString()} points (${tier.charAt(0).toUpperCase() + tier.slice(1)} tier)`;
+
+    // Check tier upgrade
+    const prevTier = currentMember._previousTier;
+    const newTier = currentMember._newTier;
+    if (prevTier && newTier && prevTier !== newTier) {
+      tierUpgrade.style.display = 'block';
+      document.getElementById('receipt-tier-text').textContent =
+        `You've reached ${newTier.charAt(0).toUpperCase() + newTier.slice(1)} tier!`;
+      spawnConfetti();
+    } else {
+      tierUpgrade.style.display = 'none';
+    }
+  } else {
+    pointsSection.style.display = 'none';
+    tierUpgrade.style.display = 'none';
+    joinCta.style.display = 'block';
+  }
+
+  // Receipt items
+  const itemsList = document.getElementById('receipt-items-list');
+  itemsList.innerHTML = cart.map(item =>
+    `<div class="flex justify-between"><span>${item.icon} ${item.name} x${item.qty}</span><span>$${(item.price * item.qty).toFixed(2)}</span></div>`
+  ).join('');
+
+  document.getElementById('receipt-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('receipt-tax').textContent = `$${tax.toFixed(2)}`;
+  document.getElementById('receipt-total').textContent = `$${total.toFixed(2)}`;
+
+  if (appliedDiscount > 0) {
+    document.getElementById('receipt-discount-row').style.display = 'flex';
+    document.getElementById('receipt-discount').textContent = `-$${appliedDiscount.toFixed(2)}`;
+  } else {
+    document.getElementById('receipt-discount-row').style.display = 'none';
+  }
+
+  const now = new Date();
+  document.getElementById('receipt-datetime').textContent = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  document.getElementById('receipt-store').textContent = `Store: ${CONFIG.storeName} (${CONFIG.storeId})`;
+  document.getElementById('receipt-register').textContent = `Register: ${CONFIG.registerId}`;
+  document.getElementById('receipt-txn-id').textContent = `Txn: ${lastTransactionId || 'N/A'}`;
+
+  // Countdown
+  let countdown = 10;
+  document.getElementById('countdown-value').textContent = countdown;
+  countdownInterval = setInterval(() => {
+    countdown--;
+    document.getElementById('countdown-value').textContent = countdown;
+    if (countdown <= 0) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+      goToStep(1);
+    }
+  }, 1000);
+}
+
+function animatePointsCounter(target) {
+  const el = document.getElementById('receipt-points-value');
+  let current = 0;
+  const duration = 1000;
+  const steps = 30;
+  const increment = target / steps;
+  const interval = duration / steps;
+
+  el.textContent = `⭐ +0 points`;
+
+  const timer = setInterval(() => {
+    current += increment;
+    if (current >= target) {
+      current = target;
+      clearInterval(timer);
+    }
+    el.textContent = `⭐ You earned ${Math.round(current)} points!`;
+  }, interval);
+}
+
+function spawnConfetti() {
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = '';
+  const colors = ['#EB1256', '#FFD700', '#16a34a', '#3b82f6', '#a855f7', '#f97316'];
+  for (let i = 0; i < 50; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = Math.random() * 1.5 + 's';
+    piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.width = (8 + Math.random() * 8) + 'px';
+    piece.style.height = (8 + Math.random() * 8) + 'px';
+    container.appendChild(piece);
+  }
+  setTimeout(() => { container.innerHTML = ''; }, 4000);
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+goToStep(1);
+</script>
+</body>
+</html>

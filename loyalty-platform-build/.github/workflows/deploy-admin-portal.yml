@@ -1,0 +1,82 @@
+name: Deploy Admin Portal
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/admin-portal/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/admin-portal/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  APP_LOCATION: 'apps/admin-portal'
+  OUTPUT_LOCATION: 'dist'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: apps/admin-portal
+        run: npm ci
+
+      - name: Build
+        working-directory: apps/admin-portal
+        env:
+          VITE_API_URL: '/v1/admin'
+          VITE_ANALYTICS_URL: '/v1/analytics'
+          VITE_TENANT_ID: ''
+          VITE_AUTH_MODE: 'b2c'
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-portal-dist
+          path: apps/admin-portal/dist
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: admin-portal-dist
+          path: apps/admin-portal/dist
+
+      # Placeholder: requires Azure Static Web Apps resource
+      # Uncomment and configure once SWA is provisioned:
+      #
+      # - name: Deploy to Azure Static Web Apps
+      #   uses: Azure/static-web-apps-deploy@v1
+      #   with:
+      #     azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ADMIN_PORTAL }}
+      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+      #     action: 'upload'
+      #     app_location: 'apps/admin-portal'
+      #     output_location: 'dist'
+      #     skip_app_build: true
+
+      - name: Deploy placeholder
+        run: |
+          echo "Build successful. SWA deployment requires provisioning."
+          echo "Run: az staticwebapp create -n loyalty-admin-portal -g loyalty-platform-dev --sku Standard"
+          echo "Then add the deployment token as AZURE_STATIC_WEB_APPS_API_TOKEN_ADMIN_PORTAL secret."

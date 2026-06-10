@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "dev" },
+    "location": { "value": "eastus" },
+    "sqlLocation": { "value": "westus2" },
+    "projectPrefix": { "value": "loyalty" },
+    "apimPublisherEmail": { "value": "david.h@snt.example" },
+    "apimPublisherName": { "value": "SNT Loyalty Platform" },
+    "sqlAdminLogin": { "value": "loyaltyadmin" },
+    "aadAdminLogin": { "value": "david.h@snt.example" }
+  }
+}

@@ -1,0 +1,16 @@
+// SLO: Member lookup p99 latency (target < 100ms)
+// Run in App Insights > Logs
+// Measures the 99th percentile response time for member lookup (GET /v1/members?phone=)
+
+requests
+| where timestamp > ago(24h)
+| where name startswith "GET /v1/members"
+| where url contains "phone=" or url contains "email="
+| summarize
+    p50 = percentile(duration, 50),
+    p95 = percentile(duration, 95),
+    p99 = percentile(duration, 99),
+    count = count(),
+    successRate = countif(success == true) * 100.0 / count()
+    by bin(timestamp, 5m)
+| order by timestamp desc

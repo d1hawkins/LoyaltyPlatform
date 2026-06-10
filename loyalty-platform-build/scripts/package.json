@@ -1,0 +1,24 @@
+{
+  "name": "@loyalty/scripts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "provision": "tsx provision-tenant.ts",
+    "bootstrap-control-plane": "tsx bootstrap-control-plane.ts"
+  },
+  "dependencies": {
+    "@azure/identity": "4.4.1",
+    "@azure/keyvault-secrets": "4.8.0",
+    "@loyalty/shared-errors": "workspace:*",
+    "@loyalty/shared-logger": "workspace:*",
+    "bcryptjs": "2.4.3",
+    "mssql": "11.0.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "2.4.6",
+    "@types/mssql": "9.1.5",
+    "@types/node": "20.12.12",
+    "tsx": "4.19.2",
+    "typescript": "5.5.4"
+  }
+}

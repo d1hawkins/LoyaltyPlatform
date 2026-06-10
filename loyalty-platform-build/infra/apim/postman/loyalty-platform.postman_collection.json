@@ -1,0 +1,244 @@
+{
+  "info": {
+    "name": "Loyalty Platform (APIM)",
+    "description": "Member Service + Loyalty Engine via the Loyalty Platform APIM gateway. Every request pulls `{{apimBase}}`, `{{subscriptionKey}}`, and `{{tenantId}}` from the active environment. In dev, requests include `X-Skip-Auth: true` so no B2C token is required until A-06's soft blocker clears.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "memberId", "value": "" },
+    { "key": "transactionId", "value": "" }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "Ocp-Apim-Subscription-Key" },
+      { "key": "value", "value": "{{subscriptionKey}}" },
+      { "key": "in", "value": "header" }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Pull subscription key from the active environment; if absent, fall back to process env.",
+          "if (!pm.environment.get('subscriptionKey')) {",
+          "  const envKey = pm.variables.get('APIM_SUBSCRIPTION_KEY');",
+          "  if (envKey) pm.environment.set('subscriptionKey', envKey);",
+          "}",
+          "if (!pm.environment.get('correlationId')) {",
+          "  pm.environment.set('correlationId', 'pm-' + Math.random().toString(36).slice(2));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Member Service",
+      "item": [
+        {
+          "name": "Enroll member",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" },
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+15555551234\",\n  \"firstName\": \"Ada\",\n  \"lastName\": \"Lovelace\",\n  \"email\": \"ada@example.com\",\n  \"enrolledChannel\": \"pos\"\n}"
+            },
+            "url": { "raw": "{{apimBase}}/member/v1/members", "host": ["{{apimBase}}"], "path": ["member","v1","members"] }
+          }
+        },
+        {
+          "name": "Lookup by phone",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "url": {
+              "raw": "{{apimBase}}/member/v1/members?phone=%2B15555551234",
+              "host": ["{{apimBase}}"],
+              "path": ["member","v1","members"],
+              "query": [{ "key": "phone", "value": "+15555551234" }]
+            }
+          }
+        },
+        {
+          "name": "Lookup by email",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "url": {
+              "raw": "{{apimBase}}/member/v1/members?email=ada@example.com",
+              "host": ["{{apimBase}}"],
+              "path": ["member","v1","members"],
+              "query": [{ "key": "email", "value": "ada@example.com" }]
+            }
+          }
+        },
+        {
+          "name": "Get member by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "url": { "raw": "{{apimBase}}/member/v1/members/{{memberId}}", "host": ["{{apimBase}}"], "path": ["member","v1","members","{{memberId}}"] }
+          }
+        },
+        {
+          "name": "Patch member",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Augusta\"\n}" },
+            "url": { "raw": "{{apimBase}}/member/v1/members/{{memberId}}", "host": ["{{apimBase}}"], "path": ["member","v1","members","{{memberId}}"] }
+          }
+        },
+        {
+          "name": "Change status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"suspended\",\n  \"reason\": \"fraud review\"\n}" },
+            "url": { "raw": "{{apimBase}}/member/v1/members/{{memberId}}/status", "host": ["{{apimBase}}"], "path": ["member","v1","members","{{memberId}}","status"] }
+          }
+        },
+        {
+          "name": "GDPR export",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "url": { "raw": "{{apimBase}}/member/v1/members/{{memberId}}/export", "host": ["{{apimBase}}"], "path": ["member","v1","members","{{memberId}}","export"] }
+          }
+        },
+        {
+          "name": "GDPR soft-delete",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "url": { "raw": "{{apimBase}}/member/v1/members/{{memberId}}", "host": ["{{apimBase}}"], "path": ["member","v1","members","{{memberId}}"] }
+          }
+        },
+        {
+          "name": "Ledger page",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "url": {
+              "raw": "{{apimBase}}/member/v1/members/{{memberId}}/ledger?limit=50",
+              "host": ["{{apimBase}}"],
+              "path": ["member","v1","members","{{memberId}}","ledger"],
+              "query": [{ "key": "limit", "value": "50" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loyalty Engine",
+      "item": [
+        {
+          "name": "Create transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"channel\": \"pos\",\n  \"amount\": 2500,\n  \"currency\": \"USD\",\n  \"skuList\": [{ \"sku\": \"COFFEE-12\", \"categoryId\": \"beverages\", \"amount\": 2500 }],\n  \"locationId\": \"store-42\",\n  \"occurredAt\": \"2026-04-09T10:00:00Z\"\n}"
+            },
+            "url": { "raw": "{{apimBase}}/engine/v1/transactions", "host": ["{{apimBase}}"], "path": ["engine","v1","transactions"] }
+          }
+        },
+        {
+          "name": "Void transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"customer return\"\n}" },
+            "url": { "raw": "{{apimBase}}/engine/v1/transactions/{{transactionId}}/void", "host": ["{{apimBase}}"], "path": ["engine","v1","transactions","{{transactionId}}","void"] }
+          }
+        },
+        {
+          "name": "Admin adjustment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" },
+              { "key": "X-User-Role", "value": "admin" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"delta\": 500,\n  \"reasonCode\": \"bonus\",\n  \"notes\": \"goodwill\"\n}" },
+            "url": { "raw": "{{apimBase}}/engine/v1/members/{{memberId}}/adjustments", "host": ["{{apimBase}}"], "path": ["engine","v1","members","{{memberId}}","adjustments"] }
+          }
+        },
+        {
+          "name": "Get balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "url": { "raw": "{{apimBase}}/engine/v1/members/{{memberId}}/balance", "host": ["{{apimBase}}"], "path": ["engine","v1","members","{{memberId}}","balance"] }
+          }
+        },
+        {
+          "name": "Create redemption",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Skip-Auth", "value": "true" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"offerId\": \"offer-1\",\n  \"pointsToBurn\": 200,\n  \"redemptionContext\": {}\n}" },
+            "url": { "raw": "{{apimBase}}/engine/v1/redemptions", "host": ["{{apimBase}}"], "path": ["engine","v1","redemptions"] }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/deploy-infra.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options: [dev, staging, prod]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Bicep (${{ github.event.inputs.environment || 'dev' }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    env:
+      ENV_NAME: ${{ github.event.inputs.environment || 'dev' }}
+      RG_NAME: loyalty-platform-${{ github.event.inputs.environment || 'dev' }}
+      LOCATION: eastus
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Validate Bicep
+        run: az bicep build --file infra/main.bicep
+
+      - name: Ensure resource group
+        run: |
+          az group create -n "$RG_NAME" -l "$LOCATION" \
+            --tags environment="$ENV_NAME" project=loyalty-platform owner=snt-david-h
+
+      - name: Deploy
+        run: |
+          az deployment group create \
+            -g "$RG_NAME" \
+            -n "loyalty-infra-${{ github.run_id }}" \
+            -f infra/main.bicep \
+            -p infra/parameters/${ENV_NAME}.parameters.json \
+            -p sqlAdminPassword="${{ secrets.SQL_ADMIN_PASSWORD }}" \
+            -p aadAdminObjectId="${{ secrets.AAD_ADMIN_OBJECT_ID }}" \
+            -p aadAdminLogin="${{ secrets.AAD_ADMIN_LOGIN }}" \
+            -p apimPublisherEmail="${{ secrets.APIM_PUBLISHER_EMAIL }}"
+
+      - name: Capture outputs
+        run: |
+          az deployment group show \
+            -g "$RG_NAME" \
+            -n "loyalty-infra-${{ github.run_id }}" \
+            --query properties.outputs -o json > infra/infra-outputs.json
+          cat infra/infra-outputs.json
+
+      - name: Upload outputs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: infra-outputs-${{ env.ENV_NAME }}
+          path: infra/infra-outputs.json

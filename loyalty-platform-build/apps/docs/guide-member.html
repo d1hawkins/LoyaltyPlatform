@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Guide — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    @media print {
+      .sidebar, .sidebar-overlay, .top-bar, .mobile-menu-btn, .no-print { display: none !important; }
+      .main-content { margin-left: 0 !important; }
+      .content-area { max-width: 100% !important; padding: 0 !important; }
+    }
+    .toc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+    .toc h3 { margin-top: 0 !important; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.75rem; }
+    .toc ul { list-style: none; padding-left: 0; margin-bottom: 0; }
+    .toc li { margin-bottom: 0.375rem; }
+    .toc a { font-size: 0.875rem; color: #475569; text-decoration: none; }
+    .toc a:hover { color: var(--accent); }
+    .faq-item { margin-bottom: 1.5rem; }
+    .faq-item h4 { color: #1e293b; font-size: 1rem; margin-bottom: 0.5rem; }
+    .faq-item p { color: #475569; font-size: 0.9375rem; margin-bottom: 0; }
+    .tier-card { border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 1rem; }
+    .tier-card h4 { margin: 0 0 0.5rem 0; font-size: 1rem; }
+    .tier-card ul { margin-bottom: 0; padding-left: 1.25rem; font-size: 0.875rem; }
+    .tier-bronze { border-left: 4px solid #cd7f32; }
+    .tier-bronze h4 { color: #cd7f32; }
+    .tier-silver { border-left: 4px solid #a8a9ad; }
+    .tier-silver h4 { color: #71717a; }
+    .tier-gold { border-left: 4px solid #daa520; }
+    .tier-gold h4 { color: #b8860b; }
+    .tier-platinum { border-left: 4px solid #7b68ee; }
+    .tier-platinum h4 { color: #6a5acd; }
+  </style>
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link active">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="#" onclick="window.print();return false;" class="no-print">Print this guide</a>
+          <a href="https://loyaltyenroll.z13.web.core.windows.net" target="_blank">Member Portal</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Member Guide
+        </div>
+
+        <h1>Daiso Rewards Member Guide</h1>
+        <p class="subtitle">Welcome to Daiso Rewards! This guide explains how to join, earn points, unlock rewards, and get the most out of your membership.</p>
+
+        <div class="toc">
+          <h3>Table of Contents</h3>
+          <ul>
+            <li><a href="#joining">1. Joining Daiso Rewards</a></li>
+            <li><a href="#checking-points">2. Checking Your Points</a></li>
+            <li><a href="#how-points-work">3. How Points Work</a></li>
+            <li><a href="#tiers">4. Understanding Tiers</a></li>
+            <li><a href="#offers">5. Using Offers</a></li>
+            <li><a href="#transactions">6. Transaction History</a></li>
+            <li><a href="#profile">7. Managing Your Profile</a></li>
+            <li><a href="#expiry">8. Points Expiry</a></li>
+            <li><a href="#deleting">9. Deleting Your Account</a></li>
+            <li><a href="#self-checkout">10. Using Loyalty at Self-Checkout</a></li>
+            <li><a href="#faq">11. Frequently Asked Questions</a></li>
+          </ul>
+        </div>
+
+        <!-- 1. JOINING -->
+        <h2 id="joining">1. Joining Daiso Rewards</h2>
+
+        <p>Joining Daiso Rewards is free and takes less than 30 seconds. There are three ways to sign up:</p>
+
+        <h3>At the Store</h3>
+        <p>When you're checking out at any Daiso store, the cashier or self-checkout kiosk will ask if you'd like to join Daiso Rewards. Simply provide your phone number and name, and you're in! You'll start earning points on that very purchase.</p>
+
+        <h3>Online</h3>
+        <p>Visit the <a href="https://loyaltyenroll.z13.web.core.windows.net" target="_blank">Daiso Rewards enrollment page</a> and fill out the short form with your name, phone number, and email. Your account is created instantly.</p>
+
+        <h3>Via QR Code</h3>
+        <p>Scan the QR code displayed at the register or on Daiso marketing materials. It takes you directly to the sign-up page on your phone.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-title">What you need to sign up</div>
+          Just your phone number and name. Email is optional but recommended so we can send you offers and point balance updates.
+        </div>
+
+        <!-- 2. CHECKING POINTS -->
+        <h2 id="checking-points">2. Checking Your Points</h2>
+
+        <p>To see your current points balance and tier status:</p>
+        <ol>
+          <li>Visit the <a href="https://loyaltyenroll.z13.web.core.windows.net" target="_blank">Member Portal</a></li>
+          <li>Enter your phone number to log in</li>
+          <li>Your Dashboard shows your current points balance, tier level, and a progress bar showing how close you are to the next tier</li>
+        </ol>
+
+        <p>You can also see your points at checkout &mdash; when you give your phone number at the register or self-checkout kiosk, your current balance is displayed on screen.</p>
+
+        <!-- 3. HOW POINTS WORK -->
+        <h2 id="how-points-work">3. How Points Work</h2>
+
+        <h3>Earning Points</h3>
+        <p>Daiso Rewards supports two earning modes. Your local store will use one of the following:</p>
+
+        <h4>Per-Dollar Mode</h4>
+        <p>You earn <strong>1 point for every $1 spent</strong> at any Daiso store or on Daiso's online shop. Points are added to your account automatically after each purchase.</p>
+        <ul>
+          <li>Buy $15 worth of items = earn 15 points</li>
+          <li>Buy $42 worth of items = earn 42 points</li>
+        </ul>
+
+        <h4>Per-Visit Mode</h4>
+        <p>You earn a <strong>flat number of points for every qualifying visit</strong>. For example, every time you spend $5 or more at Daiso, you earn 10 points &mdash; regardless of the exact total.</p>
+        <ul>
+          <li>Buy $5.50 worth of items = earn 10 points</li>
+          <li>Buy $25 worth of items = earn 10 points</li>
+          <li>Buy $3 worth of items = does not qualify (below the $5 minimum)</li>
+        </ul>
+        <p>You can check which mode your store uses by logging into the Member Portal &mdash; your Dashboard will show "Per Visit" or "Per Dollar" next to the earn rate.</p>
+
+        <h3>Bonus Points</h3>
+        <p>You can earn bonus points in several ways:</p>
+        <ul>
+          <li><strong>Higher Tiers:</strong> Silver, Gold, and Platinum members earn points faster (see <a href="#tiers">Understanding Tiers</a> below)</li>
+          <li><strong>Double Points Events:</strong> During special promotion periods, you earn 2x or 3x the normal points</li>
+          <li><strong>Category Bonuses:</strong> Some product categories earn extra points (e.g., 3x points on beauty products)</li>
+        </ul>
+
+        <h3>When Points Appear</h3>
+        <p>Points are credited to your account within minutes of completing your purchase. You can see them on your receipt and in the Member Portal right away.</p>
+
+        <!-- 4. TIERS -->
+        <h2 id="tiers">4. Understanding Tiers</h2>
+
+        <p>Daiso Rewards has four membership tiers. As you earn more points, you automatically move up to higher tiers with better benefits.</p>
+
+        <div class="tier-card tier-bronze">
+          <h4>Bronze</h4>
+          <p style="font-size:0.8125rem;color:#64748b;margin-bottom:0.5rem;">Starting tier &mdash; all new members begin here</p>
+          <ul>
+            <li>Earn 1 point per $1 spent</li>
+            <li>Access to member-only offers</li>
+            <li>View your purchase history online</li>
+          </ul>
+        </div>
+
+        <div class="tier-card tier-silver">
+          <h4>Silver</h4>
+          <p style="font-size:0.8125rem;color:#64748b;margin-bottom:0.5rem;">Reach 500 points to unlock Silver</p>
+          <ul>
+            <li>Earn 1.25 points per $1 spent (25% bonus)</li>
+            <li>Early access to seasonal sales</li>
+            <li>Birthday bonus points</li>
+            <li>All Bronze benefits</li>
+          </ul>
+        </div>
+
+        <div class="tier-card tier-gold">
+          <h4>Gold</h4>
+          <p style="font-size:0.8125rem;color:#64748b;margin-bottom:0.5rem;">Reach 1,500 points to unlock Gold</p>
+          <ul>
+            <li>Earn 1.5 points per $1 spent (50% bonus)</li>
+            <li>Free shipping on online orders</li>
+            <li>Exclusive Gold-only offers</li>
+            <li>All Silver benefits</li>
+          </ul>
+        </div>
+
+        <div class="tier-card tier-platinum">
+          <h4>Platinum</h4>
+          <p style="font-size:0.8125rem;color:#64748b;margin-bottom:0.5rem;">Reach 5,000 points to unlock Platinum</p>
+          <ul>
+            <li>Earn 2 points per $1 spent (double points)</li>
+            <li>Invitations to VIP shopping events</li>
+            <li>Premium customer support</li>
+            <li>All Gold benefits</li>
+          </ul>
+        </div>
+
+        <p>You can see your current tier and your progress toward the next tier on your Member Portal Dashboard.</p>
+
+        <!-- 5. OFFERS -->
+        <h2 id="offers">5. Using Offers</h2>
+
+        <h3>Finding Your Offers</h3>
+        <p>Log in to the <a href="https://loyaltyenroll.z13.web.core.windows.net" target="_blank">Member Portal</a> and click the <strong>Offers</strong> tab. You'll see all offers currently available to you, based on your tier and shopping history.</p>
+
+        <h3>Redeeming an Offer at Checkout</h3>
+        <p>When you check out at a Daiso store and give your phone number, any eligible offers will automatically appear on the screen. The cashier or self-checkout kiosk will show you the offer and ask if you'd like to apply it. Just say yes, and the discount is applied to your purchase.</p>
+
+        <h3>Types of Offers</h3>
+        <ul>
+          <li><strong>Discount Offers:</strong> A percentage or dollar amount off your purchase (e.g., "15% off your next purchase" or "$5 off when you spend $25+")</li>
+          <li><strong>Visit Rewards:</strong> Shop a certain number of times to unlock a reward (e.g., "Visit 5 times and get $5 off"). Your progress is tracked automatically &mdash; you'll see "3 of 5 visits &mdash; 2 more to unlock!" in the Offers tab.</li>
+          <li><strong>Free Item:</strong> Complete a number of visits or meet a threshold to get a free product (e.g., "5 visits = free storage bin"). Some free item offers apply to a specific product; others let you pick any item up to a certain value.</li>
+          <li><strong>Bonus Points:</strong> Extra points on your purchase (e.g., "500 bonus points when you spend $50+")</li>
+        </ul>
+
+        <h3>Tracking Your Visit Progress</h3>
+        <p>For visit-based offers, your progress updates automatically after each qualifying purchase. You can see your current progress in three places:</p>
+        <ul>
+          <li><strong>Member Portal &rarr; Offers tab:</strong> Shows a progress bar for each visit-based offer</li>
+          <li><strong>At checkout (POS):</strong> The cashier's screen shows your visit progress</li>
+          <li><strong>Self-checkout kiosk:</strong> Your visit progress is displayed after you enter your phone number</li>
+        </ul>
+
+        <h3>Your Coupon Code</h3>
+        <p>When you unlock a visit-based reward, you'll receive a unique coupon code via SMS. Here's what you need to know:</p>
+        <ul>
+          <li>Your coupon code is <strong>unique to you</strong> &mdash; keep it handy for your next visit</li>
+          <li>Show the code from your SMS or member portal at checkout</li>
+          <li>Each code can only be used <strong>once</strong></li>
+          <li>The code will also appear on the POS screen when the cashier looks up your account</li>
+        </ul>
+
+        <!-- 6. TRANSACTIONS -->
+        <h2 id="transactions">6. Transaction History</h2>
+
+        <p>View all your past purchases in the Member Portal under the <strong>Transactions</strong> tab. Each transaction shows a summary row with:</p>
+        <ul>
+          <li>Date and time of purchase</li>
+          <li>Store location</li>
+          <li>Total amount spent</li>
+          <li>Points earned from that purchase</li>
+        </ul>
+
+        <h3>Viewing Item Details</h3>
+        <p>Click on any transaction to expand it and see the full details:</p>
+        <ul>
+          <li><strong>Items purchased:</strong> Each item with its name, quantity, and price (shown in a collapsible list)</li>
+          <li><strong>Store and associate:</strong> Which store location and which associate helped you</li>
+          <li><strong>Offers applied:</strong> Any discounts or offers used on this transaction</li>
+          <li><strong>Points breakdown:</strong> Base points, any bonus multipliers, and total earned</li>
+        </ul>
+
+        <p>This is a great way to keep track of your shopping and see how your points add up over time.</p>
+
+        <!-- 7. PROFILE -->
+        <h2 id="profile">7. Managing Your Profile</h2>
+
+        <p>Click the <strong>Profile</strong> tab in the Member Portal to update your information:</p>
+        <ul>
+          <li><strong>Name:</strong> Update your first or last name</li>
+          <li><strong>Email:</strong> Change your email address</li>
+          <li><strong>Communication Preferences:</strong> Choose whether you'd like to receive email updates about offers and promotions</li>
+        </ul>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Your phone number</div>
+          Your phone number is your unique loyalty identifier and cannot be changed through the portal. If you need to update your phone number, please contact Daiso customer support.
+        </div>
+
+        <!-- 8. EXPIRY -->
+        <h2 id="expiry">8. Points Expiry</h2>
+
+        <p>Points expire <strong>12 months</strong> after they are earned. For example, points earned in January 2026 will expire at the end of January 2027 if not redeemed.</p>
+
+        <h3>Expiry Notifications</h3>
+        <p>We'll let you know before your points expire:</p>
+        <ul>
+          <li><strong>30 days before:</strong> You'll receive a reminder that some of your points are about to expire</li>
+          <li><strong>7 days before:</strong> A final reminder with the exact number of points expiring</li>
+        </ul>
+
+        <h3>How to Prevent Expiry</h3>
+        <p>The simplest way to prevent points from expiring is to use them! Visit any Daiso store and ask about available offers, or check the Offers tab in your Member Portal.</p>
+
+        <!-- 9. DELETING -->
+        <h2 id="deleting">9. Deleting Your Account</h2>
+
+        <p>You have the right to delete your Daiso Rewards account at any time. Here's what happens when you request deletion:</p>
+        <ul>
+          <li>Your personal information (name, email, phone) is permanently removed from our systems</li>
+          <li>Any remaining points are forfeited</li>
+          <li>Your transaction history is anonymized (we keep it for accounting purposes, but it's no longer linked to you)</li>
+          <li>This action cannot be undone &mdash; if you rejoin later, you'll start fresh</li>
+        </ul>
+
+        <p>To delete your account, log in to the Member Portal, go to <strong>Profile</strong>, and click <strong>Delete My Account</strong>. You'll be asked to confirm before the deletion is processed.</p>
+
+        <p>You can also request deletion by contacting Daiso customer support.</p>
+
+        <!-- 10. SELF-CHECKOUT -->
+        <h2 id="self-checkout">10. Using Loyalty at Self-Checkout</h2>
+
+        <p>Daiso Rewards works seamlessly at self-checkout kiosks. Here's how to use it:</p>
+        <ol>
+          <li><strong>Start:</strong> Tap the screen to begin your self-checkout session</li>
+          <li><strong>Enter your phone number:</strong> Use the on-screen keypad to enter your loyalty phone number. The kiosk will greet you by name and show your current tier and points balance.</li>
+          <li><strong>Scan your items:</strong> Scan each product's barcode. The items appear on screen with prices.</li>
+          <li><strong>Check offers:</strong> If you have any eligible offers (including visit-based offers with progress), they'll appear automatically. Tap to apply.</li>
+          <li><strong>Pay:</strong> Tap <strong>PAY NOW</strong> and complete payment with your preferred method.</li>
+          <li><strong>Points earned:</strong> After payment, you'll see an animation showing the points you just earned and your updated balance.</li>
+        </ol>
+
+        <div class="callout callout-info">
+          <div class="callout-title">No extra steps</div>
+          Using loyalty at self-checkout requires no extra steps beyond entering your phone number. The points, offers, and visit tracking all work exactly the same as at a staffed register.
+        </div>
+
+        <!-- 11. FAQ -->
+        <h2 id="faq">11. Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+          <h4>"I didn't get points for my purchase"</h4>
+          <p>Make sure you gave your phone number at checkout before paying. If you forgot, contact Daiso customer support with your receipt and they can add the points to your account manually. Points are typically credited within a few minutes of purchase.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>"How do I check my tier?"</h4>
+          <p>Log in to the <a href="https://loyaltyenroll.z13.web.core.windows.net" target="_blank">Member Portal</a> with your phone number. Your current tier is displayed on the Dashboard along with a progress bar showing how close you are to the next tier.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>"Can I transfer my points to someone else?"</h4>
+          <p>Points transfers between members are not currently available. Each member's points are tied to their individual account.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>"I forgot which phone number I signed up with"</h4>
+          <p>Contact Daiso customer support. They can look up your account by email or name and help you identify the correct phone number.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>"Can I use my points at any Daiso store?"</h4>
+          <p>Yes! Your Daiso Rewards account works at all participating Daiso USA locations and on the Daiso online shop. Your points and tier status are the same everywhere.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>"I returned an item. What happens to the points I earned?"</h4>
+          <p>When a return is processed, the points earned from that purchase are automatically deducted from your balance. If you used an offer on that purchase, the offer may be returned to your account depending on the type of return.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>"How do I get notified about special offers and double points events?"</h4>
+          <p>Make sure your email is on file in your Profile and that you have opted in to communications. We'll send you emails about upcoming promotions and personalized offers.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>"Is there a Daiso Rewards app?"</h4>
+          <p>Daiso Rewards works through your phone's web browser &mdash; no app download needed. Just visit the <a href="https://loyaltyenroll.z13.web.core.windows.net" target="_blank">Member Portal</a> and bookmark it on your home screen for quick access.</p>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Need more help?</div>
+          If your question isn't answered here, contact Daiso customer support at your nearest store or through the Daiso USA website. Our team is happy to help with any loyalty program questions.
+        </div>
+
+        <div class="next-page">
+          <a href="index.html">&larr; Back to Documentation Home</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

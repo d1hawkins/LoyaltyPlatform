@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Guide — Daiso Rewards Docs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    @media print {
+      .sidebar, .sidebar-overlay, .top-bar, .mobile-menu-btn, .no-print { display: none !important; }
+      .main-content { margin-left: 0 !important; }
+      .content-area { max-width: 100% !important; padding: 0 !important; }
+    }
+    .toc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+    .toc h3 { margin-top: 0 !important; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.75rem; }
+    .toc ul { list-style: none; padding-left: 0; margin-bottom: 0; }
+    .toc li { margin-bottom: 0.375rem; }
+    .toc a { font-size: 0.875rem; color: #475569; text-decoration: none; }
+    .toc a:hover { color: var(--accent); }
+    .toc ul ul { padding-left: 1rem; margin-top: 0.375rem; }
+    .demo-step { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 0.75rem 1rem; margin-bottom: 0.75rem; border-radius: 0 0.375rem 0.375rem 0; }
+    .demo-step strong { color: #166534; }
+    .talking-point { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 0.75rem 1rem; margin: 0.75rem 0; border-radius: 0 0.375rem 0.375rem 0; font-style: italic; color: #1e40af; }
+    .talking-point::before { content: 'Talking Point: '; font-weight: 600; font-style: normal; }
+  </style>
+</head>
+<body>
+  <div class="docs-layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+          <img src="https://www.daisousa.com/cdn/shop/files/Daiso_Logo.png" alt="Daiso" style="height:1.5rem;object-fit:contain;" onerror="this.style.display='none'">
+          <h1>Daiso Rewards</h1>
+        </div>
+        <p>Developer Documentation</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="index.html" class="nav-link">Overview</a>
+          <a href="getting-started.html" class="nav-link">Quick Start</a>
+          <a href="authentication.html" class="nav-link">Authentication</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">API</div>
+          <a href="api-reference.html" class="nav-link">API Reference</a>
+          <a href="sdk.html" class="nav-link">JavaScript SDK</a>
+          <a href="webhooks.html" class="nav-link">Webhooks</a>
+          <a href="errors.html" class="nav-link">Errors &amp; Rate Limits</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Guides</div>
+          <a href="integrations.html" class="nav-link">E-Commerce Integrations</a>
+          <a href="architecture.html" class="nav-link">Architecture</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">User Guides</div>
+          <a href="demo-guide.html" class="nav-link active">Demo Guide</a>
+          <a href="guide-loyalty-admin.html" class="nav-link">Loyalty Admin Guide</a>
+          <a href="guide-marketing-admin.html" class="nav-link">Marketing Admin Guide</a>
+          <a href="guide-finance.html" class="nav-link">Finance Guide</a>
+          <a href="guide-member.html" class="nav-link">Member Guide</a>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span style="font-size:0.8125rem;color:#94a3b8;">v1.0</span>
+        </div>
+        <div class="top-bar-links">
+          <a href="#" onclick="window.print();return false;" class="no-print">Print this guide</a>
+          <a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">Admin Portal</a>
+          <a href="api-reference.html">API Reference</a>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="breadcrumb">
+          <a href="index.html">Docs</a> <span>/</span> Demo Guide
+        </div>
+
+        <h1>Daiso Rewards Demo Guide</h1>
+        <p class="subtitle">Step-by-step script for demonstrating the loyalty platform to Daiso USA executives. Estimated time: 40 minutes total.</p>
+
+        <div class="toc">
+          <h3>Table of Contents</h3>
+          <ul>
+            <li><a href="#pre-demo">1. Pre-Demo Setup (5 min)</a></li>
+            <li>
+              <a href="#demo-flow">2. Demo Flow (35 min)</a>
+              <ul>
+                <li><a href="#act1">Act 1 &mdash; The Customer Experience (10 min)</a></li>
+                <li><a href="#act2">Act 2 &mdash; The Merchant Experience (12 min)</a></li>
+                <li><a href="#act3">Act 3 &mdash; The POS Experience (5 min)</a></li>
+                <li><a href="#act4">Act 4 &mdash; Under the Hood (5 min)</a></li>
+              </ul>
+            </li>
+            <li><a href="#talking-points">3. Key Talking Points</a></li>
+            <li><a href="#faq">4. FAQ / Objection Handling</a></li>
+          </ul>
+        </div>
+
+        <!-- PRE-DEMO SETUP -->
+        <h2 id="pre-demo">1. Pre-Demo Setup (5 min)</h2>
+        <p>Before the demo begins, prepare your browser with the following tabs open. Use a full-screen browser window on an external monitor if available.</p>
+
+        <h3>Open All Application Tabs</h3>
+        <table>
+          <thead>
+            <tr><th>Tab</th><th>URL</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Landing Page</strong></td><td><a href="https://loyaltylanding.z13.web.core.windows.net" target="_blank">https://loyaltylanding.z13.web.core.windows.net</a></td></tr>
+            <tr><td><strong>Self-Checkout Kiosk</strong></td><td><a href="https://loyaltyselfcheckout.z13.web.core.windows.net" target="_blank">https://loyaltyselfcheckout.z13.web.core.windows.net</a></td></tr>
+            <tr><td><strong>POS Terminal</strong></td><td><a href="https://loyaltyposdemo.z13.web.core.windows.net" target="_blank">https://loyaltyposdemo.z13.web.core.windows.net</a></td></tr>
+            <tr><td><strong>Member Portal</strong></td><td><a href="https://loyaltyenroll.z13.web.core.windows.net" target="_blank">https://loyaltyenroll.z13.web.core.windows.net</a></td></tr>
+            <tr><td><strong>Admin Portal</strong></td><td><a href="https://loyaltyadminportal.z20.web.core.windows.net" target="_blank">https://loyaltyadminportal.z20.web.core.windows.net</a></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Pre-Flight Checklist</h3>
+        <ul>
+          <li>Clear any previous demo data by clicking <strong>"New Sale"</strong> on the POS Terminal</li>
+          <li>Ensure a test member exists with phone number: <code>9192474109</code></li>
+          <li>Verify the Admin Portal dashboard loads without errors</li>
+          <li>Test your internet connection &mdash; all apps are cloud-hosted</li>
+          <li>Set browser zoom to 100% for consistent display</li>
+        </ul>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Tip</div>
+          Arrange tabs left-to-right in demo order: Self-Checkout, Member Portal, Admin Portal, POS Terminal. This makes Alt+Tab / Ctrl+Tab transitions smooth during the presentation.
+        </div>
+
+        <!-- DEMO FLOW -->
+        <h2 id="demo-flow">2. Demo Flow (30 min)</h2>
+
+        <!-- ACT 1 -->
+        <h3 id="act1">Act 1 &mdash; "The Customer Experience" (10 min)</h3>
+        <p>Start with the customer-facing applications. The goal is to show executives exactly what their shoppers will see and feel.</p>
+
+        <h3>Self-Checkout Kiosk</h3>
+        <div class="demo-step">
+          <strong>Step 1:</strong> Switch to the Self-Checkout tab. Show the idle welcome screen.
+        </div>
+        <p>Say: <em>"This is what your customers see at the self-checkout kiosk. It's branded with Daiso colors and runs on any tablet or touchscreen."</em></p>
+
+        <div class="demo-step">
+          <strong>Step 2:</strong> Tap <strong>Start</strong> &rarr; Enter phone number <code>9192474109</code> &rarr; Show the member greeting with tier badge and points balance.
+        </div>
+        <p>Point out the personalized greeting, the member's current tier, and their points balance displayed prominently.</p>
+
+        <div class="demo-step">
+          <strong>Step 3:</strong> Add 3&ndash;4 Daiso products to the cart. Use recognizable items (storage boxes, kitchen tools, beauty products).
+        </div>
+
+        <div class="demo-step">
+          <strong>Step 4:</strong> Show the offer that appears automatically. Say: <em>"Visit-based offers unlock automatically based on how often the customer shops."</em>
+        </div>
+
+        <div class="demo-step">
+          <strong>Step 5:</strong> Apply the offer &rarr; Tap <strong>PAY NOW</strong> &rarr; Show the points-earned animation.
+        </div>
+
+        <div class="talking-point">"Every transaction earns points and tracks what they bought, where they bought it, and who served them. This data powers your marketing and finance reporting."</div>
+
+        <h3>Coupon Security (Code-Bound Coupons)</h3>
+        <div class="demo-step">
+          <strong>Step 5b:</strong> Highlight the coupon code shown on the offer card. Say: <em>"Coupon codes are unique per member and single-use. Even if a code is shared on social media, it can only be redeemed by the member who earned it."</em>
+        </div>
+        <div class="demo-step">
+          <strong>Demo:</strong> Show the code from the SMS notification, then show it displayed on the POS offer panel. Explain that attempting to use another member's code will result in a rejection with error <code>CODE_MEMBER_MISMATCH</code>.
+        </div>
+        <div class="talking-point">"This prevents coupon fraud. Each visit-milestone coupon is cryptographically tied to the member who earned it. No sharing, no reuse."</div>
+
+        <h3>Member Portal</h3>
+        <div class="demo-step">
+          <strong>Step 6:</strong> Switch to the Member Portal tab. Log in with the same phone number (<code>9192474109</code>).
+        </div>
+
+        <div class="demo-step">
+          <strong>Step 7:</strong> Walk through each section:
+          <ul>
+            <li><strong>Dashboard:</strong> Points balance, tier progress bar, tier benefits summary</li>
+            <li><strong>Transactions:</strong> "The customer sees every purchase with items, store, and date"</li>
+            <li><strong>Offers:</strong> "Personalized offers based on their tier and visit history"</li>
+            <li><strong>Profile:</strong> "They can manage their own account &mdash; GDPR compliant"</li>
+          </ul>
+        </div>
+
+        <div class="talking-point">"This is what your customers see on their phone. No app download needed &mdash; it's a responsive web app that works on any device."</div>
+
+        <h3>Customer Enrollment</h3>
+        <div class="demo-step">
+          <strong>Step 8:</strong> Click <strong>"Join Now"</strong> &rarr; Fill out the enrollment form &rarr; Show instant enrollment confirmation.
+        </div>
+
+        <div class="talking-point">"New members can join at checkout, online, or via a QR code at the register. Enrollment takes less than 30 seconds."</div>
+
+        <!-- ACT 2 -->
+        <h3 id="act2">Act 2 &mdash; "The Merchant Experience" (10 min)</h3>
+        <p>Now show the back-office tools. This is where Daiso's team manages the program day-to-day.</p>
+
+        <div class="demo-step">
+          <strong>Step 1:</strong> Switch to the Admin Portal. Start at the <strong>Dashboard</strong>.
+        </div>
+        <p>Say: <em>"This is your real-time command center. You see active members, points issued today, transactions, program health at a glance, and the current earn mode badge (Per-Dollar or Per-Visit). When in per-visit mode, you also see qualified visits today and the visit conversion rate."</em></p>
+
+        <div class="demo-step">
+          <strong>Step 2:</strong> Navigate to <strong>Members</strong>. Search for the test member. Click to open their detail view.
+        </div>
+        <p>Show: full profile, transaction history, tier status, points balance, and the ability to adjust points manually.</p>
+
+        <div class="demo-step">
+          <strong>Step 3:</strong> Navigate to <strong>Transactions</strong>. Show the list with store, associate, items, and points columns.
+        </div>
+        <p>Say: <em>"Every transaction is recorded with full context &mdash; store, register, associate, line items, and points earned."</em></p>
+
+        <div class="demo-step">
+          <strong>Step 4:</strong> Navigate to <strong>Tiers</strong>. Show configurable tier names, thresholds, and benefits.
+        </div>
+        <p>Say: <em>"You can rename tiers, change point thresholds, and add or remove benefits at any time. Changes take effect immediately."</em></p>
+
+        <div class="demo-step">
+          <strong>Step 5:</strong> Navigate to <strong>Offers</strong> &rarr; <strong>Create Offer</strong>. Demo creating a visit-based offer.
+        </div>
+        <p>Example: "Buy 5 visits at $5+ each, get $5 off." Walk through the form fields: offer type, qualification rules (minimum spend, minimum items, qualifying channels, qualifying stores, per-transaction vs per-day counting), reward amount, and eligibility criteria.</p>
+
+        <div class="demo-step">
+          <strong>Step 5b:</strong> Also show the <strong>Free Item</strong> offer type. Create an example: "Free storage bin after 3 visits." Show the optional SKU restriction and optional max value cap.
+        </div>
+        <p>Say: <em>"Your marketing team can create a new offer in 30 seconds &mdash; no engineering needed. You've got visit-based punch cards, percentage off, fixed amount, BOGO, threshold rewards, and free item giveaways."</em></p>
+
+        <div class="demo-step">
+          <strong>Step 6:</strong> Navigate to <strong>Program Config</strong>. Show each tab:
+          <ul>
+            <li><strong>Earn Mode Toggle:</strong> Switch between <strong>Per-Dollar</strong> (1 point per $1) and <strong>Per-Visit</strong> (flat points per qualifying visit). When Per-Visit is selected, show the conditional fields: points per visit, minimum spend threshold, and max visits per day.</li>
+            <li><strong>Earn Rate:</strong> Points per dollar or points per visit, rounding rules</li>
+            <li><strong>Promotional Multipliers:</strong> "Double points weekend &mdash; set it up in 2 clicks"</li>
+            <li><strong>Category Multipliers:</strong> "3x points on beauty products"</li>
+            <li><strong>Expiry:</strong> Points expiration window and notification settings</li>
+          </ul>
+        </div>
+        <p>Say: <em>"Per-visit mode is designed for high-frequency, low-ticket retailers like Daiso. Every visit over $5 earns 10 points, regardless of the total. It keeps it simple for customers and predictable for finance."</em></p>
+
+        <div class="demo-step">
+          <strong>Step 7:</strong> Navigate to <strong>Reports</strong>. Show all three tabs:
+          <ul>
+            <li><strong>Finance:</strong> Points Liability card, breakage estimate, redemption reserve, revenue attribution</li>
+            <li><strong>Marketing:</strong> Engagement funnel, at-risk members, tier distribution chart, offer performance</li>
+            <li><strong>Operations:</strong> Qualified visits today, visit conversion rate (% of transactions that meet the minimum spend), daily visit trends chart, program health score</li>
+          </ul>
+        </div>
+        <p>Say: <em>"Finance gets ASC 606 compliant liability numbers. Marketing sees the full engagement funnel. Operations monitors visit conversion rates. No manual spreadsheets."</em></p>
+
+        <div class="demo-step">
+          <strong>Step 8:</strong> Navigate to <strong>Integrations</strong>. Show ActiveCampaign and Klaviyo connectors.
+        </div>
+        <p>Say: <em>"Connect your email platform and sync member data automatically. Trigger campaigns on loyalty events like tier upgrades or points about to expire."</em></p>
+
+        <div class="demo-step">
+          <strong>Step 9:</strong> Briefly show <strong>API Keys</strong> and <strong>Audit Log</strong>.
+        </div>
+        <p>Say: <em>"POS integration uses API keys you generate here. And every admin action is logged &mdash; who did what, when, with full before/after snapshots."</em></p>
+
+        <!-- ACT 3 -->
+        <h3 id="act3">Act 3 &mdash; "The POS Experience" (5 min)</h3>
+        <p>Demonstrate the point-of-sale integration to show how associates interact with the loyalty program during checkout.</p>
+
+        <div class="demo-step">
+          <strong>Step 1:</strong> Switch to the POS Terminal tab. Point out the <strong>store settings panel</strong> in the header &mdash; store ID, store name, register ID. Show the <strong>associate selector</strong> where the cashier picks their name. Explain that these fields are automatically attached to every transaction as enrichment data.
+        </div>
+
+        <div class="demo-step">
+          <strong>Step 2:</strong> Look up the test member by phone number. Show the member panel with:
+          <ul>
+            <li><strong>Offers</strong> (collapsible section) with visit progress bars: "3 of 5 visits &mdash; 2 more to unlock!"</li>
+            <li><strong>Recent Activity</strong> (collapsible section) showing recent transactions with store and date</li>
+          </ul>
+        </div>
+
+        <div class="demo-step">
+          <strong>Step 3:</strong> Add items to the cart &rarr; Apply an offer &rarr; Complete the sale.
+        </div>
+
+        <div class="demo-step">
+          <strong>Step 4:</strong> Show the receipt with points earned and updated balance. Point out that the transaction response includes all enrichment fields: storeId, storeName, registerId, associateId, associateName, sourceChannel, sourceSystem, and orderRef.
+        </div>
+
+        <div class="demo-step">
+          <strong>Step 5:</strong> Demonstrate the <strong>Void</strong> feature. Show that voided transactions reverse points automatically.
+        </div>
+
+        <div class="talking-point">"This works with your existing POS via our API. Three API calls: lookup, transact, redeem. That's it. Every transaction is enriched with store, register, associate, and source data automatically."</div>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Idempotency</div>
+          If you accidentally submit the same sale twice, the system recognizes the duplicate and returns the original result. No double-points risk, even if the network hiccups.
+        </div>
+
+        <!-- ACT 4 -->
+        <h3 id="act4">Act 4 &mdash; "Under the Hood" (5 min)</h3>
+        <p>Only cover this section if the audience includes technical stakeholders (CTO, IT Director, engineering leads).</p>
+
+        <div class="demo-step">
+          <strong>Step 1:</strong> Open <a href="https://swagger-ui.blackgrass-225d994b.eastus.azurecontainerapps.io" target="_blank">Swagger UI</a>. Show the full REST API.
+        </div>
+        <p>Say: <em>"Every feature you just saw is available through this API. Your POS, e-commerce site, and mobile app all integrate here."</em></p>
+
+        <div class="demo-step">
+          <strong>Step 2:</strong> Open the <a href="index.html">Developer Docs</a>. Show API reference, SDK documentation, and webhook guides.
+        </div>
+
+        <div class="demo-step">
+          <strong>Step 3:</strong> Show the <a href="architecture.html">Architecture page</a>. Highlight multi-tenancy and data isolation.
+        </div>
+        <p>Say: <em>"Azure-native, multi-tenant architecture. Every Daiso store gets its own isolated database &mdash; no data leaks between tenants. Built on Azure Container Apps, Service Bus, and Cosmos DB."</em></p>
+
+        <!-- KEY TALKING POINTS -->
+        <h2 id="talking-points">3. Key Talking Points</h2>
+        <p>Keep these phrases ready for any point in the demo:</p>
+        <ul>
+          <li><strong>Data Isolation:</strong> "Every Daiso store gets its own isolated database &mdash; no data leaks between tenants."</li>
+          <li><strong>Easy POS Integration:</strong> "Works with your existing POS &mdash; just 3 API calls: lookup, transact, redeem."</li>
+          <li><strong>No App Required:</strong> "Customers don't need to download an app &mdash; the member portal is web-based and works on any device."</li>
+          <li><strong>Financial Compliance:</strong> "Finance gets ASC 606 compliant liability reporting out of the box."</li>
+          <li><strong>Marketing Automation:</strong> "Marketing can connect ActiveCampaign or Klaviyo and trigger campaigns on loyalty events."</li>
+          <li><strong>Flexible Offers:</strong> "Visit-based offers with configurable qualification &mdash; minimum spend, minimum items, specific stores. Plus free item giveaways."</li>
+          <li><strong>Per-Visit Earn Mode:</strong> "Two earn modes &mdash; per-dollar for traditional retail, per-visit for high-frequency low-ticket stores like Daiso. Switch with one click."</li>
+          <li><strong>Self-Checkout Ready:</strong> "Same loyalty integration at self-checkout &mdash; no extra work. Branded kiosk experience at <a href='https://loyaltyselfcheckout.z13.web.core.windows.net' target='_blank'>loyaltyselfcheckout</a>."</li>
+          <li><strong>Transaction Enrichment:</strong> "Every transaction records store, register, associate, source system, and order reference. Full traceability for finance and ops."</li>
+          <li><strong>Three Report Tabs:</strong> "Finance, Marketing, and Operations. Liability, engagement funnels, visit conversion rates &mdash; all in one place."</li>
+          <li><strong>Built-in Security:</strong> "Fraud detection is built in &mdash; velocity checks, location tracking, balance drain detection."</li>
+        </ul>
+
+        <!-- FAQ -->
+        <h2 id="faq">4. FAQ / Objection Handling</h2>
+        <p>Anticipated questions from executives and prepared responses:</p>
+        <table>
+          <thead>
+            <tr><th style="width:40%">Question</th><th>Recommended Answer</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>"Can we brand it with Daiso colors?"</strong></td>
+              <td>"Already done &mdash; every customer touchpoint uses your brand colors, logo, and typography. The platform is white-labeled."</td>
+            </tr>
+            <tr>
+              <td><strong>"How long to integrate with our POS?"</strong></td>
+              <td>"Three API calls. We have SDKs for Shopify and WooCommerce. A custom POS integration typically takes 1&ndash;2 weeks."</td>
+            </tr>
+            <tr>
+              <td><strong>"What about our existing customer data?"</strong></td>
+              <td>"Bulk import via API. We can migrate your existing customer data in a few days, including historical purchase data."</td>
+            </tr>
+            <tr>
+              <td><strong>"How much does it cost?"</strong></td>
+              <td>"Pricing is based on active member count. The platform starts free for up to 1,000 members."</td>
+            </tr>
+            <tr>
+              <td><strong>"Is it GDPR/CCPA compliant?"</strong></td>
+              <td>"Yes &mdash; we support data deletion, export, consent management, and PII encryption at rest. Full audit trail of all data access."</td>
+            </tr>
+            <tr>
+              <td><strong>"Can we do birthday rewards?"</strong></td>
+              <td>"Yes &mdash; configurable bonus point triggers including birthday, referral, enrollment anniversary, and custom events."</td>
+            </tr>
+            <tr>
+              <td><strong>"What if our internet goes down?"</strong></td>
+              <td>"The POS queues transactions locally and submits them when connectivity is restored. Idempotent design means no double-points risk."</td>
+            </tr>
+            <tr>
+              <td><strong>"Can we see it work with real data?"</strong></td>
+              <td>"Everything you've seen today is running against a live API with real data. We can load your actual product catalog for a proof-of-concept."</td>
+            </tr>
+            <tr>
+              <td><strong>"How do we get started?"</strong></td>
+              <td>"We provision your tenant, import your products, and configure your program. You can be live within 2 weeks."</td>
+            </tr>
+            <tr>
+              <td><strong>"How does per-visit mode work?"</strong></td>
+              <td>"Instead of points-per-dollar, every qualifying visit earns a flat number of points. For example, every visit where you spend $5 or more earns 10 points. It's simpler for customers to understand and more predictable for finance to forecast. You set the minimum spend threshold and the points-per-visit amount in Program Config. You can also cap the number of qualifying visits per day to prevent gaming."</td>
+            </tr>
+            <tr>
+              <td><strong>"Can we configure what counts as a visit?"</strong></td>
+              <td>"Absolutely. A qualifying visit is defined by configurable rules: minimum spend amount, minimum number of items, qualifying channels (in-store, online, self-checkout), and qualifying stores. You can also choose whether visits are counted per transaction or per day (so a customer who makes two purchases in one day only counts as one visit). All of this is configured in the offer qualification rules."</td>
+            </tr>
+            <tr>
+              <td><strong>"Do you support self-checkout?"</strong></td>
+              <td>"Yes. We have a dedicated self-checkout kiosk app at <a href='https://loyaltyselfcheckout.z13.web.core.windows.net' target='_blank'>loyaltyselfcheckout.z13.web.core.windows.net</a>. It runs the same loyalty integration as your staffed registers &mdash; phone keypad entry, item scanning, offer display, and payment. No extra integration work needed."</td>
+            </tr>
+            <tr>
+              <td><strong>"What reporting do we get?"</strong></td>
+              <td>"Three full report tabs. <strong>Finance:</strong> points liability (ASC 606), breakage estimates, redemption reserve, revenue attribution. <strong>Marketing:</strong> engagement funnel, at-risk members, tier distribution, offer performance with ROI. <strong>Operations:</strong> qualified visit analytics, visit conversion rate (% of transactions that qualify), daily visit trends, and program health score. Everything exports to CSV and the API supports Power BI integration."</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-success">
+          <div class="callout-title">After the Demo</div>
+          Send the executive team links to the <a href="guide-member.html">Member Guide</a> (so they can try the customer experience) and the <a href="guide-loyalty-admin.html">Loyalty Admin Guide</a> (so they can explore the back office). Both are self-service and require no technical knowledge.
+        </div>
+
+        <div class="next-page">
+          <a href="guide-loyalty-admin.html">Next: Loyalty Admin Guide &rarr;</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!--
+  Loyalty Platform — APIM global service-scope policy.
+  Applies to all APIs under this service instance.
+
+  Behaviour:
+    1. CORS for portal + localhost dev origins.
+    2. Correlation-id propagation (generate if absent).
+    3. Dev-only bypass: X-Skip-Auth: true skips validate-jwt (DEV APIM ONLY;
+       must be stripped in staging/prod — operators: remove the <choose>
+       wrapper entirely when promoting this file to the staging instance).
+    4. validate-jwt against B2C JWKS (named values B2C_JWKS_URI, B2C_ISSUER).
+    5. Extract tenant + user claims to X-Tenant-ID / X-User-ID headers for
+       downstream services.
+    6. Strip the X-Skip-Auth header so it cannot be used past the gateway.
+-->
+<policies>
+  <inbound>
+    <cors allow-credentials="true">
+      <allowed-origins>
+        <origin>https://loyalty-dev-admin.azurestaticapps.net</origin>
+        <origin>http://localhost:3000</origin>
+        <origin>http://localhost:5173</origin>
+        <origin>http://localhost:8080</origin>
+      </allowed-origins>
+      <allowed-methods preflight-result-max-age="300">
+        <method>GET</method>
+        <method>POST</method>
+        <method>PATCH</method>
+        <method>PUT</method>
+        <method>DELETE</method>
+        <method>OPTIONS</method>
+      </allowed-methods>
+      <allowed-headers>
+        <header>Authorization</header>
+        <header>Content-Type</header>
+        <header>Idempotency-Key</header>
+        <header>X-Tenant-ID</header>
+        <header>X-Correlation-ID</header>
+        <header>X-Skip-Auth</header>
+        <header>Ocp-Apim-Subscription-Key</header>
+      </allowed-headers>
+      <expose-headers>
+        <header>X-Correlation-ID</header>
+      </expose-headers>
+    </cors>
+
+    <!-- Correlation-id: propagate client-supplied value or mint one -->
+    <set-variable name="correlationId" value="@(context.Request.Headers.GetValueOrDefault(&quot;X-Correlation-ID&quot;, Guid.NewGuid().ToString()))" />
+    <set-header name="X-Correlation-ID" exists-action="override">
+      <value>@((string)context.Variables["correlationId"])</value>
+    </set-header>
+
+    <!-- DEV-ONLY: allow X-Skip-Auth: true to bypass JWT validation.
+         REMOVE the <choose> wrapper in staging/prod.
+
+         The <validate-jwt> element is additionally gated on the
+         B2C_VALIDATE_JWT_ENABLED named value. APIM fetches the OIDC metadata
+         at policy-apply time, so we must leave it disabled until the B2C
+         tenant (A-06 soft blocker) is live. Operator updates the three named
+         values B2C_JWKS_URI, B2C_ISSUER, B2C_VALIDATE_JWT_ENABLED=true via
+         `az apim nv update` (see HANDOFF.md for the exact commands).
+         No policy re-deploy needed. -->
+    <choose>
+      <when condition="@(context.Request.Headers.GetValueOrDefault(&quot;X-Skip-Auth&quot;, &quot;&quot;) != &quot;true&quot;)">
+        <choose>
+          <when condition="@("{{B2C_VALIDATE_JWT_ENABLED}}" == "true")">
+            <validate-jwt header-name="Authorization"
+                          failed-validation-httpcode="401"
+                          failed-validation-error-message="Unauthorized"
+                          require-expiration-time="true"
+                          require-signed-tokens="true">
+              <openid-config url="{{B2C_JWKS_URI}}" />
+              <required-claims>
+                <claim name="iss" match="any">
+                  <value>{{B2C_ISSUER}}</value>
+                </claim>
+              </required-claims>
+            </validate-jwt>
+          </when>
+        </choose>
+
+        <!-- Extract tenantId claim (B2C custom attr or Entra tid) -->
+        <set-variable name="tenantId" value="@{
+            var auth = context.Request.Headers.GetValueOrDefault("Authorization","");
+            var parts = auth.Split(' ');
+            if (parts.Length < 2) { return ""; }
+            var jwt = parts[1].AsJwt();
+            if (jwt == null) { return ""; }
+            if (jwt.Claims.ContainsKey("extension_tenantId")) { return jwt.Claims.GetValueOrDefault("extension_tenantId", ""); }
+            return jwt.Claims.GetValueOrDefault("tid", "");
+        }" />
+        <set-variable name="userId" value="@{
+            var auth = context.Request.Headers.GetValueOrDefault("Authorization","");
+            var parts = auth.Split(' ');
+            if (parts.Length < 2) { return ""; }
+            var jwt = parts[1].AsJwt();
+            if (jwt == null) { return ""; }
+            return jwt.Claims.GetValueOrDefault("sub", "");
+        }" />
+        <set-header name="X-Tenant-ID" exists-action="override">
+          <value>@((string)context.Variables["tenantId"])</value>
+        </set-header>
+        <set-header name="X-User-ID" exists-action="override">
+          <value>@((string)context.Variables["userId"])</value>
+        </set-header>
+      </when>
+      <otherwise>
+        <!-- Dev bypass: require explicit headers so nothing is implicit -->
+        <choose>
+          <when condition="@(string.IsNullOrEmpty(context.Request.Headers.GetValueOrDefault(&quot;X-Tenant-ID&quot;,&quot;&quot;)))">
+            <return-response>
+              <set-status code="400" reason="Bad Request" />
+              <set-header name="Content-Type" exists-action="override">
+                <value>application/problem+json</value>
+              </set-header>
+              <set-body>{"type":"about:blank","title":"X-Tenant-ID required in dev bypass","status":400,"code":"VALIDATION_ERROR"}</set-body>
+            </return-response>
+          </when>
+        </choose>
+      </otherwise>
+    </choose>
+
+    <!-- Strip the dev bypass header so it never reaches the backend -->
+    <set-header name="X-Skip-Auth" exists-action="delete" />
+  </inbound>
+  <backend />
+  <outbound>
+    <set-header name="X-Correlation-ID" exists-action="override">
+      <value>@((string)context.Variables["correlationId"])</value>
+    </set-header>
+  </outbound>
+  <on-error>
+    <set-header name="Content-Type" exists-action="override">
+      <value>application/problem+json</value>
+    </set-header>
+  </on-error>
+</policies>
